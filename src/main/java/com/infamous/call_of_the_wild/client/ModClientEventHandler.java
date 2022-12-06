@@ -12,7 +12,7 @@ public class ModClientEventHandler {
 
     @SubscribeEvent
     static void onRegisterLayerDefinitions(EntityRenderersEvent.RegisterLayerDefinitions event){
-        event.registerLayerDefinition(COTWModelLayers.DOG, DogModel::createBodyLayer);
+        event.registerLayerDefinition(COTWModelLayers.DOG, AndreDogModel::createBodyLayer);
     }
 
     @SubscribeEvent

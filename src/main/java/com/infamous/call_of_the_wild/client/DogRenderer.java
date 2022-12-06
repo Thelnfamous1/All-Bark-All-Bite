@@ -7,15 +7,13 @@ import net.minecraft.client.renderer.entity.EntityRendererProvider;
 import net.minecraft.client.renderer.entity.MobRenderer;
 import net.minecraft.resources.ResourceLocation;
 
-public class DogRenderer extends MobRenderer<Dog, DogModel<Dog>> {
+public class DogRenderer extends MobRenderer<Dog, AndreDogModel<Dog>> {
+
+   private static final float DEFAULT_SHADOW_RADIUS = 0.5F;
 
    public DogRenderer(EntityRendererProvider.Context context) {
-      super(context, new DogModel<>(context.bakeLayer(COTWModelLayers.DOG)), 0.5F);
+      super(context, new AndreDogModel<>(context.bakeLayer(COTWModelLayers.DOG)), DEFAULT_SHADOW_RADIUS);
       this.addLayer(new DogCollarLayer(this));
-   }
-
-   protected float getBob(Dog dog, float p_116529_) {
-      return dog.getTailAngle();
    }
 
    public void render(Dog dog, float p_116532_, float partialTicks, PoseStack poseStack, MultiBufferSource bufferSource, int p_116536_) {
@@ -28,7 +26,19 @@ public class DogRenderer extends MobRenderer<Dog, DogModel<Dog>> {
       if (dog.isWet()) {
          this.model.setColor(1.0F, 1.0F, 1.0F);
       }
+   }
 
+   @Override
+   protected void scale(Dog dog, PoseStack poseStack, float p_115316_) {
+      float scaleFactor = 1.0F;
+      if (dog.isBaby()) {
+         scaleFactor *= 0.5F;
+         this.shadowRadius = DEFAULT_SHADOW_RADIUS * 0.5F;
+      } else {
+         this.shadowRadius = DEFAULT_SHADOW_RADIUS;
+      }
+
+      poseStack.scale(scaleFactor, scaleFactor, scaleFactor);
    }
 
    public ResourceLocation getTextureLocation(Dog dog) {

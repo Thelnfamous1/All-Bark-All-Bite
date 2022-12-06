@@ -101,11 +101,11 @@ public class DogAi {
     private static final double LEAP_Y_DELTA = 0.4D;
     private static final float JUMP_CHANCE_IN_WATER = 0.8F;
     private static final float SPEED_MODIFIER_BREEDING = 1.0F;
-    private static final float SPEED_MODIFIER_CHASING = 1.0F;
-    private static final float SPEED_MODIFIER_FOLLOWING_ADULT = 1.25F;
-    private static final float SPEED_MODIFIER_PANICKING = 1.5F;
-    private static final float SPEED_MODIFIER_RETREATING = 1.5F;
-    private static final float SPEED_MODIFIER_TEMPTED = 1.25F;
+    private static final float SPEED_MODIFIER_CHASING = 0.77F; // Dog will sprint with 30% extra speed, meaning final speed is effectively ~1.0F
+    private static final float SPEED_MODIFIER_FOLLOWING_ADULT = 1.0F;
+    private static final float SPEED_MODIFIER_PANICKING = 1.154F; // Dog will sprint with 30% extra speed, meaning final speed is effectively ~1.5F
+    private static final float SPEED_MODIFIER_RETREATING = 1.154F; // Dog will sprint with 30% extra speed, meaning final speed is effectively ~1.5F
+    private static final float SPEED_MODIFIER_TEMPTED = 1.0F;
     private static final float SPEED_MODIFIER_WALKING = 1.0F;
     private static final int ATTACK_COOLDOWN_TICKS = 20;
     private static final int DESIRED_DISTANCE_FROM_DISLIKED = 6;
@@ -233,7 +233,7 @@ public class DogAi {
                 ImmutableList.of(
                         new StopAttackingIfTargetInvalid<>(),
                         new RunIf<>(Dog::isMobile, new SetWalkTargetFromAttackTargetIfTargetOutOfReach(SPEED_MODIFIER_CHASING)),
-                        new RunIf<>(Dog::isMobile, new LeapAtTarget(LEAP_Y_DELTA), true),
+                        new RunIf<>(Dog::isMobile, new LeapAtTarget(), true),
                         new RunIf<>(Dog::isMobile, new MeleeAttack(ATTACK_COOLDOWN_TICKS)),
                         new EraseMemoryIf<>(BehaviorUtils::isBreeding, MemoryModuleType.ATTACK_TARGET)),
                 MemoryModuleType.ATTACK_TARGET);
@@ -342,7 +342,10 @@ public class DogAi {
             getSoundForCurrentActivity(dog).ifPresent(dog::playSoundEvent);
         }
 
-        dog.setAggressive(brain.hasMemoryValue(MemoryModuleType.ATTACK_TARGET));
+        boolean hasAttackTarget = brain.hasMemoryValue(MemoryModuleType.ATTACK_TARGET);
+        dog.setAggressive(hasAttackTarget);
+        boolean shouldSprint = hasAttackTarget || brain.hasMemoryValue(MemoryModuleType.AVOID_TARGET) || brain.hasMemoryValue(MemoryModuleType.IS_PANICKING);
+        dog.setSprinting(shouldSprint);
     }
 
     protected static Optional<SoundEvent> getSoundForCurrentActivity(Dog dog) {
