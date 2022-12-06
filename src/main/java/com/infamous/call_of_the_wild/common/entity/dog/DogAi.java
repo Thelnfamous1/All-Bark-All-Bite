@@ -101,10 +101,10 @@ public class DogAi {
     private static final double LEAP_Y_DELTA = 0.4D;
     private static final float JUMP_CHANCE_IN_WATER = 0.8F;
     private static final float SPEED_MODIFIER_BREEDING = 1.0F;
-    private static final float SPEED_MODIFIER_CHASING = 0.77F; // Dog will sprint with 30% extra speed, meaning final speed is effectively ~1.0F
+    private static final float SPEED_MODIFIER_CHASING = 1.0F; // Dog will sprint with 30% extra speed, meaning final speed is effectively ~1.3F
     private static final float SPEED_MODIFIER_FOLLOWING_ADULT = 1.0F;
-    private static final float SPEED_MODIFIER_PANICKING = 1.154F; // Dog will sprint with 30% extra speed, meaning final speed is effectively ~1.5F
-    private static final float SPEED_MODIFIER_RETREATING = 1.154F; // Dog will sprint with 30% extra speed, meaning final speed is effectively ~1.5F
+    private static final float SPEED_MODIFIER_PANICKING = 1.0F; // Dog will sprint with 30% extra speed, meaning final speed is effectively ~1.3F
+    private static final float SPEED_MODIFIER_RETREATING = 1.0F; // Dog will sprint with 30% extra speed, meaning final speed is effectively ~1.3F
     private static final float SPEED_MODIFIER_TEMPTED = 1.0F;
     private static final float SPEED_MODIFIER_WALKING = 1.0F;
     private static final int ATTACK_COOLDOWN_TICKS = 20;

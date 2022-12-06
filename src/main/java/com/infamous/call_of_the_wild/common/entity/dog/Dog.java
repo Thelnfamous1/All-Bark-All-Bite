@@ -1,12 +1,15 @@
 package com.infamous.call_of_the_wild.common.entity.dog;
 
+import com.google.common.collect.Iterables;
 import com.infamous.call_of_the_wild.common.entity.*;
 import com.infamous.call_of_the_wild.common.registry.COTWDogVariants;
 import com.infamous.call_of_the_wild.common.registry.COTWEntityDataSerializers;
 import com.infamous.call_of_the_wild.common.registry.COTWEntityTypes;
 import com.infamous.call_of_the_wild.common.util.AiHelper;
+import com.infamous.call_of_the_wild.common.util.Helper;
 import com.mojang.serialization.Dynamic;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Registry;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
@@ -14,6 +17,8 @@ import net.minecraft.network.syncher.SynchedEntityData;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.sounds.SoundEvents;
+import net.minecraft.util.RandomSource;
+import net.minecraft.world.DifficultyInstance;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.damagesource.DamageSource;
@@ -31,6 +36,7 @@ import net.minecraft.world.food.FoodProperties;
 import net.minecraft.world.item.DyeColor;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.ServerLevelAccessor;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.gameevent.GameEvent;
 import net.minecraft.world.level.pathfinder.BlockPathTypes;
@@ -38,6 +44,8 @@ import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.registries.IForgeRegistry;
 import org.apache.commons.lang3.tuple.MutablePair;
 import org.jetbrains.annotations.Nullable;
+
+import java.util.Collection;
 
 public class Dog extends TamableAnimal implements InterestedMob, ShakingMob<Dog>, VariantMob, CollaredMob {
     private static final EntityDataAccessor<Boolean> DATA_INTERESTED_ID = SynchedEntityData.defineId(Dog.class, EntityDataSerializers.BOOLEAN);
@@ -221,6 +229,16 @@ public class Dog extends TamableAnimal implements InterestedMob, ShakingMob<Dog>
     }
 
     @Override
+    public SpawnGroupData finalizeSpawn(ServerLevelAccessor serverLevelAccessor, DifficultyInstance difficultyInstance, MobSpawnType mobSpawnType, @Nullable SpawnGroupData groupData, @Nullable CompoundTag tag) {
+        SpawnGroupData spawnGroupData = super.finalizeSpawn(serverLevelAccessor, difficultyInstance, mobSpawnType, groupData, tag);
+        Collection<EntityVariant> values = this.getVariantRegistry().getValues();
+        RandomSource random = serverLevelAccessor.getRandom();
+        EntityVariant randomVariant = Helper.getRandomObject(values, random);
+        this.setVariant(randomVariant);
+        return spawnGroupData;
+    }
+
+    @Override
     public InteractionResult mobInteract(Player player, InteractionHand hand) {
         ItemStack stack = player.getItemInHand(hand);
         if (this.level.isClientSide) {
@@ -235,7 +253,7 @@ public class Dog extends TamableAnimal implements InterestedMob, ShakingMob<Dog>
 
     @Override
     protected void usePlayerItem(Player player, InteractionHand hand, ItemStack stack) {
-        if (this.isFood(stack)) {
+        if (this.isFood(stack) && !this.level.isClientSide) {
             this.playSound(this.getEatingSound(stack), 1.0F, 1.0F);
 
             float healAmount = 1.0F;

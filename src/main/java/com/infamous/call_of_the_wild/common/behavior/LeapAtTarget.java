@@ -17,18 +17,18 @@ public class LeapAtTarget extends Behavior<Mob> {
     public static final double MAX_LEAP_DISTANCE_SQR = 16.0D; // 4 * 4
     private final double yDelta;
 
-    private final boolean simple;
+    private final boolean jump;
 
     public LeapAtTarget(double yDelta) {
         super(ImmutableMap.of(MemoryModuleType.ATTACK_TARGET, MemoryStatus.VALUE_PRESENT));
         this.yDelta = yDelta;
-        this.simple = false;
+        this.jump = false;
     }
 
     public LeapAtTarget() {
         super(ImmutableMap.of(MemoryModuleType.ATTACK_TARGET, MemoryStatus.VALUE_PRESENT));
         this.yDelta = 0.0F;
-        this.simple = true;
+        this.jump = true;
     }
 
     @Override
@@ -56,18 +56,15 @@ public class LeapAtTarget extends Behavior<Mob> {
 
     @Override
     public void start(ServerLevel level, Mob mob, long gameTime) {
-        if(this.simple){
-            mob.getJumpControl().jump();
-        } else{
-            LivingEntity target = AiHelper.getAttackTarget(mob).get();
-            Vec3 deltaMovement = mob.getDeltaMovement();
-            Vec3 positionDiff = new Vec3(target.getX() - mob.getX(), 0.0D, target.getZ() - mob.getZ());
-            if (positionDiff.lengthSqr() > 1.0E-7D) {
-                positionDiff = positionDiff.normalize().scale(0.4D).add(deltaMovement.scale(0.2D));
-            }
-
-            mob.setDeltaMovement(positionDiff.x, (double)this.yDelta, positionDiff.z);
+        LivingEntity target = AiHelper.getAttackTarget(mob).get();
+        Vec3 deltaMovement = mob.getDeltaMovement();
+        Vec3 positionDiff = new Vec3(target.getX() - mob.getX(), 0.0D, target.getZ() - mob.getZ());
+        if (positionDiff.lengthSqr() > 1.0E-7D) {
+            positionDiff = positionDiff.normalize().scale(0.4D).add(deltaMovement.scale(0.2D));
         }
+
+        mob.setDeltaMovement(positionDiff.x, this.jump ? positionDiff.y : this.yDelta, positionDiff.z);
+        if(this.jump) mob.getJumpControl().jump();
     }
 
     @Override
