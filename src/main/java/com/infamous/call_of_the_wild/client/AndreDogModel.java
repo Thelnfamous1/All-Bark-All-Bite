@@ -21,6 +21,8 @@ public class AndreDogModel<T extends Dog> extends HierarchicalModel<T> {
 	public static final String RIGHT_FRONT_LEG = "right_front_leg";
 	public static final String LEFT_FRONT_LEG = "left_front_leg";
 	public static final String TAIL = "tail";
+	private static final String DOG_TAG = "dog_tag";
+	private final ModelPart dogTag;
 	private float r = 1.0F;
 	private float g = 1.0F;
 	private float b = 1.0F;
@@ -40,6 +42,8 @@ public class AndreDogModel<T extends Dog> extends HierarchicalModel<T> {
 		this.head = root.getChild(HEAD);
 		this.body = root.getChild(BODY);
 		this.upperBody = this.body.getChild(UPPER_BODY);
+		this.dogTag = this.upperBody.getChild(DOG_TAG);
+		this.dogTag.visible = false;
 		this.rightHindLeg = root.getChild(RIGHT_HIND_LEG);
 		this.leftHindLeg = root.getChild(LEFT_HIND_LEG);
 		this.rightFrontLeg = root.getChild(RIGHT_FRONT_LEG);
@@ -81,9 +85,13 @@ public class AndreDogModel<T extends Dog> extends HierarchicalModel<T> {
 				PartPose.offset(-1.0F, -1.5F, -0.5F));
 
 		PartDefinition upperBodyRotation = upperBody.addOrReplaceChild("upper_body_rotation", CubeListBuilder.create()
-				.texOffs(0, 0).addBox(-5.0F, -3.5F, -5.5F, 9.0F, 7.0F, 11.0F, new CubeDeformation(0.0F))
+				.texOffs(0, 0).addBox(-5.0F, -3.5F, -5.5F, 9.0F, 7.0F, 11.0F, new CubeDeformation(0.0F)),
+				PartPose.offsetAndRotation(1.5F, 2.5F, -3.0F, 1.5708F, 0.0F, 0.0F));
+
+		PartDefinition dogTag = upperBody.addOrReplaceChild(DOG_TAG, CubeListBuilder.create()
 				.texOffs(40, 11).addBox(-1.5F, -4.25F, -0.5F, 2.0F, 1.0F, 2.0F, new CubeDeformation(0.0F)),
 				PartPose.offsetAndRotation(1.5F, 2.5F, -3.0F, 1.5708F, 0.0F, 0.0F));
+
 
 		PartDefinition rightHindLeg = root.addOrReplaceChild(RIGHT_HIND_LEG, CubeListBuilder.create()
 				.texOffs(0, 18).addBox(0.0F, 3.0F, -1.0F, 2.0F, 5.0F, 2.0F, new CubeDeformation(0.0F)),
@@ -128,6 +136,7 @@ public class AndreDogModel<T extends Dog> extends HierarchicalModel<T> {
 	public void prepareMobModel(T dog, float animPos, float lerpAnimSpeed, float partialTicks) {
 		this.root().getAllParts().forEach(ModelPart::resetPose); // this runs before setupAnim anyway, so best to do it here
 		this.partialTicks = partialTicks;
+		this.dogTag.visible = dog.isTame() && dog.hasCustomName();
 	}
 
 	@Override
