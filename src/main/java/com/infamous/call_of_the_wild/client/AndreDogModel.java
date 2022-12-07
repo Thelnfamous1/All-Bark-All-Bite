@@ -3,7 +3,6 @@ package com.infamous.call_of_the_wild.client;// Made with Blockbench 4.3.1
 // Paste this class into your mod and generate all required imports
 
 
-import com.google.common.collect.ImmutableList;
 import com.infamous.call_of_the_wild.common.entity.dog.Dog;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
@@ -147,8 +146,8 @@ public class AndreDogModel<T extends Dog> extends HierarchicalModel<T> {
 		this.animate(dog.walkAnimationState, DogAnimation.DOG_WALK, bob);
 		this.animate(dog.runAnimationState, DogAnimation.DOG_RUN, bob);
 		this.animate(dog.jumpAnimationState, DogAnimation.DOG_JUMP, bob);
+		this.animate(dog.shakeAnimationState, DogAnimation.DOG_SHAKE, bob);
 		this.animateInterest(dog, this.partialTicks);
-		this.animateShaking(dog, this.partialTicks);
 	}
 
 	private void animateHeadLookTarget(float yRot, float xRot) {
@@ -157,12 +156,7 @@ public class AndreDogModel<T extends Dog> extends HierarchicalModel<T> {
 	}
 
 	private void animateInterest(T dog, float partialTicks) {
-		this.head.zRot = dog.getHeadRollAngle(partialTicks) + dog.getBodyRollAngle(partialTicks, 0.0F);
+		this.head.zRot = dog.getHeadRollAngle(partialTicks); //+ dog.getBodyRollAngle(partialTicks, 0.0F);
 	}
 
-	private void animateShaking(T dog, float partialTicks) {
-		this.upperBody.zRot = dog.getBodyRollAngle(partialTicks, -0.08F);
-		this.body.zRot = dog.getBodyRollAngle(partialTicks, -0.16F);
-		this.tail.zRot = dog.getBodyRollAngle(partialTicks, -0.2F);
-	}
 }

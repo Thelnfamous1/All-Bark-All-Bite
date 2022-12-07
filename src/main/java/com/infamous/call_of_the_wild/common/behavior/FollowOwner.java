@@ -34,7 +34,7 @@ public class FollowOwner extends Behavior<TamableAnimal> {
 
     public FollowOwner(float speedModifier, int startDistance, int stopDistance, boolean canFly) {
         super(ImmutableMap.of(
-                MemoryModuleType.WALK_TARGET, MemoryStatus.VALUE_ABSENT,
+                MemoryModuleType.WALK_TARGET, MemoryStatus.REGISTERED,
                 MemoryModuleType.LOOK_TARGET, MemoryStatus.REGISTERED));
         this.speedModifier = speedModifier;
         this.startDistance = startDistance;

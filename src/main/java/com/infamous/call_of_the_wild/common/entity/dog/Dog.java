@@ -1,6 +1,5 @@
 package com.infamous.call_of_the_wild.common.entity.dog;
 
-import com.google.common.collect.Iterables;
 import com.infamous.call_of_the_wild.common.entity.*;
 import com.infamous.call_of_the_wild.common.registry.COTWDogVariants;
 import com.infamous.call_of_the_wild.common.registry.COTWEntityDataSerializers;
@@ -9,7 +8,6 @@ import com.infamous.call_of_the_wild.common.util.AiHelper;
 import com.infamous.call_of_the_wild.common.util.Helper;
 import com.mojang.serialization.Dynamic;
 import net.minecraft.core.BlockPos;
-import net.minecraft.core.Registry;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
@@ -48,13 +46,15 @@ import org.jetbrains.annotations.Nullable;
 import java.util.Collection;
 
 public class Dog extends TamableAnimal implements InterestedMob, ShakingMob<Dog>, VariantMob, CollaredMob {
-    private static final EntityDataAccessor<Boolean> DATA_INTERESTED_ID = SynchedEntityData.defineId(Dog.class, EntityDataSerializers.BOOLEAN);
+    private static final EntityDataAccessor<Byte> DATA_DOG_FLAGS_ID = SynchedEntityData.defineId(Dog.class, EntityDataSerializers.BYTE);
+    private static final int FLAG_SITTING = 1; // Used by TamableAnimal
+    private static final int FLAG_TAME = 4; // Used by TamableAnimal
+    private static final int FLAG_INTERESTED = 8;
+    private static final int FLAG_WET = 16;
+    private static final int FLAG_SHAKING = 32;
     private static final EntityDataAccessor<EntityVariant> DATA_VARIANT_ID = SynchedEntityData.defineId(Dog.class, COTWEntityDataSerializers.DOG_VARIANT.get());
     private static final EntityDataAccessor<Integer> DATA_COLLAR_COLOR = SynchedEntityData.defineId(Dog.class, EntityDataSerializers.INT);
     private static final byte JUMPING_ID = (byte) 1;
-    private boolean isWet;
-    private boolean isShaking;
-    private final MutablePair<Float, Float> shakeAnims = new MutablePair<>(0.0F, 0.0F);
     private final MutablePair<Float, Float> interestedAngles = new MutablePair<>(0.0F, 0.0F);
 
     public final AnimationState babyAnimationState = new AnimationState();
@@ -62,8 +62,10 @@ public class Dog extends TamableAnimal implements InterestedMob, ShakingMob<Dog>
     public final AnimationState runAnimationState = new AnimationState();
     public final AnimationState jumpAnimationState = new AnimationState();
     public final AnimationState sitAnimationState = new AnimationState();
+    public final AnimationState shakeAnimationState = new AnimationState();
     private int jumpTicks;
     private int jumpDuration;
+    private final MutablePair<Float, Float> shakeAnims = new MutablePair<>(0.0F, 0.0F);
 
     public Dog(EntityType<? extends Dog> type, Level level) {
         super(type, level);
@@ -94,9 +96,37 @@ public class Dog extends TamableAnimal implements InterestedMob, ShakingMob<Dog>
     @Override
     protected void defineSynchedData() {
         super.defineSynchedData();
-        this.entityData.define(DATA_INTERESTED_ID, false);
         this.entityData.define(DATA_VARIANT_ID, COTWDogVariants.BROWN.get());
         this.entityData.define(DATA_COLLAR_COLOR, DyeColor.RED.getId());
+    }
+
+    @Override
+    public void onSyncedDataUpdated(EntityDataAccessor<?> dataAccessor) {
+        super.onSyncedDataUpdated(dataAccessor);
+        if(dataAccessor == DATA_FLAGS_ID){
+            if(this.level.isClientSide){
+                if(this.isInSittingPose()){
+                    this.walkAnimationState.stop();
+                    this.runAnimationState.stop();
+                    this.jumpAnimationState.stop();
+                    this.sitAnimationState.startIfStopped(this.tickCount);
+                } else{
+                    this.sitAnimationState.stop();
+                }
+            }
+        }
+    }
+
+    protected boolean getFlag(int flagId) {
+        return (this.entityData.get(DATA_FLAGS_ID) & flagId) != 0;
+    }
+
+    protected void setFlag(int flagId, boolean flag) {
+        if (flag) {
+            this.entityData.set(DATA_FLAGS_ID, (byte)(this.entityData.get(DATA_FLAGS_ID) | flagId));
+        } else {
+            this.entityData.set(DATA_FLAGS_ID, (byte)(this.entityData.get(DATA_FLAGS_ID) & ~flagId));
+        }
     }
 
     @Override
@@ -167,21 +197,6 @@ public class Dog extends TamableAnimal implements InterestedMob, ShakingMob<Dog>
     }
 
     @Override
-    public void onSyncedDataUpdated(EntityDataAccessor<?> dataAccessor) {
-        super.onSyncedDataUpdated(dataAccessor);
-        if(dataAccessor == DATA_FLAGS_ID  && this.level.isClientSide){
-            if(this.isInSittingPose()){
-                this.walkAnimationState.stop();
-                this.runAnimationState.stop();
-                this.jumpAnimationState.stop();
-                this.sitAnimationState.startIfStopped(this.tickCount);
-            } else{
-                this.sitAnimationState.stop();
-            }
-        }
-    }
-
-    @Override
     protected void jumpFromGround() {
         super.jumpFromGround();
         if (!this.level.isClientSide) {
@@ -214,7 +229,7 @@ public class Dog extends TamableAnimal implements InterestedMob, ShakingMob<Dog>
             this.jumpDuration = 10; // half a second, which is the same length as the jump animation
             this.jumpTicks = 0;
         }
-        else if(!this.handleShakingEvent(id))  super.handleEntityEvent(id);
+        else if(!this.handleShakingEvent(this, id)) super.handleEntityEvent(id);
     }
 
     @Override
@@ -453,22 +468,22 @@ public class Dog extends TamableAnimal implements InterestedMob, ShakingMob<Dog>
 
     @Override
     public boolean isWet() {
-        return this.isWet;
+        return this.getFlag(FLAG_WET);
     }
 
     @Override
     public void setIsWet(boolean isWet) {
-        this.isWet = isWet;
+        this.setFlag(FLAG_WET, isWet);
     }
 
     @Override
     public boolean isShaking() {
-        return this.isShaking;
+        return this.getFlag(FLAG_SHAKING);
     }
 
     @Override
     public void setIsShaking(boolean isShaking) {
-        this.isShaking = isShaking;
+        this.setFlag(FLAG_SHAKING, isShaking);
     }
 
     @Override
@@ -481,16 +496,21 @@ public class Dog extends TamableAnimal implements InterestedMob, ShakingMob<Dog>
         this.playSound(SoundEvents.WOLF_SHAKE, this.getSoundVolume(), (this.random.nextFloat() - this.random.nextFloat()) * 0.2F + 1.0F);
     }
 
+    @Override
+    public AnimationState getShakeAnimationState() {
+        return this.shakeAnimationState;
+    }
+
     // InterestedMob
 
     @Override
     public boolean isInterested() {
-        return this.entityData.get(DATA_INTERESTED_ID);
+        return this.getFlag(FLAG_INTERESTED);
     }
 
     @Override
     public void setIsInterested(boolean isInterested) {
-        this.entityData.set(DATA_INTERESTED_ID, isInterested);
+        this.setFlag(FLAG_INTERESTED, isInterested);
     }
 
     @Override

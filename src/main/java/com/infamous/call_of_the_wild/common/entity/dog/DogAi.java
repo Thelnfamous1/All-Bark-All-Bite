@@ -177,7 +177,7 @@ public class DogAi {
     private static void initIdleActivity(Brain<Dog> brain) {
         brain.addActivity(Activity.IDLE, 0,
                 ImmutableList.of(
-                        new FollowOwner(SPEED_MODIFIER_WALKING, START_FOLLOW_DISTANCE, STOP_FOLLOW_DISTANCE),
+                        new RunIf<>(DogAi::canFollowOwner, new FollowOwner(SPEED_MODIFIER_WALKING, START_FOLLOW_DISTANCE, STOP_FOLLOW_DISTANCE), true),
                         new RunIf<>(Dog::isMobile, new AnimalMakeLove(COTWEntityTypes.DOG.get(), SPEED_MODIFIER_BREEDING), true),
                         new RunIf<>(TamableAnimal::isTame, new Beg<>(MAX_LOOK_DIST), true),
                         new RunIf<>(Dog::isWild, new FollowTemptation(DogAi::getSpeedModifierTempted), true),
@@ -185,6 +185,10 @@ public class DogAi {
                         createIdleLookBehaviors(),
                         new RunIf<>(Dog::isMobile, createIdleMovementBehaviors(), true),
                         new StartAttacking<>(DogAi::canAttack, DogAi::findNearestValidAttackTarget)));
+    }
+
+    private static boolean canFollowOwner(Dog e) {
+        return !e.getBrain().hasMemoryValue(MemoryModuleType.BREED_TARGET);
     }
 
     private static RunOne<Dog> createIdleLookBehaviors() {
