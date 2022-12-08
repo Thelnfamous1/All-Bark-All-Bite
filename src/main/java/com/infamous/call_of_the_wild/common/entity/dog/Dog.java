@@ -25,6 +25,7 @@ import net.minecraft.world.entity.ai.Brain;
 import net.minecraft.world.entity.ai.attributes.AttributeSupplier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.animal.Animal;
+import net.minecraft.world.entity.animal.Wolf;
 import net.minecraft.world.entity.animal.horse.AbstractHorse;
 import net.minecraft.world.entity.monster.Creeper;
 import net.minecraft.world.entity.monster.Ghast;
@@ -91,6 +92,10 @@ public class Dog extends TamableAnimal implements InterestedMob, ShakingMob<Dog>
 
     public boolean isMobile(){
         return !this.isOrderedToSit();
+    }
+
+    public boolean isInjured(){
+        return this.getHealth() < this.getMaxHealth();
     }
 
     @Override
@@ -259,8 +264,8 @@ public class Dog extends TamableAnimal implements InterestedMob, ShakingMob<Dog>
         if (this.level.isClientSide) {
             boolean canInteract = this.isOwnedBy(player)
                     || this.isTame()
-                    || this.isInteresting(stack) && !this.isTame() && !this.isAggressive();
-            return canInteract ? InteractionResult.CONSUME : InteractionResult.PASS;
+                    || this.isFood(stack) && this.isWild() && !this.isAggressive();
+            return canInteract ? InteractionResult.SUCCESS : InteractionResult.PASS;
         } else {
             return DogAi.mobInteract(this, player, hand, () -> super.mobInteract(player, hand));
         }
@@ -269,7 +274,7 @@ public class Dog extends TamableAnimal implements InterestedMob, ShakingMob<Dog>
     @Override
     protected void usePlayerItem(Player player, InteractionHand hand, ItemStack stack) {
         if (this.isFood(stack) && !this.level.isClientSide) {
-            this.playSound(this.getEatingSound(stack), 1.0F, 1.0F);
+            this.playSoundEvent(this.getEatingSound(stack));
 
             float healAmount = 1.0F;
             FoodProperties foodProperties = stack.getFoodProperties(this);
@@ -277,7 +282,7 @@ public class Dog extends TamableAnimal implements InterestedMob, ShakingMob<Dog>
                 healAmount = foodProperties.getNutrition();
                 AiHelper.addEatEffect(this, level, foodProperties);
             }
-            if(this.getHealth() < this.getMaxHealth()) this.heal(healAmount);
+            if(this.isInjured()) this.heal(healAmount);
 
             this.gameEvent(GameEvent.EAT, this);
         }
@@ -343,12 +348,10 @@ public class Dog extends TamableAnimal implements InterestedMob, ShakingMob<Dog>
     public boolean canMate(Animal partner) {
         if (partner == this) {
             return false;
-        } else if (!this.isTame()) {
-            return false;
         } else if (!(partner instanceof Dog mate)) {
             return false;
         } else {
-            if (!mate.isTame()) {
+            if (this.isTame() != mate.isTame()) {
                 return false;
             } else if (mate.isInSittingPose()) {
                 return false;
@@ -363,6 +366,8 @@ public class Dog extends TamableAnimal implements InterestedMob, ShakingMob<Dog>
         if (!(target instanceof Creeper) && !(target instanceof Ghast)) {
             if (target instanceof Dog dog) {
                 return !dog.isTame() || dog.getOwner() != owner;
+            }else if (target instanceof Wolf wolf) {
+                return !wolf.isTame() || wolf.getOwner() != owner;
             } else if (target instanceof Player targetPlayer && owner instanceof Player ownerPlayer && !ownerPlayer.canHarmPlayer(targetPlayer)) {
                 return false;
             } else if (target instanceof AbstractHorse horse && horse.isTamed()) {
@@ -520,6 +525,6 @@ public class Dog extends TamableAnimal implements InterestedMob, ShakingMob<Dog>
 
     @Override
     public boolean isInteresting(ItemStack stack) {
-        return DogAi.isLoved(stack);
+        return DogAi.isLoved(stack) || this.isFood(stack);
     }
 }

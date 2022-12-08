@@ -18,7 +18,6 @@ import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.AgeableMob;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
-import net.minecraft.world.entity.TamableAnimal;
 import net.minecraft.world.entity.ai.Brain;
 import net.minecraft.world.entity.ai.behavior.*;
 import net.minecraft.world.entity.ai.memory.MemoryModuleType;
@@ -26,10 +25,7 @@ import net.minecraft.world.entity.ai.sensing.Sensor;
 import net.minecraft.world.entity.ai.sensing.SensorType;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.entity.schedule.Activity;
-import net.minecraft.world.item.DyeColor;
-import net.minecraft.world.item.DyeItem;
-import net.minecraft.world.item.Item;
-import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.*;
 import net.minecraft.world.item.crafting.Ingredient;
 import net.minecraft.world.level.GameRules;
 import net.minecraft.world.level.Level;
@@ -42,9 +38,6 @@ import java.util.Optional;
 import java.util.function.Supplier;
 
 public class DogAi {
-    private static final Ingredient DOG_FOOD = Ingredient.of(COTWTags.DOG_FOOD);
-    private static final Ingredient DOG_LOVED = Ingredient.of(COTWTags.DOG_LOVED);
-    private static final Ingredient DOG_TEMPTATIONS = CompoundIngredient.of(DOG_FOOD, DOG_LOVED);
     private static final UniformInt ADULT_FOLLOW_RANGE = UniformInt.of(5, 16);
     private static final UniformInt ANGER_DURATION = TimeUtil.rangeOfSeconds(30, 30);
     private static final UniformInt AVOID_DURATION = TimeUtil.rangeOfSeconds(5, 7);
@@ -86,7 +79,8 @@ public class DogAi {
             MemoryModuleType.IS_TEMPTED,
             //MemoryModuleType.NEAREST_VISIBLE_WANTED_ITEM,
 
-            MemoryModuleType.HAS_HUNTING_COOLDOWN
+            MemoryModuleType.HAS_HUNTING_COOLDOWN,
+            MemoryModuleType.IS_PANICKING
     );
     public static final Collection<? extends SensorType<? extends Sensor<? super Dog>>> SENSOR_TYPES = ImmutableList.of(
             SensorType.NEAREST_LIVING_ENTITIES, // NEAREST_LIVING_ENTITIES, NEAREST_VISIBLE_LIVING_ENTITIES
@@ -95,7 +89,7 @@ public class DogAi {
             SensorType.NEAREST_ADULT, // NEAREST_VISIBLE_ADULT
             COTWSensorTypes.NEAREST_ADULTS.get(), // NEARBY_ADULTS, NEAREST_VISIBLE_ADULTS
             SensorType.HURT_BY, // HURT_BY, HURT_BY_ENTITY
-            COTWSensorTypes.DOG_TEMPTATIONS.get(),  // TEMPTING PLAYER
+            COTWSensorTypes.DOG_TEMPTATIONS.get(),  // TEMPTING_PLAYER
             COTWSensorTypes.DOG_SPECIFIC_SENSOR.get()); // NEAREST_PLAYER_HOLDING_WANTED_ITEM, NEAREST_ATTACKABLE, NEAREST_VISIBLE_DISLIKED
     private static final List<Activity> ACTIVITIES = ImmutableList.of(Activity.FIGHT, Activity.AVOID, Activity.IDLE);
     private static final double LEAP_Y_DELTA = 0.4D;
@@ -118,15 +112,15 @@ public class DogAi {
     private static final byte FAILED_TAME_ID = 6;
 
     public static Ingredient getTemptations() {
-        return DOG_TEMPTATIONS;
+        return CompoundIngredient.of(Ingredient.of(COTWTags.DOG_FOOD), Ingredient.of(COTWTags.DOG_LOVED));
     }
 
     protected static boolean isFood(ItemStack stack) {
-        return DOG_FOOD.test(stack);
+        return stack.is(COTWTags.DOG_FOOD);
     }
 
     protected static boolean isLoved(ItemStack stack) {
-        return DOG_LOVED.test(stack);
+        return stack.is(COTWTags.DOG_LOVED);
     }
     protected static Brain<?> makeBrain(Brain<Dog> brain) {
         initCoreActivity(brain);
@@ -178,25 +172,46 @@ public class DogAi {
         brain.addActivity(Activity.IDLE, 0,
                 ImmutableList.of(
                         new RunIf<>(DogAi::canFollowOwner, new FollowOwner(SPEED_MODIFIER_WALKING, START_FOLLOW_DISTANCE, STOP_FOLLOW_DISTANCE), true),
-                        new RunIf<>(Dog::isMobile, new AnimalMakeLove(COTWEntityTypes.DOG.get(), SPEED_MODIFIER_BREEDING), true),
-                        new RunIf<>(TamableAnimal::isTame, new Beg<>(MAX_LOOK_DIST), true),
-                        new RunIf<>(Dog::isWild, new FollowTemptation(DogAi::getSpeedModifierTempted), true),
-                        new RunIf<>(Dog::isWild, new BabyFollowAdult<>(ADULT_FOLLOW_RANGE, SPEED_MODIFIER_FOLLOWING_ADULT)),
+                        new RunIf<>(DogAi::canMakeLove, new AnimalMakeLove(COTWEntityTypes.DOG.get(), SPEED_MODIFIER_BREEDING), true),
+                        new RunIf<>(DogAi::canFollowNonOwner, new RunOne<>(
+                                ImmutableList.of(
+                                        Pair.of(new FollowTemptation(DogAi::getSpeedModifierTempted), 1),
+                                        Pair.of(new BabyFollowAdult<>(ADULT_FOLLOW_RANGE, SPEED_MODIFIER_FOLLOWING_ADULT), 1))
+                        ), true),
+                        new RunIf<>(DogAi::canBeg, new Beg<>(MAX_LOOK_DIST), true),
                         createIdleLookBehaviors(),
-                        new RunIf<>(Dog::isMobile, createIdleMovementBehaviors(), true),
+                        new RunIf<>(DogAi::canWander, createIdleMovementBehaviors(), true),
                         new StartAttacking<>(DogAi::canAttack, DogAi::findNearestValidAttackTarget)));
     }
 
-    private static boolean canFollowOwner(Dog e) {
-        return !e.getBrain().hasMemoryValue(MemoryModuleType.BREED_TARGET);
+    private static boolean canFollowOwner(Dog dog) {
+        return !BehaviorUtils.isBreeding(dog);
     }
 
-    private static RunOne<Dog> createIdleLookBehaviors() {
-        return new RunOne<>(
-                ImmutableList.of(
-                        Pair.of(new SetEntityLookTarget(EntityType.PLAYER, MAX_LOOK_DIST), 1),
-                        Pair.of(new SetEntityLookTarget(MAX_LOOK_DIST), 1),
-                        Pair.of(new DoNothing(30, 60), 1)));
+    private static boolean canMakeLove(Dog dog){
+        return dog.isMobile();
+    }
+
+    private static boolean canFollowNonOwner(Dog dog) {
+        return dog.isWild();
+    }
+
+    private static float getSpeedModifierTempted(LivingEntity dog) {
+        return SPEED_MODIFIER_TEMPTED;
+    }
+
+    private static boolean canWander(Dog dog){
+        return dog.isMobile();
+    }
+
+    private static RunSometimes<Dog> createIdleLookBehaviors() {
+        return new RunSometimes<>(
+                new SetEntityLookTarget(EntityType.PLAYER, MAX_LOOK_DIST),
+                UniformInt.of(30, 60));
+    }
+
+    private static boolean canBeg(Dog dog){
+        return dog.isTame();
     }
 
     private static RunOne<Dog> createIdleMovementBehaviors() {
@@ -205,10 +220,6 @@ public class DogAi {
                         Pair.of(new RandomStroll(SPEED_MODIFIER_WALKING), 2),
                         Pair.of(new SetWalkTargetFromLookTarget(SPEED_MODIFIER_WALKING, 3), 2),
                         Pair.of(new DoNothing(30, 60), 1)));
-    }
-
-    private static float getSpeedModifierTempted(LivingEntity dog) {
-        return SPEED_MODIFIER_TEMPTED;
     }
 
     private static boolean canAttack(Dog dog) {
@@ -248,7 +259,7 @@ public class DogAi {
                 ImmutableList.of(
                         new RunIf<>(Dog::isMobile, SetWalkTargetAwayFrom.entity(MemoryModuleType.AVOID_TARGET, SPEED_MODIFIER_RETREATING, DESIRED_DISTANCE_FROM_ENTITY_WHEN_AVOIDING, false)),
                         createIdleLookBehaviors(),
-                        new RunIf<>(Dog::isMobile, createIdleMovementBehaviors(), true),
+                        new RunIf<>(DogAi::canWander, createIdleMovementBehaviors(), true),
                         new EraseMemoryIf<>(DogAi::wantsToStopFleeing, MemoryModuleType.AVOID_TARGET)),
                 MemoryModuleType.AVOID_TARGET);
     }
@@ -277,39 +288,37 @@ public class DogAi {
     protected static InteractionResult mobInteract(Dog dog, Player player, InteractionHand hand, Supplier<InteractionResult> animalInteract) {
         ItemStack stack = player.getItemInHand(hand);
         Item item = stack.getItem();
-        Level level = dog.level;
-        if (dog.isTame()) {
-            if (dog.isFood(stack) && dog.getHealth() < dog.getMaxHealth()) {
-                dog.usePlayerItem(player, hand, stack);
-                return InteractionResult.SUCCESS;
-            }
 
+        if(dog.isTame()){
             if (!(item instanceof DyeItem dyeItem)) {
-                InteractionResult animalInteractResult = animalInteract.get();
-                if ((!animalInteractResult.consumesAction() || dog.isBaby()) && dog.isOwnedBy(player)) {
+                if(dog.isFood(stack) && dog.isInjured()){
+                    dog.usePlayerItem(player, hand, stack);
+                    return InteractionResult.CONSUME;
+                }
+                InteractionResult animalInteractResult = animalInteract.get(); // will set in breed mode if adult and not on cooldown, or age up if baby
+                boolean willNotBreed = !animalInteractResult.consumesAction() || dog.isBaby();
+                if (willNotBreed && dog.isOwnedBy(player)) {
                     dog.setOrderedToSit(!dog.isOrderedToSit());
                     dog.setJumping(false);
                     yieldAsPet(dog);
-                    return InteractionResult.SUCCESS;
+                    return InteractionResult.CONSUME;
                 }
 
                 return animalInteractResult;
-            }
+            } else{
+                DyeColor dyecolor = dyeItem.getDyeColor();
+                if (dyecolor != dog.getCollarColor()) {
+                    dog.setCollarColor(dyecolor);
+                    if (!player.getAbilities().instabuild) {
+                        stack.shrink(1);
+                    }
 
-            DyeColor dyeColor = dyeItem.getDyeColor();
-            if (dyeColor != dog.getCollarColor()) {
-                dog.setCollarColor(dyeColor);
-                if (!player.getAbilities().instabuild) {
-                    stack.shrink(1);
+                    return InteractionResult.CONSUME;
                 }
-
-                return InteractionResult.SUCCESS;
             }
-        } else if (dog.isInteresting(stack) && !isAngry(dog)) {
-            if (!player.getAbilities().instabuild) {
-                stack.shrink(1);
-            }
-
+        } else if(!dog.isAggressive()){
+            dog.usePlayerItem(player, hand, stack);
+            Level level = dog.level;
             if (dog.getRandom().nextInt(3) == 0 && !ForgeEventFactory.onAnimalTame(dog, player)) {
                 dog.tame(player);
                 yieldAsPet(dog);
@@ -318,10 +327,9 @@ public class DogAi {
             } else {
                 level.broadcastEntityEvent(dog, FAILED_TAME_ID);
             }
-
-            return InteractionResult.SUCCESS;
+            return InteractionResult.CONSUME;
         }
-        return animalInteract.get();
+        return InteractionResult.PASS;
     }
 
     protected static boolean isAngry(Dog dog){

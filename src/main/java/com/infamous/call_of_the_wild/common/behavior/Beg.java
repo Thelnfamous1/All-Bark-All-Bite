@@ -72,10 +72,6 @@ public class Beg<T extends Animal & InterestedMob> extends Behavior<T> {
             if (animal.isInteresting(stack)) {
                 return true;
             }
-
-            if (animal.isFood(stack)) {
-                return true;
-            }
         }
 
         return false;

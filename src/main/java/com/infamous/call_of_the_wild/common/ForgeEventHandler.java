@@ -31,7 +31,9 @@ public class ForgeEventHandler {
     static void onWorldTick(TickEvent.LevelTickEvent event){
         if(event.level instanceof ServerLevel serverLevel && event.phase == TickEvent.Phase.END){
             MinecraftServer server = serverLevel.getServer();
-            CUSTOM_SPAWNERS.get(serverLevel.dimension()).forEach(cs -> cs.tick(serverLevel, server.isSpawningMonsters(), server.isSpawningAnimals()));
+            ResourceKey<Level> dimension = serverLevel.dimension();
+            List<CustomSpawner> customSpawners = CUSTOM_SPAWNERS.get(dimension);
+            if(customSpawners != null) customSpawners.forEach(cs -> cs.tick(serverLevel, server.isSpawningMonsters(), server.isSpawningAnimals()));
         }
     }
 }
