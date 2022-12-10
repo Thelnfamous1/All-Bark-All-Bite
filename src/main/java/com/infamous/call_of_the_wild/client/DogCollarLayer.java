@@ -8,6 +8,7 @@ import net.minecraft.client.renderer.entity.RenderLayerParent;
 import net.minecraft.client.renderer.entity.layers.RenderLayer;
 import net.minecraft.resources.ResourceLocation;
 
+@SuppressWarnings("NullableProblems")
 public class DogCollarLayer extends RenderLayer<Dog, AndreDogModel<Dog>> {
    private static final ResourceLocation DOG_COLLAR_LOCATION = new ResourceLocation(CallOfTheWild.MODID, "textures/entity/dog/dog_collar.png");
    private static final ResourceLocation DOG_TAG_LOCATION = new ResourceLocation(CallOfTheWild.MODID, "textures/entity/dog/dog_tag.png");

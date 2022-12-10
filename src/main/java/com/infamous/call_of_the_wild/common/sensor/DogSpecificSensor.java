@@ -20,6 +20,7 @@ import net.minecraft.world.entity.player.Player;
 import java.util.Optional;
 import java.util.Set;
 
+@SuppressWarnings("NullableProblems")
 public class DogSpecificSensor extends Sensor<Dog> {
     private static final int LLAMA_MAX_STRENGTH = 5;
     @Override

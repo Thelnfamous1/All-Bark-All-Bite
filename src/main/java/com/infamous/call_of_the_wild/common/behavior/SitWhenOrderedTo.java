@@ -9,6 +9,7 @@ import net.minecraft.world.entity.ai.behavior.Behavior;
 import net.minecraft.world.entity.ai.memory.MemoryModuleType;
 import net.minecraft.world.entity.ai.memory.MemoryStatus;
 
+@SuppressWarnings("NullableProblems")
 public class SitWhenOrderedTo extends Behavior<TamableAnimal> {
     private static final int MAX_DISTANCE = 12;
 

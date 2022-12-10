@@ -46,9 +46,11 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.Collection;
 
+@SuppressWarnings("NullableProblems")
 public class Dog extends TamableAnimal implements InterestedMob, ShakingMob<Dog>, VariantMob, CollaredMob {
-    private static final EntityDataAccessor<Byte> DATA_DOG_FLAGS_ID = SynchedEntityData.defineId(Dog.class, EntityDataSerializers.BYTE);
+    @SuppressWarnings("unused")
     private static final int FLAG_SITTING = 1; // Used by TamableAnimal
+    @SuppressWarnings("unused")
     private static final int FLAG_TAME = 4; // Used by TamableAnimal
     private static final int FLAG_INTERESTED = 8;
     private static final int FLAG_WET = 16;
@@ -67,6 +69,8 @@ public class Dog extends TamableAnimal implements InterestedMob, ShakingMob<Dog>
     private int jumpTicks;
     private int jumpDuration;
     private final MutablePair<Float, Float> shakeAnims = new MutablePair<>(0.0F, 0.0F);
+    private static final double START_HEALTH = 8.0D;
+    private static final double TAME_HEALTH = 20.0D;
 
     public Dog(EntityType<? extends Dog> type, Level level) {
         super(type, level);
@@ -77,25 +81,9 @@ public class Dog extends TamableAnimal implements InterestedMob, ShakingMob<Dog>
 
     public static AttributeSupplier.Builder createAttributes() {
         return Mob.createMobAttributes()
-                .add(Attributes.MOVEMENT_SPEED, (double)0.3F)
-                .add(Attributes.MAX_HEALTH, 20.0D)
+                .add(Attributes.MOVEMENT_SPEED, 0.3D)
+                .add(Attributes.MAX_HEALTH, START_HEALTH)
                 .add(Attributes.ATTACK_DAMAGE, 2.0D);
-    }
-
-    public boolean isAdult(){
-        return !this.isBaby();
-    }
-
-    public boolean isWild(){
-        return !this.isTame();
-    }
-
-    public boolean isMobile(){
-        return !this.isOrderedToSit();
-    }
-
-    public boolean isInjured(){
-        return this.getHealth() < this.getMaxHealth();
     }
 
     @Override
@@ -149,23 +137,46 @@ public class Dog extends TamableAnimal implements InterestedMob, ShakingMob<Dog>
     }
 
     @Override
-    protected Brain.Provider<Dog> brainProvider() {
-        return Brain.provider(DogAi.MEMORY_TYPES, DogAi.SENSOR_TYPES);
+    protected void playStepSound(BlockPos pos, BlockState state) {
+        this.playSound(SoundEvents.WOLF_STEP, 0.15F, 1.0F);
     }
 
     @Override
-    protected Brain<?> makeBrain(Dynamic<?> dynamic) {
-        return DogAi.makeBrain(this.brainProvider().makeBrain(dynamic));
+    protected SoundEvent getAmbientSound() {
+        return this.level.isClientSide ? null : DogAi.getSoundForCurrentActivity(this).orElse((SoundEvent)null);
     }
 
     @Override
-    public Brain<Dog> getBrain() {
-        return (Brain<Dog>)super.getBrain();
+    protected SoundEvent getHurtSound(DamageSource source) {
+        return SoundEvents.WOLF_HURT;
     }
 
-    private boolean isMovingOnLandOrInWater() {
-        return this.getDeltaMovement().horizontalDistanceSqr() > 1.0E-6D && (this.onGround || this.isInWaterOrBubble());
+    @Override
+    protected SoundEvent getDeathSound() {
+        return SoundEvents.WOLF_DEATH;
     }
+
+    @Override
+    protected float getSoundVolume() {
+        return 0.4F;
+    }
+
+    protected void playSoundEvent(SoundEvent soundEvent) {
+        this.playSound(soundEvent, this.getSoundVolume(), this.getVoicePitch());
+    }
+
+    @Override
+    public void aiStep() {
+        super.aiStep();
+        this.aiStepShaking(this);
+        if (this.jumpTicks != this.jumpDuration) {
+            ++this.jumpTicks;
+        } else if (this.jumpDuration != 0) {
+            this.jumpTicks = 0;
+            this.jumpDuration = 0;
+        }
+    }
+
     @Override
     public void tick() {
         if (this.level.isClientSide()) {
@@ -201,24 +212,8 @@ public class Dog extends TamableAnimal implements InterestedMob, ShakingMob<Dog>
         }
     }
 
-    @Override
-    protected void jumpFromGround() {
-        super.jumpFromGround();
-        if (!this.level.isClientSide) {
-            this.level.broadcastEntityEvent(this, JUMPING_ID);
-        }
-    }
-
-    @Override
-    public void aiStep() {
-        super.aiStep();
-        this.aiStepShaking(this);
-        if (this.jumpTicks != this.jumpDuration) {
-            ++this.jumpTicks;
-        } else if (this.jumpDuration != 0) {
-            this.jumpTicks = 0;
-            this.jumpDuration = 0;
-        }
+    private boolean isMovingOnLandOrInWater() {
+        return this.getDeltaMovement().horizontalDistanceSqr() > 1.0E-6D && (this.isOnGround() || this.isInWaterOrBubble());
     }
 
     @Override
@@ -228,66 +223,13 @@ public class Dog extends TamableAnimal implements InterestedMob, ShakingMob<Dog>
     }
 
     @Override
-    public void handleEntityEvent(byte id) {
-        if(id == JUMPING_ID){
-            this.jumpAnimationState.startIfStopped(this.tickCount);
-            this.jumpDuration = 10; // half a second, which is the same length as the jump animation
-            this.jumpTicks = 0;
-        }
-        else if(!this.handleShakingEvent(this, id)) super.handleEntityEvent(id);
+    protected float getStandingEyeHeight(Pose pose, EntityDimensions dimensions) {
+        return dimensions.height * 0.8F;
     }
 
     @Override
-    protected void customServerAiStep() {
-        this.level.getProfiler().push("dogBrain");
-        this.getBrain().tick((ServerLevel)this.level, this);
-        this.level.getProfiler().pop();
-        this.level.getProfiler().push("dogActivityUpdate");
-        DogAi.updateActivity(this);
-        this.level.getProfiler().pop();
-        super.customServerAiStep();
-    }
-
-    @Override
-    public SpawnGroupData finalizeSpawn(ServerLevelAccessor serverLevelAccessor, DifficultyInstance difficultyInstance, MobSpawnType mobSpawnType, @Nullable SpawnGroupData groupData, @Nullable CompoundTag tag) {
-        SpawnGroupData spawnGroupData = super.finalizeSpawn(serverLevelAccessor, difficultyInstance, mobSpawnType, groupData, tag);
-        Collection<EntityVariant> values = this.getVariantRegistry().getValues();
-        RandomSource random = serverLevelAccessor.getRandom();
-        EntityVariant randomVariant = Helper.getRandomObject(values, random);
-        this.setVariant(randomVariant);
-        return spawnGroupData;
-    }
-
-    @Override
-    public InteractionResult mobInteract(Player player, InteractionHand hand) {
-        ItemStack stack = player.getItemInHand(hand);
-        if (this.level.isClientSide) {
-            boolean canInteract = this.isOwnedBy(player)
-                    || this.isTame()
-                    || this.isFood(stack) && this.isWild() && !this.isAggressive();
-            return canInteract ? InteractionResult.SUCCESS : InteractionResult.PASS;
-        } else {
-            return DogAi.mobInteract(this, player, hand, () -> super.mobInteract(player, hand));
-        }
-    }
-
-    @Override
-    protected void usePlayerItem(Player player, InteractionHand hand, ItemStack stack) {
-        if (this.isFood(stack) && !this.level.isClientSide) {
-            this.playSoundEvent(this.getEatingSound(stack));
-
-            float healAmount = 1.0F;
-            FoodProperties foodProperties = stack.getFoodProperties(this);
-            if(foodProperties != null){
-                healAmount = foodProperties.getNutrition();
-                AiHelper.addEatEffect(this, level, foodProperties);
-            }
-            if(this.isInjured()) this.heal(healAmount);
-
-            this.gameEvent(GameEvent.EAT, this);
-        }
-
-        super.usePlayerItem(player, hand, stack);
+    public int getMaxHeadXRot() {
+        return this.isInSittingPose() ? 20 : super.getMaxHeadXRot();
     }
 
     @Override
@@ -317,6 +259,76 @@ public class Dog extends TamableAnimal implements InterestedMob, ShakingMob<Dog>
                 return wasHurt;
             }
         }
+    }
+
+    @SuppressWarnings("ConstantConditions")
+    public void setTame(boolean tame) {
+        super.setTame(tame);
+        if (tame) {
+            this.getAttribute(Attributes.MAX_HEALTH).setBaseValue(TAME_HEALTH);
+            this.setHealth((float)TAME_HEALTH);
+        } else {
+            this.getAttribute(Attributes.MAX_HEALTH).setBaseValue(START_HEALTH);
+        }
+
+        this.getAttribute(Attributes.ATTACK_DAMAGE).setBaseValue(4.0D);
+    }
+
+    @Override
+    public InteractionResult mobInteract(Player player, InteractionHand hand) {
+        ItemStack stack = player.getItemInHand(hand);
+        if (this.level.isClientSide) {
+            boolean canInteract = this.isOwnedBy(player)
+                    || this.isTame()
+                    || this.isFood(stack) && !this.isTame() && !this.isAggressive();
+            return canInteract ? InteractionResult.SUCCESS : InteractionResult.PASS;
+        } else {
+            return DogAi.mobInteract(this, player, hand, () -> super.mobInteract(player, hand));
+        }
+    }
+
+    @Override
+    protected void usePlayerItem(Player player, InteractionHand hand, ItemStack stack) {
+        if (this.isFood(stack) && !this.level.isClientSide) {
+            this.playSoundEvent(this.getEatingSound(stack));
+
+            float healAmount = 1.0F;
+            FoodProperties foodProperties = stack.getFoodProperties(this);
+            if(foodProperties != null){
+                healAmount = foodProperties.getNutrition();
+                AiHelper.addEatEffect(this, level, foodProperties);
+            }
+            if(this.isInjured()) this.heal(healAmount);
+
+            this.gameEvent(GameEvent.EAT, this);
+        }
+
+        super.usePlayerItem(player, hand, stack);
+    }
+
+    public boolean isInjured(){
+        return this.getHealth() < this.getMaxHealth();
+    }
+
+    @Override
+    public void handleEntityEvent(byte id) {
+        if(id == JUMPING_ID){
+            this.jumpAnimationState.startIfStopped(this.tickCount);
+            this.jumpDuration = 10; // half a second, which is the same length as the jump animation
+            this.jumpTicks = 0;
+        }
+        else if(!this.handleShakingEvent(this, id)) super.handleEntityEvent(id);
+    }
+
+    @Override
+    public boolean isFood(ItemStack stack) {
+        FoodProperties foodProperties = stack.getFoodProperties(this);
+        return DogAi.isFood(stack) || foodProperties != null && foodProperties.isMeat();
+    }
+
+    @Override
+    public int getMaxSpawnClusterSize() {
+        return 8;
     }
 
     @Nullable
@@ -353,7 +365,7 @@ public class Dog extends TamableAnimal implements InterestedMob, ShakingMob<Dog>
         } else {
             if (this.isTame() != mate.isTame()) {
                 return false;
-            } else if (mate.isInSittingPose()) {
+            } else if (this.isInSittingPose() || mate.isInSittingPose()) {
                 return false;
             } else {
                 return this.isInLove() && mate.isInLove();
@@ -366,7 +378,7 @@ public class Dog extends TamableAnimal implements InterestedMob, ShakingMob<Dog>
         if (!(target instanceof Creeper) && !(target instanceof Ghast)) {
             if (target instanceof Dog dog) {
                 return !dog.isTame() || dog.getOwner() != owner;
-            }else if (target instanceof Wolf wolf) {
+            } else if (target instanceof Wolf wolf) {
                 return !wolf.isTame() || wolf.getOwner() != owner;
             } else if (target instanceof Player targetPlayer && owner instanceof Player ownerPlayer && !ownerPlayer.canHarmPlayer(targetPlayer)) {
                 return false;
@@ -381,63 +393,58 @@ public class Dog extends TamableAnimal implements InterestedMob, ShakingMob<Dog>
     }
 
     @Override
-    protected float getSoundVolume() {
-        return 0.4F;
-    }
-
-    @Override
-    protected float getStandingEyeHeight(Pose pose, EntityDimensions dimensions) {
-        return dimensions.height * 0.8F;
-    }
-
-    @Override
-    public int getMaxHeadXRot() {
-        return this.isInSittingPose() ? 20 : super.getMaxHeadXRot();
-    }
-
-    @Override
     public boolean canBeLeashed(Player player) {
         return !this.isAggressive() && super.canBeLeashed(player);
     }
 
     @Override
     public Vec3 getLeashOffset() {
-        return new Vec3(0.0D, (double)(0.6F * this.getEyeHeight()), (double)(this.getBbWidth() * 0.4F));
+        return new Vec3(0.0D, 0.6F * this.getEyeHeight(), this.getBbWidth() * 0.4F);
     }
 
     @Override
-    public boolean isFood(ItemStack stack) {
-        FoodProperties foodProperties = stack.getFoodProperties(this);
-        return DogAi.isFood(stack) || foodProperties != null && foodProperties.isMeat();
+    public SpawnGroupData finalizeSpawn(ServerLevelAccessor serverLevelAccessor, DifficultyInstance difficultyInstance, MobSpawnType mobSpawnType, @Nullable SpawnGroupData groupData, @Nullable CompoundTag tag) {
+        SpawnGroupData spawnGroupData = super.finalizeSpawn(serverLevelAccessor, difficultyInstance, mobSpawnType, groupData, tag);
+        Collection<EntityVariant> values = this.getVariantRegistry().getValues();
+        RandomSource random = serverLevelAccessor.getRandom();
+        EntityVariant randomVariant = Helper.getRandomObject(values, random);
+        this.setVariant(randomVariant);
+        return spawnGroupData;
     }
 
     @Override
-    public int getMaxSpawnClusterSize() {
-        return 8;
+    protected void jumpFromGround() {
+        super.jumpFromGround();
+        if (!this.level.isClientSide) {
+            this.level.broadcastEntityEvent(this, JUMPING_ID);
+        }
     }
 
     @Override
-    protected SoundEvent getAmbientSound() {
-        return this.level.isClientSide ? null : DogAi.getSoundForCurrentActivity(this).orElse((SoundEvent)null);
+    protected Brain.Provider<Dog> brainProvider() {
+        return Brain.provider(DogAi.MEMORY_TYPES, DogAi.SENSOR_TYPES);
     }
 
     @Override
-    protected SoundEvent getHurtSound(DamageSource source) {
-        return SoundEvents.WOLF_HURT;
+    protected Brain<?> makeBrain(Dynamic<?> dynamic) {
+        return DogAi.makeBrain(this.brainProvider().makeBrain(dynamic));
+    }
+
+    @SuppressWarnings("unchecked")
+    @Override
+    public Brain<Dog> getBrain() {
+        return (Brain<Dog>)super.getBrain();
     }
 
     @Override
-    protected SoundEvent getDeathSound() {
-        return SoundEvents.WOLF_DEATH;
-    }
-
-    @Override
-    protected void playStepSound(BlockPos pos, BlockState state) {
-        this.playSound(SoundEvents.WOLF_STEP, 0.15F, 1.0F);
-    }
-
-    protected void playSoundEvent(SoundEvent soundEvent) {
-        this.playSound(soundEvent, this.getSoundVolume(), this.getVoicePitch());
+    protected void customServerAiStep() {
+        this.level.getProfiler().push("dogBrain");
+        this.getBrain().tick((ServerLevel)this.level, this);
+        this.level.getProfiler().pop();
+        this.level.getProfiler().push("dogActivityUpdate");
+        DogAi.updateActivity(this);
+        this.level.getProfiler().pop();
+        super.customServerAiStep();
     }
 
     // VariantMob

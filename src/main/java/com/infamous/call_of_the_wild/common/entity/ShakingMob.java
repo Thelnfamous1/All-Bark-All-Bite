@@ -49,7 +49,7 @@ public interface ShakingMob<T extends Animal> {
                     float yOffset = (animal.getRandom().nextFloat() * 2.0F - 1.0F) * animal.getBbWidth() * 0.5F;
                     animal.level.addParticle(
                             ParticleTypes.SPLASH,
-                            animal.getX() + (double)xOffset, (double)(y + 0.8F), animal.getZ() + (double)yOffset,
+                            animal.getX() + (double)xOffset, y + 0.8F, animal.getZ() + (double)yOffset,
                             deltaMovement.x, deltaMovement.y, deltaMovement.z);
                 }
             }

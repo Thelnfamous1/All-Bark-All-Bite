@@ -14,7 +14,8 @@ public class CallOfTheWild
     // Define mod id in a common place for everything to reference
     public static final String MODID = "call_of_the_wild";
     // Directly reference a slf4j logger
-    private static final Logger LOGGER = LogUtils.getLogger();
+    @SuppressWarnings("unused")
+    public static final Logger LOGGER = LogUtils.getLogger();
     public CallOfTheWild()
     {
         IEventBus modEventBus = FMLJavaModLoadingContext.get().getModEventBus();

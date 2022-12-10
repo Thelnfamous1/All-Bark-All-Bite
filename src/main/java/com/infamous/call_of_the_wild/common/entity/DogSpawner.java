@@ -20,6 +20,7 @@ import net.minecraftforge.common.ForgeHooks;
 
 import java.util.List;
 
+@SuppressWarnings("NullableProblems")
 public class DogSpawner implements CustomSpawner {
    private static final int TICK_DELAY = 1200;
    private int nextTick;
@@ -28,7 +29,7 @@ public class DogSpawner implements CustomSpawner {
       if (spawnFriendlies && level.getGameRules().getBoolean(GameRules.RULE_DOMOBSPAWNING)) {
          --this.nextTick;
          if (this.nextTick <= 0) {
-            this.nextTick = 1200;
+            this.nextTick = TICK_DELAY;
             Player player = level.getRandomPlayer();
             if (player != null) {
                RandomSource random = level.random;
@@ -57,9 +58,9 @@ public class DogSpawner implements CustomSpawner {
    }
 
    private int spawnInVillage(ServerLevel level, BlockPos blockPos) {
-      int i = 48;
-      if (level.getPoiManager().getCountInRange((h) -> h.is(PoiTypes.HOME), blockPos, 48, PoiManager.Occupancy.IS_OCCUPIED) > 4L) {
-         List<Dog> nearbyDogs = level.getEntitiesOfClass(Dog.class, (new AABB(blockPos)).inflate(48.0D, 8.0D, 48.0D));
+      int horizontalBound = 48;
+      if (level.getPoiManager().getCountInRange((h) -> h.is(PoiTypes.HOME), blockPos, horizontalBound, PoiManager.Occupancy.IS_OCCUPIED) > 4L) {
+         List<Dog> nearbyDogs = level.getEntitiesOfClass(Dog.class, (new AABB(blockPos)).inflate(horizontalBound, 8.0D, horizontalBound));
          if (nearbyDogs.size() < 5) {
             return this.spawnDog(blockPos, level);
          }
@@ -69,8 +70,8 @@ public class DogSpawner implements CustomSpawner {
    }
 
    private int spawnInHut(ServerLevel level, BlockPos blockPos) {
-      int i = 16;
-      List<Dog> nearbyDogs = level.getEntitiesOfClass(Dog.class, (new AABB(blockPos)).inflate(16.0D, 8.0D, 16.0D));
+      int horizontalBound = 16;
+      List<Dog> nearbyDogs = level.getEntitiesOfClass(Dog.class, (new AABB(blockPos)).inflate(horizontalBound, 8.0D, horizontalBound));
       return nearbyDogs.size() < 1 ? this.spawnDog(blockPos, level) : 0;
    }
 

@@ -2,7 +2,6 @@ package com.infamous.call_of_the_wild.common.behavior;
 
 import com.google.common.collect.ImmutableMap;
 import com.infamous.call_of_the_wild.common.entity.InterestedMob;
-import com.infamous.call_of_the_wild.common.util.AiHelper;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.ai.behavior.Behavior;
@@ -15,6 +14,7 @@ import net.minecraft.world.item.ItemStack;
 
 import java.util.Optional;
 
+@SuppressWarnings("NullableProblems")
 public class Beg<T extends Animal & InterestedMob> extends Behavior<T> {
     private final float lookDistance;
 
@@ -25,6 +25,7 @@ public class Beg<T extends Animal & InterestedMob> extends Behavior<T> {
         this.lookDistance = lookDistance;
     }
 
+    @SuppressWarnings("OptionalGetWithoutIsPresent")
     @Override
     public boolean checkExtraStartConditions(ServerLevel level, T animal) {
         return playerHoldingInteresting(this.getPlayerHoldWantedItem(animal).get(), animal);

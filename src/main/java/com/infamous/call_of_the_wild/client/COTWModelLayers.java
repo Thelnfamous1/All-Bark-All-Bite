@@ -7,6 +7,7 @@ import net.minecraft.resources.ResourceLocation;
 
 import java.util.Set;
 
+@SuppressWarnings("SameParameterValue")
 public class COTWModelLayers {
     private static final Set<ModelLayerLocation> ALL_MODELS = Sets.newHashSet();
     public static final ModelLayerLocation DOG = register("dog");

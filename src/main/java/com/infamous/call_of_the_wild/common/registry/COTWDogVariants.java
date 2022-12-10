@@ -10,6 +10,7 @@ import net.minecraftforge.registries.RegistryObject;
 
 import java.util.function.Supplier;
 
+@SuppressWarnings("unused")
 public class COTWDogVariants {
     public static final DeferredRegister<EntityVariant> DOG_VARIANTS = DeferredRegister.create(new ResourceLocation(CallOfTheWild.MODID, "dog_variant"), CallOfTheWild.MODID);
 

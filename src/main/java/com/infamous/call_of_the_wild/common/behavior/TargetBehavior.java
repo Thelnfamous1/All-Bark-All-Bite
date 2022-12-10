@@ -18,6 +18,7 @@ import net.minecraft.world.scores.Team;
 import javax.annotation.Nullable;
 import java.util.Optional;
 
+@SuppressWarnings("NullableProblems")
 public abstract class TargetBehavior<E extends Mob> extends Behavior<E> {
     private static final int EMPTY_REACH_CACHE = 0;
     private static final int CAN_REACH_CACHE = 1;
@@ -27,17 +28,23 @@ public abstract class TargetBehavior<E extends Mob> extends Behavior<E> {
     private int reachCache;
     private int reachCacheTime;
     private int unseenTicks;
-    protected int unseenMemoryTicks = 60;
+    protected int unseenMemoryTicks;
 
     public TargetBehavior(boolean mustSee) {
-        this(mustSee, false);
+        this(mustSee, false, 60);
     }
+
+    @SuppressWarnings("unused")
     public TargetBehavior(boolean mustSee, boolean mustReach) {
+        this(mustSee, mustReach, 60);
+    }
+    public TargetBehavior(boolean mustSee, boolean mustReach, int unseenMemoryTicks) {
         super(ImmutableMap.of(
                 MemoryModuleType.ATTACK_TARGET, MemoryStatus.REGISTERED,
                 MemoryModuleType.CANT_REACH_WALK_TARGET_SINCE, MemoryStatus.REGISTERED));
         this.mustSee = mustSee;
         this.mustReach = mustReach;
+        this.unseenMemoryTicks = unseenMemoryTicks;
     }
 
     @Override
@@ -91,6 +98,7 @@ public abstract class TargetBehavior<E extends Mob> extends Behavior<E> {
         mob.getBrain().eraseMemory(MemoryModuleType.ATTACK_TARGET);
     }
 
+    @SuppressWarnings("SameParameterValue")
     protected boolean canAttack(E mob, @Nullable LivingEntity target, TargetingConditions conditions) {
         if (target == null) {
             return false;
@@ -132,8 +140,4 @@ public abstract class TargetBehavior<E extends Mob> extends Behavior<E> {
         }
     }
 
-    public TargetBehavior<E> setUnseenMemoryTicks(int ticks) {
-        this.unseenMemoryTicks = ticks;
-        return this;
-    }
 }

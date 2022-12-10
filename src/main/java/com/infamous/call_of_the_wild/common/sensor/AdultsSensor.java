@@ -14,7 +14,9 @@ import net.minecraft.world.entity.ai.memory.NearestVisibleLivingEntities;
 import net.minecraft.world.entity.ai.sensing.Sensor;
 import org.apache.commons.compress.utils.Lists;
 
+@SuppressWarnings("NullableProblems")
 public class AdultsSensor extends Sensor<AgeableMob> {
+   @Override
    public Set<MemoryModuleType<?>> requires() {
       return ImmutableSet.of(
               COTWMemoryModuleTypes.NEARBY_ADULTS.get(),

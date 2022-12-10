@@ -6,6 +6,7 @@ import net.minecraft.world.entity.TamableAnimal;
 import net.minecraft.world.entity.ai.behavior.StartAttacking;
 import net.minecraft.world.entity.ai.targeting.TargetingConditions;
 
+@SuppressWarnings("NullableProblems")
 public class OwnerHurtByTarget extends TargetBehavior<TamableAnimal> {
     private LivingEntity ownerLastHurtBy;
     private int timestamp;

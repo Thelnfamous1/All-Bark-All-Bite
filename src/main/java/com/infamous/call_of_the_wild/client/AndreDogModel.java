@@ -11,6 +11,7 @@ import net.minecraft.client.model.geom.ModelPart;
 import net.minecraft.client.model.geom.PartPose;
 import net.minecraft.client.model.geom.builders.*;
 
+@SuppressWarnings({"FieldCanBeLocal", "unused", "NullableProblems"})
 public class AndreDogModel<T extends Dog> extends HierarchicalModel<T> {
 	public static final String HEAD = "head";
 	public static final String BODY = "body";

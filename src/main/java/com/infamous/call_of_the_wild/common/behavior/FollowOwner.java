@@ -15,6 +15,7 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.pathfinder.BlockPathTypes;
 import net.minecraft.world.level.pathfinder.WalkNodeEvaluator;
 
+@SuppressWarnings("NullableProblems")
 public class FollowOwner extends Behavior<TamableAnimal> {
     private static final int TELEPORT_WHEN_DISTANCE_IS = 12;
     private static final int MIN_HORIZONTAL_DISTANCE_FROM_PLAYER_WHEN_TELEPORTING = 2;
@@ -123,7 +124,7 @@ public class FollowOwner extends Behavior<TamableAnimal> {
         } else if (!this.canTeleportTo(level, tamable, new BlockPos(x, y, z))) {
             return false;
         } else {
-            tamable.moveTo((double)x + 0.5D, (double)y, (double)z + 0.5D, tamable.getYRot(), tamable.getXRot());
+            tamable.moveTo((double)x + 0.5D, y, (double)z + 0.5D, tamable.getYRot(), tamable.getXRot());
             AiHelper.stopWalking(tamable);
             return true;
         }

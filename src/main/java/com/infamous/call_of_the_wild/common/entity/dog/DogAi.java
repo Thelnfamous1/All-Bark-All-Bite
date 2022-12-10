@@ -15,7 +15,6 @@ import net.minecraft.util.TimeUtil;
 import net.minecraft.util.valueproviders.UniformInt;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
-import net.minecraft.world.entity.AgeableMob;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.Brain;
@@ -27,7 +26,6 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.entity.schedule.Activity;
 import net.minecraft.world.item.*;
 import net.minecraft.world.item.crafting.Ingredient;
-import net.minecraft.world.level.GameRules;
 import net.minecraft.world.level.Level;
 import net.minecraftforge.common.crafting.CompoundIngredient;
 import net.minecraftforge.event.ForgeEventFactory;
@@ -39,7 +37,7 @@ import java.util.function.Supplier;
 
 public class DogAi {
     private static final UniformInt ADULT_FOLLOW_RANGE = UniformInt.of(5, 16);
-    private static final UniformInt ANGER_DURATION = TimeUtil.rangeOfSeconds(30, 30);
+    private static final UniformInt ANGER_DURATION = TimeUtil.rangeOfSeconds(20, 39); // same as Wolf's persistent anger time
     private static final UniformInt AVOID_DURATION = TimeUtil.rangeOfSeconds(5, 7);
     private static final UniformInt RETREAT_DURATION = TimeUtil.rangeOfSeconds(5, 20);
     private static final UniformInt TIME_BETWEEN_HUNTS = TimeUtil.rangeOfSeconds(30, 120);
@@ -92,7 +90,6 @@ public class DogAi {
             COTWSensorTypes.DOG_TEMPTATIONS.get(),  // TEMPTING_PLAYER
             COTWSensorTypes.DOG_SPECIFIC_SENSOR.get()); // NEAREST_PLAYER_HOLDING_WANTED_ITEM, NEAREST_ATTACKABLE, NEAREST_VISIBLE_DISLIKED
     private static final List<Activity> ACTIVITIES = ImmutableList.of(Activity.FIGHT, Activity.AVOID, Activity.IDLE);
-    private static final double LEAP_Y_DELTA = 0.4D;
     private static final float JUMP_CHANCE_IN_WATER = 0.8F;
     private static final float SPEED_MODIFIER_BREEDING = 1.0F;
     private static final float SPEED_MODIFIER_CHASING = 1.0F; // Dog will sprint with 30% extra speed, meaning final speed is effectively ~1.3F
@@ -107,7 +104,6 @@ public class DogAi {
     private static final int MAX_LOOK_DIST = 8;
     private static final int START_FOLLOW_DISTANCE = 10;
     private static final int STOP_FOLLOW_DISTANCE = 2;
-    private static final int TARGET_DISTANCE_DIFFERENCE_THRESHOLD = 4;
     private static final byte SUCCESSFUL_TAME_ID = 7;
     private static final byte FAILED_TAME_ID = 6;
 
@@ -153,15 +149,7 @@ public class DogAi {
     }
 
     private static boolean isNearDisliked(Dog dog) {
-        if(dog.isTame()) return false;
-
-        Brain<Dog> brain = dog.getBrain();
-        if (brain.hasMemoryValue(COTWMemoryModuleTypes.NEAREST_VISIBLE_DISLIKED.get())) {
-            LivingEntity disliked = brain.getMemory(COTWMemoryModuleTypes.NEAREST_VISIBLE_DISLIKED.get()).get();
-            return dog.closerThan(disliked, DESIRED_DISTANCE_FROM_DISLIKED);
-        } else {
-            return false;
-        }
+        return AiHelper.isNearDisliked(dog, DESIRED_DISTANCE_FROM_DISLIKED);
     }
 
     private static boolean shouldPanic(Dog dog) {
@@ -189,11 +177,11 @@ public class DogAi {
     }
 
     private static boolean canMakeLove(Dog dog){
-        return dog.isMobile();
+        return !dog.isOrderedToSit();
     }
 
     private static boolean canFollowNonOwner(Dog dog) {
-        return dog.isWild();
+        return !dog.isTame();
     }
 
     private static float getSpeedModifierTempted(LivingEntity dog) {
@@ -201,7 +189,7 @@ public class DogAi {
     }
 
     private static boolean canWander(Dog dog){
-        return dog.isMobile();
+        return !dog.isOrderedToSit();
     }
 
     private static RunSometimes<Dog> createIdleLookBehaviors() {
@@ -223,7 +211,7 @@ public class DogAi {
     }
 
     private static boolean canAttack(Dog dog) {
-        return dog.isMobile() && !BehaviorUtils.isBreeding(dog);
+        return !dog.isOrderedToSit() && !BehaviorUtils.isBreeding(dog);
     }
 
     private static Optional<? extends LivingEntity> findNearestValidAttackTarget(Dog dog) {
@@ -247,9 +235,9 @@ public class DogAi {
         brain.addActivityAndRemoveMemoryWhenStopped(Activity.FIGHT, 0,
                 ImmutableList.of(
                         new StopAttackingIfTargetInvalid<>(),
-                        new RunIf<>(Dog::isMobile, new SetWalkTargetFromAttackTargetIfTargetOutOfReach(SPEED_MODIFIER_CHASING)),
-                        new RunIf<>(Dog::isMobile, new LeapAtTarget(), true),
-                        new RunIf<>(Dog::isMobile, new MeleeAttack(ATTACK_COOLDOWN_TICKS)),
+                        new RunIf<>(DogAi::canAttack, new SetWalkTargetFromAttackTargetIfTargetOutOfReach(SPEED_MODIFIER_CHASING)),
+                        new RunIf<>(DogAi::canAttack, new LeapAtTarget(), true),
+                        new RunIf<>(DogAi::canAttack, new MeleeAttack(ATTACK_COOLDOWN_TICKS)),
                         new EraseMemoryIf<>(BehaviorUtils::isBreeding, MemoryModuleType.ATTACK_TARGET)),
                 MemoryModuleType.ATTACK_TARGET);
     }
@@ -257,13 +245,18 @@ public class DogAi {
     private static void initRetreatActivity(Brain<Dog> brain) {
         brain.addActivityAndRemoveMemoryWhenStopped(Activity.AVOID, 0,
                 ImmutableList.of(
-                        new RunIf<>(Dog::isMobile, SetWalkTargetAwayFrom.entity(MemoryModuleType.AVOID_TARGET, SPEED_MODIFIER_RETREATING, DESIRED_DISTANCE_FROM_ENTITY_WHEN_AVOIDING, false)),
+                        new RunIf<>(DogAi::canAvoid, SetWalkTargetAwayFrom.entity(MemoryModuleType.AVOID_TARGET, SPEED_MODIFIER_RETREATING, DESIRED_DISTANCE_FROM_ENTITY_WHEN_AVOIDING, false)),
                         createIdleLookBehaviors(),
                         new RunIf<>(DogAi::canWander, createIdleMovementBehaviors(), true),
                         new EraseMemoryIf<>(DogAi::wantsToStopFleeing, MemoryModuleType.AVOID_TARGET)),
                 MemoryModuleType.AVOID_TARGET);
     }
 
+    private static boolean canAvoid(Dog dog){
+        return !dog.isTame();
+    }
+
+    @SuppressWarnings("OptionalGetWithoutIsPresent")
     private static boolean wantsToStopFleeing(Dog dog) {
         if(dog.isTame()) return true;
 
@@ -272,11 +265,11 @@ public class DogAi {
             return true;
         } else {
             LivingEntity avoidTarget = brain.getMemory(MemoryModuleType.AVOID_TARGET).get();
-            EntityType<?> type = avoidTarget.getType();
-            if (wantsToAvoid(type)) {
+            EntityType<?> avoidType = avoidTarget.getType();
+            if (wantsToAvoid(avoidType)) {
                 return !brain.isMemoryValue(COTWMemoryModuleTypes.NEAREST_VISIBLE_DISLIKED.get(), avoidTarget);
             } else {
-                return false;
+                return !dog.isBaby();
             }
         }
     }
@@ -316,7 +309,7 @@ public class DogAi {
                     return InteractionResult.CONSUME;
                 }
             }
-        } else if(!dog.isAggressive()){
+        } else if(dog.isFood(stack) && !dog.isAggressive()){
             dog.usePlayerItem(player, hand, stack);
             Level level = dog.level;
             if (dog.getRandom().nextInt(3) == 0 && !ForgeEventFactory.onAnimalTame(dog, player)) {
@@ -330,10 +323,6 @@ public class DogAi {
             return InteractionResult.CONSUME;
         }
         return InteractionResult.PASS;
-    }
-
-    protected static boolean isAngry(Dog dog){
-        return dog.getBrain().hasMemoryValue(MemoryModuleType.ANGRY_AT);
     }
 
     private static void yieldAsPet(Dog dog) {
@@ -367,8 +356,8 @@ public class DogAi {
     private static SoundEvent getSoundForActivity(Dog dog, Activity activity) {
         if (activity == Activity.FIGHT) {
             return SoundEvents.WOLF_GROWL;
-        } else if (activity == Activity.AVOID && isNearAvoidTarget(dog)) {
-            return SoundEvents.WOLF_HURT; // placeholder for YELP
+        } else if (activity == Activity.AVOID && AiHelper.isNearAvoidTarget(dog, DESIRED_DISTANCE_FROM_DISLIKED)) {
+            return SoundEvents.WOLF_HURT;
         }else if (dog.getRandom().nextInt(3) == 0) {
             return dog.isTame() && dog.getHealth() < dog.getMaxHealth() * 0.5F ? SoundEvents.WOLF_WHINE : SoundEvents.WOLF_PANT;
         } else {
@@ -376,81 +365,16 @@ public class DogAi {
         }
     }
 
-    private static boolean isNearAvoidTarget(Dog dog) {
-        Brain<Dog> brain = dog.getBrain();
-        return brain.hasMemoryValue(MemoryModuleType.AVOID_TARGET)
-                && brain.getMemory(MemoryModuleType.AVOID_TARGET).get().closerThan(dog, DESIRED_DISTANCE_FROM_DISLIKED);
-    }
-
     protected static void wasHurtBy(Dog dog, LivingEntity attacker) {
         Brain<Dog> brain = dog.getBrain();
         brain.eraseMemory(MemoryModuleType.BREED_TARGET);
         if (dog.isBaby()) {
-            setAvoidTarget(dog, attacker);
+            AiHelper.setAvoidTarget(dog, attacker, RETREAT_DURATION.sample(dog.level.random));
             if (Sensor.isEntityAttackableIgnoringLineOfSight(dog, attacker)) {
-                broadcastAngerTarget(dog, attacker);
+                AiHelper.broadcastAngerTarget(AiHelper.getNearbyAdults(dog), attacker, ANGER_DURATION.sample(dog.getRandom()));
             }
         } else {
-            maybeRetaliate(dog, attacker);
-        }
-    }
-
-    private static void setAvoidTarget(Dog dog, LivingEntity target) {
-        Brain<Dog> brain = dog.getBrain();
-        brain.eraseMemory(MemoryModuleType.ATTACK_TARGET);
-        brain.eraseMemory(MemoryModuleType.WALK_TARGET);
-        brain.setMemoryWithExpiry(MemoryModuleType.AVOID_TARGET, target, (long)RETREAT_DURATION.sample(dog.level.random));
-    }
-
-    private static void maybeRetaliate(Dog dog, LivingEntity attacker) {
-        if (!dog.getBrain().isActive(Activity.AVOID)) {
-            if (Sensor.isEntityAttackableIgnoringLineOfSight(dog, attacker)) {
-                if (!BehaviorUtils.isOtherTargetMuchFurtherAwayThanCurrentAttackTarget(dog, attacker, TARGET_DISTANCE_DIFFERENCE_THRESHOLD)) {
-                    if (attacker.getType() == EntityType.PLAYER && dog.level.getGameRules().getBoolean(GameRules.RULE_UNIVERSAL_ANGER)) {
-                        setAngerTargetToNearestTargetablePlayerIfFound(dog, attacker);
-                        broadcastUniversalAnger(dog);
-                    } else {
-                        setAngerTarget(dog, attacker);
-                        broadcastAngerTarget(dog, attacker);
-                    }
-                }
-            }
-        }
-    }
-
-    private static void setAngerTargetToNearestTargetablePlayerIfFound(Dog dog, LivingEntity target) {
-        Optional<Player> optional = AiHelper.getNearestVisibleTargetablePlayer(dog);
-        if (optional.isPresent()) {
-            setAngerTarget(dog, optional.get());
-        } else {
-            setAngerTarget(dog, target);
-        }
-    }
-
-    private static void setAngerTarget(AgeableMob dog, LivingEntity target) {
-        if (Sensor.isEntityAttackableIgnoringLineOfSight(dog, target)) {
-            dog.getBrain().eraseMemory(MemoryModuleType.CANT_REACH_WALK_TARGET_SINCE);
-            dog.getBrain().setMemoryWithExpiry(MemoryModuleType.ANGRY_AT, target.getUUID(), ANGER_DURATION.sample(dog.getRandom()));
-
-            if (target.getType() == EntityType.PLAYER && dog.level.getGameRules().getBoolean(GameRules.RULE_UNIVERSAL_ANGER)) {
-                dog.getBrain().setMemoryWithExpiry(MemoryModuleType.UNIVERSAL_ANGER, true, ANGER_DURATION.sample(dog.getRandom()));
-            }
-        }
-    }
-
-    private static void broadcastUniversalAnger(Dog dog) {
-        AiHelper.getNearbyAdults(dog).forEach((d) -> AiHelper.getNearestVisibleTargetablePlayer(d).ifPresent((p) -> setAngerTarget(d, p)));
-    }
-
-    private static void broadcastAngerTarget(Dog dog, LivingEntity target) {
-        AiHelper.getNearbyAdults(dog).forEach((d) -> setAngerTargetIfCloserThanCurrent(d, target));
-    }
-
-    private static void setAngerTargetIfCloserThanCurrent(AgeableMob dog, LivingEntity target) {
-        Optional<LivingEntity> angerTarget = AiHelper.getAngerTarget(dog);
-        LivingEntity nearestTarget = BehaviorUtils.getNearestTarget(dog, angerTarget, target);
-        if (angerTarget.isEmpty() || angerTarget.get() != nearestTarget) {
-            setAngerTarget(dog, nearestTarget);
+            AiHelper.maybeRetaliate(dog, AiHelper.getNearbyAdults(dog), attacker, ANGER_DURATION.sample(dog.getRandom()));
         }
     }
 

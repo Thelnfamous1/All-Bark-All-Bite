@@ -12,6 +12,7 @@ import net.minecraft.world.phys.Vec3;
 
 import java.util.Optional;
 
+@SuppressWarnings("NullableProblems")
 public class LeapAtTarget extends Behavior<Mob> {
     public static final double MIN_LEAP_DISTANCE_SQR = 4.0D; // 2 * 2
     public static final double MAX_LEAP_DISTANCE_SQR = 16.0D; // 4 * 4
@@ -19,6 +20,7 @@ public class LeapAtTarget extends Behavior<Mob> {
 
     private final boolean jump;
 
+    @SuppressWarnings("unused")
     public LeapAtTarget(double yDelta) {
         super(ImmutableMap.of(MemoryModuleType.ATTACK_TARGET, MemoryStatus.VALUE_PRESENT));
         this.yDelta = yDelta;
@@ -54,6 +56,7 @@ public class LeapAtTarget extends Behavior<Mob> {
         }
     }
 
+    @SuppressWarnings("OptionalGetWithoutIsPresent")
     @Override
     public void start(ServerLevel level, Mob mob, long gameTime) {
         LivingEntity target = AiHelper.getAttackTarget(mob).get();
