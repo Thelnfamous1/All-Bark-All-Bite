@@ -4,11 +4,13 @@ import com.infamous.call_of_the_wild.common.entity.*;
 import com.infamous.call_of_the_wild.common.registry.COTWDogVariants;
 import com.infamous.call_of_the_wild.common.registry.COTWEntityDataSerializers;
 import com.infamous.call_of_the_wild.common.registry.COTWEntityTypes;
+import com.infamous.call_of_the_wild.common.registry.COTWMemoryModuleTypes;
 import com.infamous.call_of_the_wild.common.util.AiHelper;
 import com.infamous.call_of_the_wild.common.util.Helper;
 import com.mojang.serialization.Dynamic;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.network.protocol.game.DebugPackets;
 import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.network.syncher.SynchedEntityData;
@@ -24,9 +26,11 @@ import net.minecraft.world.entity.*;
 import net.minecraft.world.entity.ai.Brain;
 import net.minecraft.world.entity.ai.attributes.AttributeSupplier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
+import net.minecraft.world.entity.ai.memory.MemoryModuleType;
 import net.minecraft.world.entity.animal.Animal;
 import net.minecraft.world.entity.animal.Wolf;
 import net.minecraft.world.entity.animal.horse.AbstractHorse;
+import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.entity.monster.Creeper;
 import net.minecraft.world.entity.monster.Ghast;
 import net.minecraft.world.entity.player.Player;
@@ -40,11 +44,13 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.gameevent.GameEvent;
 import net.minecraft.world.level.pathfinder.BlockPathTypes;
 import net.minecraft.world.phys.Vec3;
+import net.minecraftforge.event.ForgeEventFactory;
 import net.minecraftforge.registries.IForgeRegistry;
 import org.apache.commons.lang3.tuple.MutablePair;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Collection;
+import java.util.UUID;
 
 @SuppressWarnings("NullableProblems")
 public class Dog extends TamableAnimal implements InterestedMob, ShakingMob<Dog>, VariantMob, CollaredMob {
@@ -77,6 +83,7 @@ public class Dog extends TamableAnimal implements InterestedMob, ShakingMob<Dog>
         this.setTame(false);
         this.setPathfindingMalus(BlockPathTypes.POWDER_SNOW, -1.0F);
         this.setPathfindingMalus(BlockPathTypes.DANGER_POWDER_SNOW, -1.0F);
+        this.setCanPickUpLoot(this.canPickUpLoot());
     }
 
     public static AttributeSupplier.Builder createAttributes() {
@@ -143,7 +150,7 @@ public class Dog extends TamableAnimal implements InterestedMob, ShakingMob<Dog>
 
     @Override
     protected SoundEvent getAmbientSound() {
-        return this.level.isClientSide ? null : DogAi.getSoundForCurrentActivity(this).orElse((SoundEvent)null);
+        return this.level.isClientSide ? null : DogAi.getSoundForCurrentActivity(this).orElse(null);
     }
 
     @Override
@@ -445,6 +452,64 @@ public class Dog extends TamableAnimal implements InterestedMob, ShakingMob<Dog>
         DogAi.updateActivity(this);
         this.level.getProfiler().pop();
         super.customServerAiStep();
+    }
+
+    @Override
+    public boolean wantsToPickUp(ItemStack stack) {
+        return ForgeEventFactory.getMobGriefingEvent(this.level, this) && this.canPickUpLoot() && DogAi.wantsToPickup(this, stack);
+    }
+
+    @Override
+    protected void pickUpItem(ItemEntity itemEntity) {
+        this.onItemPickup(itemEntity);
+        DogAi.pickUpItem(this, itemEntity);
+    }
+
+    protected void holdInMouth(ItemStack stack) {
+        this.setItemSlotAndDropWhenKilled(EquipmentSlot.MAINHAND, stack);
+    }
+
+    @Override
+    public boolean canPickUpLoot() {
+        return !this.isOnPickupCooldown();
+    }
+
+    @Override
+    public boolean canTakeItem(ItemStack stack) {
+        EquipmentSlot slot = Mob.getEquipmentSlotForItem(stack);
+        if (!this.getItemBySlot(slot).isEmpty()) {
+            return false;
+        } else {
+            return slot == EquipmentSlot.MAINHAND && super.canTakeItem(stack);
+        }
+    }
+
+    public boolean hasItemInMouth() {
+        return !this.getItemInHand(InteractionHand.MAIN_HAND).isEmpty();
+    }
+
+    public ItemStack getItemInMouth(){
+        return this.getItemInHand(InteractionHand.MAIN_HAND);
+    }
+
+    public void setItemInMouth(ItemStack stack){
+        this.setItemInHand(InteractionHand.MAIN_HAND, stack);
+    }
+
+    private boolean isOnPickupCooldown() {
+        return this.getBrain().hasMemoryValue(MemoryModuleType.ITEM_PICKUP_COOLDOWN_TICKS);
+    }
+
+    @Override
+    protected void sendDebugPackets() {
+        super.sendDebugPackets();
+        DebugPackets.sendEntityBrain(this);
+    }
+
+    @Override
+    public void setOwnerUUID(@Nullable UUID ownerUUID) {
+        super.setOwnerUUID(ownerUUID);
+        this.getBrain().setMemory(COTWMemoryModuleTypes.OWNER.get(), ownerUUID);
     }
 
     // VariantMob

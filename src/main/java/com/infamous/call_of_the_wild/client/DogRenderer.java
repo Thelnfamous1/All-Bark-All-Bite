@@ -15,6 +15,7 @@ public class DogRenderer extends MobRenderer<Dog, AndreDogModel<Dog>> {
    public DogRenderer(EntityRendererProvider.Context context) {
       super(context, new AndreDogModel<>(context.bakeLayer(COTWModelLayers.DOG)), DEFAULT_SHADOW_RADIUS);
       this.addLayer(new DogCollarLayer(this));
+      this.addLayer(new DogHeldItemLayer(this, context.getItemInHandRenderer()));
    }
 
    public void render(Dog dog, float p_116532_, float partialTicks, PoseStack poseStack, MultiBufferSource bufferSource, int p_116536_) {

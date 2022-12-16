@@ -20,7 +20,7 @@ public class COTWItemTagProvider extends ItemTagsProvider {
 
     @Override
     protected void addTags() {
-        this.tag(COTWTags.DOG_LOVED).add(Items.BONE);
+        this.tag(COTWTags.DOG_LOVED).add(Items.BONE, Items.STICK);
         this.tag(COTWTags.DOG_FOOD).add(Items.APPLE, Items.CARROT, Items.MELON_SLICE, Items.BAKED_POTATO);
     }
 }

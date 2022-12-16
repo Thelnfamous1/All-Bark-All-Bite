@@ -24,22 +24,22 @@ public class FollowOwner extends Behavior<TamableAnimal> {
     private LivingEntity owner;
     private final float speedModifier;
     private int timeToRecalcPath;
-    private final int stopDistance;
-    private final int startDistance;
+    private final int closeEnough;
+    private final int tooFar;
     private float oldWaterCost;
     private final boolean canFly;
 
-    public FollowOwner(float speedModifier, int startDistance, int stopDistance) {
-        this(speedModifier, startDistance, stopDistance, false);
+    public FollowOwner(float speedModifier, int tooFar, int closeEnough) {
+        this(speedModifier, tooFar, closeEnough, false);
     }
 
-    public FollowOwner(float speedModifier, int startDistance, int stopDistance, boolean canFly) {
+    public FollowOwner(float speedModifier, int tooFar, int closeEnough, boolean canFly) {
         super(ImmutableMap.of(
                 MemoryModuleType.WALK_TARGET, MemoryStatus.REGISTERED,
                 MemoryModuleType.LOOK_TARGET, MemoryStatus.REGISTERED));
         this.speedModifier = speedModifier;
-        this.startDistance = startDistance;
-        this.stopDistance = stopDistance;
+        this.tooFar = tooFar;
+        this.closeEnough = closeEnough;
         this.canFly = canFly;
     }
 
@@ -52,7 +52,7 @@ public class FollowOwner extends Behavior<TamableAnimal> {
             return false;
         } else if (tamable.isOrderedToSit()) {
             return false;
-        } else if (tamable.distanceToSqr(owner) < (double)(this.startDistance * this.startDistance)) {
+        } else if (tamable.distanceToSqr(owner) < (double)(this.tooFar * this.tooFar)) {
             return false;
         } else {
             this.owner = owner;
@@ -67,7 +67,7 @@ public class FollowOwner extends Behavior<TamableAnimal> {
         } else if (tamable.isOrderedToSit()) {
             return false;
         } else {
-            return !(tamable.distanceToSqr(this.owner) <= (double)(this.stopDistance * this.stopDistance));
+            return !(tamable.distanceToSqr(this.owner) <= (double)(this.closeEnough * this.closeEnough));
         }
     }
 
@@ -76,7 +76,7 @@ public class FollowOwner extends Behavior<TamableAnimal> {
         this.timeToRecalcPath = 0;
         this.oldWaterCost = tamable.getPathfindingMalus(BlockPathTypes.WATER);
         tamable.setPathfindingMalus(BlockPathTypes.WATER, 0.0F);
-        BehaviorUtils.setWalkAndLookTargetMemories(tamable, this.owner, this.speedModifier, this.startDistance);
+        BehaviorUtils.setWalkAndLookTargetMemories(tamable, this.owner, this.speedModifier, this.tooFar);
     }
 
     @Override

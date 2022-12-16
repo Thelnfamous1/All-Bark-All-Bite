@@ -27,7 +27,7 @@ public class AndreDogModel<T extends Dog> extends HierarchicalModel<T> {
 	private float g = 1.0F;
 	private float b = 1.0F;
 	private final ModelPart root;
-	private final ModelPart head;
+	final ModelPart head;
 	private final ModelPart body;
 	private final ModelPart upperBody;
 	private final ModelPart rightHindLeg;

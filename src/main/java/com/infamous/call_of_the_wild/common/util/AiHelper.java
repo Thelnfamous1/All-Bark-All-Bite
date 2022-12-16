@@ -131,4 +131,12 @@ public class AiHelper {
         return brain.hasMemoryValue(COTWMemoryModuleTypes.NEAREST_VISIBLE_DISLIKED.get())
                 && brain.getMemory(COTWMemoryModuleTypes.NEAREST_VISIBLE_DISLIKED.get()).get().closerThan(livingEntity, desiredDistanceFromDisliked);
     }
+
+    public static boolean hasAnyMemory(LivingEntity livingEntity, MemoryModuleType<?>... memoryModuleTypes){
+        Brain<?> brain = livingEntity.getBrain();
+        for(MemoryModuleType<?> memoryModuleType : memoryModuleTypes){
+            if(brain.hasMemoryValue(memoryModuleType)) return true;
+        }
+        return false;
+    }
 }

@@ -17,11 +17,11 @@ public class DogCollarLayer extends RenderLayer<Dog, AndreDogModel<Dog>> {
       super(layerParent);
    }
 
-   public void render(PoseStack poseStack, MultiBufferSource bufferSource, int p_117722_, Dog dog, float p_117724_, float p_117725_, float p_117726_, float p_117727_, float p_117728_, float p_117729_) {
+   public void render(PoseStack poseStack, MultiBufferSource bufferSource, int packedLight, Dog dog, float animPosDelta, float lerpAnimSpeed, float partialTicks, float bob, float lerpYRot, float lerpXRot) {
       if (dog.isTame() && !dog.isInvisible()) {
          float[] afloat = dog.getCollarColor().getTextureDiffuseColors();
-         renderColoredCutoutModel(this.getParentModel(), DOG_COLLAR_LOCATION, poseStack, bufferSource, p_117722_, dog, afloat[0], afloat[1], afloat[2]);
-         if(dog.hasCustomName()) renderColoredCutoutModel(this.getParentModel(), DOG_TAG_LOCATION, poseStack, bufferSource, p_117722_, dog, 1.0F, 1.0F, 1.0F);
+         renderColoredCutoutModel(this.getParentModel(), DOG_COLLAR_LOCATION, poseStack, bufferSource, packedLight, dog, afloat[0], afloat[1], afloat[2]);
+         if(dog.hasCustomName()) renderColoredCutoutModel(this.getParentModel(), DOG_TAG_LOCATION, poseStack, bufferSource, packedLight, dog, 1.0F, 1.0F, 1.0F);
       }
    }
 }
