@@ -2,6 +2,7 @@ package com.infamous.call_of_the_wild.common.registry;
 
 import com.infamous.call_of_the_wild.CallOfTheWild;
 import com.mojang.serialization.Codec;
+import net.minecraft.core.BlockPos;
 import net.minecraft.core.UUIDUtil;
 import net.minecraft.world.entity.AgeableMob;
 import net.minecraft.world.entity.LivingEntity;
@@ -39,6 +40,10 @@ public class COTWMemoryModuleTypes {
             () -> new MemoryModuleType<>(Optional.empty()));
 
     public static RegistryObject<MemoryModuleType<UUID>> OWNER = MEMORY_MODULE_TYPES.register(
-            "picked_up_item_from",
+            "owner",
             () -> new MemoryModuleType<>(Optional.of(UUIDUtil.CODEC)));
+
+    public static RegistryObject<MemoryModuleType<BlockPos>> DIG_LOCATION = MEMORY_MODULE_TYPES.register(
+            "dig_location",
+            () -> new MemoryModuleType<>(Optional.empty()));
 }

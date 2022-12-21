@@ -8,14 +8,21 @@ import com.infamous.call_of_the_wild.common.registry.COTWEntityTypes;
 import com.infamous.call_of_the_wild.common.registry.COTWMemoryModuleTypes;
 import com.infamous.call_of_the_wild.common.registry.COTWSensorTypes;
 import com.infamous.call_of_the_wild.common.util.AiHelper;
+import com.infamous.call_of_the_wild.data.COTWBuiltInLootTables;
 import com.mojang.datafixers.util.Pair;
+import net.minecraft.core.BlockPos;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.sounds.SoundEvents;
+import net.minecraft.util.Mth;
+import net.minecraft.util.RandomSource;
 import net.minecraft.util.TimeUtil;
 import net.minecraft.util.valueproviders.UniformInt;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
-import net.minecraft.world.entity.*;
+import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.PathfinderMob;
 import net.minecraft.world.entity.ai.Brain;
 import net.minecraft.world.entity.ai.behavior.*;
 import net.minecraft.world.entity.ai.memory.MemoryModuleType;
@@ -25,14 +32,23 @@ import net.minecraft.world.entity.ai.util.LandRandomPos;
 import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.entity.schedule.Activity;
-import net.minecraft.world.item.*;
+import net.minecraft.world.item.DyeColor;
+import net.minecraft.world.item.DyeItem;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.Ingredient;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.storage.loot.LootContext;
+import net.minecraft.world.level.storage.loot.LootTable;
+import net.minecraft.world.level.storage.loot.parameters.LootContextParamSets;
+import net.minecraft.world.level.storage.loot.parameters.LootContextParams;
 import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.common.crafting.CompoundIngredient;
 import net.minecraftforge.event.ForgeEventFactory;
 
-import java.util.*;
+import java.util.Collection;
+import java.util.List;
+import java.util.Optional;
 import java.util.function.Supplier;
 
 public class DogAi {
@@ -76,6 +92,9 @@ public class DogAi {
             MemoryModuleType.TEMPTATION_COOLDOWN_TICKS,
             MemoryModuleType.IS_TEMPTED,
 
+            COTWMemoryModuleTypes.DIG_LOCATION.get(),
+            MemoryModuleType.DIG_COOLDOWN,
+
             MemoryModuleType.NEAREST_VISIBLE_WANTED_ITEM,
             COTWMemoryModuleTypes.PLAYING_WITH_ITEM.get(),
             COTWMemoryModuleTypes.TIME_TRYING_TO_REACH_PLAY_ITEM.get(),
@@ -95,7 +114,7 @@ public class DogAi {
             SensorType.HURT_BY, // HURT_BY, HURT_BY_ENTITY
             COTWSensorTypes.DOG_TEMPTATIONS.get(),  // TEMPTING_PLAYER
             COTWSensorTypes.DOG_SPECIFIC_SENSOR.get()); // NEAREST_PLAYER_HOLDING_WANTED_ITEM, NEAREST_ATTACKABLE, NEAREST_VISIBLE_DISLIKED
-    private static final List<Activity> ACTIVITIES = ImmutableList.of(Activity.FIGHT, Activity.AVOID, Activity.PLAY, Activity.IDLE);
+    private static final List<Activity> ACTIVITIES = ImmutableList.of(Activity.FIGHT, Activity.AVOID, Activity.DIG, Activity.PLAY, Activity.IDLE);
     private static final float JUMP_CHANCE_IN_WATER = 0.8F;
     private static final float SPEED_MODIFIER_BREEDING = 1.0F;
     private static final float SPEED_MODIFIER_CHASING = 1.0F; // Dog will sprint with 30% extra speed, meaning final speed is effectively ~1.3F
@@ -105,6 +124,7 @@ public class DogAi {
     private static final float SPEED_MODIFIER_TEMPTED = 1.0F;
     private static final float SPEED_MODIFIER_WALKING = 1.0F;
     private static final float SPEED_MODIFIER_PLAYING = 1.0F; // Dog will sprint with 30% extra speed, meaning final speed is effectively ~1.3F
+    // Dog will sprint with 30% extra speed, meaning final speed is effectively ~1.3F
     private static final int ATTACK_COOLDOWN_TICKS = 20;
     private static final int DESIRED_DISTANCE_FROM_DISLIKED = 6;
     private static final int DESIRED_DISTANCE_FROM_ENTITY_WHEN_AVOIDING = 12;
@@ -113,6 +133,11 @@ public class DogAi {
     private static final int STOP_FOLLOW_DISTANCE = 2;
     private static final byte SUCCESSFUL_TAME_ID = 7;
     private static final byte FAILED_TAME_ID = 6;
+    public static final int MAX_FETCH_DISTANCE = 16;
+    public static final int ITEM_PICKUP_COOLDOWN = 60;
+    public static final int MAX_TIME_TO_REACH_ITEM = 200;
+    public static final int DISABLE_PLAY_TIME = 200;
+    private static final long DIG_DURATION = 100L;
 
     public static Ingredient getTemptations() {
         return CompoundIngredient.of(Ingredient.of(COTWTags.DOG_FOOD), Ingredient.of(COTWTags.DOG_LOVED));
@@ -131,6 +156,7 @@ public class DogAi {
         initFightActivity(brain);
         initRetreatActivity(brain);
         initPlayActivity(brain);
+        initDiggingActivity(brain);
         brain.setCoreActivities(ImmutableSet.of(Activity.CORE));
         brain.setDefaultActivity(Activity.IDLE);
         brain.useDefaultActivity();
@@ -257,49 +283,7 @@ public class DogAi {
                 MemoryModuleType.ATTACK_TARGET);
     }
 
-    private static void initPlayActivity(Brain<Dog> brain) {
-        brain.addActivityAndRemoveMemoryWhenStopped(Activity.PLAY, 0,
-                ImmutableList.of(
-                        new RunIf<>(DogAi::canPlay, new GoToWantedItem<>(DogAi::isNotHoldingWantedItem, SPEED_MODIFIER_PLAYING, true, 32)),
-                        new RunIf<>(DogAi::canPlay, new GoToTargetAndGiveItem<>(Dog::getItemInMouth, DogAi::getOwnerPositionTracker, SPEED_MODIFIER_PLAYING, STOP_FOLLOW_DISTANCE, 60, DogAi::onThrown), true),
-                        //new RunIf<>(DogAi::canPlay, new StayCloseToTarget<>(DogAi::getThrowerPositionTracker, STOP_FOLLOW_DISTANCE, START_FOLLOW_DISTANCE, SPEED_MODIFIER_PLAYING)),
-                        new StopPlayingIfItemTooFarAway<>(DogAi::canStopPlayingIfItemTooFar, 32),
-                        new StopPlayingIfTiredOfTryingToReachItem<>(DogAi::canGetTiredTryingToReachItem, 300, 200),
-                        new EraseMemoryIf<>(DogAi::wantsToStopPlaying, COTWMemoryModuleTypes.PLAYING_WITH_ITEM.get())),
-                COTWMemoryModuleTypes.PLAYING_WITH_ITEM.get());
-    }
 
-    public static void onThrown(Dog dog){
-        dog.playSoundEvent(SoundEvents.FOX_SPIT);
-    }
-
-    private static boolean canPlay(Dog dog){
-        return !dog.isOrderedToSit() && dog.isTame();
-    }
-
-    private static boolean wantsToStopPlaying(Dog dog) {
-        return !dog.isTame() || (!dog.hasItemInMouth() && dog.getBrain().hasMemoryValue(MemoryModuleType.ITEM_PICKUP_COOLDOWN_TICKS));
-    }
-
-    private static boolean isNotHoldingWantedItem(Dog dog) {
-        return dog.getItemInMouth().isEmpty() || !isLoved(dog.getItemInMouth());
-    }
-
-    private static Optional<PositionTracker> getOwnerPositionTracker(LivingEntity livingEntity) {
-        return getOwner(livingEntity).map(le -> new EntityTracker(le, true));
-    }
-
-    private static Optional<LivingEntity> getOwner(LivingEntity livingEntity) {
-        return BehaviorUtils.getLivingEntityFromUUIDMemory(livingEntity, COTWMemoryModuleTypes.OWNER.get());
-    }
-
-    private static boolean canStopPlayingIfItemTooFar(Dog dog) {
-        return !dog.hasItemInMouth();
-    }
-
-    private static boolean canGetTiredTryingToReachItem(Dog dog) {
-        return !dog.hasItemInMouth();
-    }
 
     private static void initRetreatActivity(Brain<Dog> brain) {
         brain.addActivityAndRemoveMemoryWhenStopped(Activity.AVOID, 0,
@@ -337,16 +321,113 @@ public class DogAi {
         return entityType.is(COTWTags.DOG_DISLIKED);
     }
 
+    private static void initPlayActivity(Brain<Dog> brain) {
+        brain.addActivityAndRemoveMemoryWhenStopped(Activity.PLAY, 0,
+                ImmutableList.of(
+                        new RunIf<>(DogAi::canPlay, new GoToWantedItem<>(DogAi::isNotHoldingWantedItem, SPEED_MODIFIER_PLAYING, true, MAX_FETCH_DISTANCE)),
+                        new RunIf<>(DogAi::canPlay, new GoToTargetAndGiveItem<>(Dog::getItemInMouth, DogAi::getOwnerPositionTracker, SPEED_MODIFIER_PLAYING, STOP_FOLLOW_DISTANCE, ITEM_PICKUP_COOLDOWN, DogAi::onThrown), true),
+                        new RunIf<>(DogAi::canPlay, new StayCloseToTarget<>(DogAi::getOwnerPositionTracker, STOP_FOLLOW_DISTANCE, STOP_FOLLOW_DISTANCE + 1, SPEED_MODIFIER_PLAYING)),
+                        new StopPlayingIfItemTooFarAway<>(DogAi::canStopPlayingIfItemTooFar, MAX_FETCH_DISTANCE),
+                        new StopPlayingIfTiredOfTryingToReachItem<>(DogAi::canGetTiredTryingToReachItem, MAX_TIME_TO_REACH_ITEM, DISABLE_PLAY_TIME),
+                        new EraseMemoryIf<>(DogAi::wantsToStopPlaying, COTWMemoryModuleTypes.PLAYING_WITH_ITEM.get())),
+                COTWMemoryModuleTypes.PLAYING_WITH_ITEM.get());
+    }
+
+    public static void onThrown(Dog dog){
+        dog.playSoundEvent(SoundEvents.FOX_SPIT);
+    }
+
+    private static boolean canPlay(Dog dog){
+        return !dog.isOrderedToSit() && dog.isTame();
+    }
+
+    private static boolean wantsToStopPlaying(Dog dog) {
+        return !dog.isTame() || (!dog.hasItemInMouth() && dog.getBrain().hasMemoryValue(MemoryModuleType.ITEM_PICKUP_COOLDOWN_TICKS));
+    }
+
+    private static boolean isNotHoldingWantedItem(Dog dog) {
+        return dog.getItemInMouth().isEmpty(); //|| !isLoved(dog.getItemInMouth());
+    }
+
+    private static Optional<PositionTracker> getOwnerPositionTracker(LivingEntity livingEntity) {
+        return getOwner(livingEntity).map(le -> new EntityTracker(le, true));
+    }
+
+    private static Optional<LivingEntity> getOwner(LivingEntity livingEntity) {
+        return BehaviorUtils.getLivingEntityFromUUIDMemory(livingEntity, COTWMemoryModuleTypes.OWNER.get());
+    }
+
+    private static boolean canStopPlayingIfItemTooFar(Dog dog) {
+        return !dog.hasItemInMouth();
+    }
+
+    private static boolean canGetTiredTryingToReachItem(Dog dog) {
+        return !dog.hasItemInMouth();
+    }
+
+    private static void initDiggingActivity(Brain<Dog> brain) {
+        brain.addActivityAndRemoveMemoryWhenStopped(Activity.DIG,
+                0,
+                ImmutableList.of(
+                        new RunIf<>(DogAi::canPlay, new GoToTargetLocation<>(COTWMemoryModuleTypes.DIG_LOCATION.get(), STOP_FOLLOW_DISTANCE, SPEED_MODIFIER_PLAYING)),
+                        new RunIf<>(DogAi::canPlay, new DigAtLocation<>(DogAi::onDigStarted, DogAi::onDigCompleted, DogAi::onDigStopped, DIG_DURATION), true)),
+                COTWMemoryModuleTypes.DIG_LOCATION.get());
+    }
+
+    private static void onDigStarted(Dog dog){
+    }
+
+    @SuppressWarnings("ConstantConditions")
+    private static void onDigCompleted(Dog dog){
+        RandomSource random = dog.getRandom();
+        LootTable lootTable = dog.level.getServer().getLootTables().get(COTWBuiltInLootTables.DOG_DIGGING);
+        LootContext.Builder lcb = (new LootContext.Builder((ServerLevel)dog.level))
+                .withParameter(LootContextParams.ORIGIN, dog.position())
+                .withParameter(LootContextParams.THIS_ENTITY, dog)
+                .withRandom(random);
+
+        boolean pickedUp = false;
+        for(ItemStack giftStack : lootTable.getRandomItems(lcb.create(LootContextParamSets.GIFT))) {
+            ItemEntity drop = new ItemEntity(dog.level,
+                    dog.getX() - (double) Mth.sin(dog.yBodyRot * ((float) Math.PI / 180F)),
+                    dog.getY(),
+                    dog.getZ() + (double) Mth.cos(dog.yBodyRot * ((float) Math.PI / 180F)), giftStack);
+            dog.level.addFreshEntity(drop);
+            if(!pickedUp){
+                dog.pickUpItem(drop);
+                pickedUp = true;
+            }
+        }
+    }
+
+    private static void onDigStopped(Dog dog){
+        //dog.getBrain().setMemoryWithExpiry(MemoryModuleType.DIG_COOLDOWN, Unit.INSTANCE, 200L);
+    }
+
     protected static InteractionResult mobInteract(Dog dog, Player player, InteractionHand hand, Supplier<InteractionResult> animalInteract) {
         ItemStack stack = player.getItemInHand(hand);
         Item item = stack.getItem();
+        Level level = dog.level;
 
         if(dog.isTame()){
             if (!(item instanceof DyeItem dyeItem)) {
+                if(isLoved(stack) && !hasDigLocation(dog) && !hasDigCooldown(dog)){
+                    Optional<BlockPos> digLocation = generateDigLocation(dog);
+                    if(digLocation.isPresent()){
+                        yieldAsPet(dog);
+                        setDigLocation(dog, digLocation.get());
+                        dog.usePlayerItem(player, hand, stack);
+                        return InteractionResult.CONSUME;
+                    } else{
+                        return InteractionResult.PASS;
+                    }
+                }
+
                 if(dog.isFood(stack) && dog.isInjured()){
                     dog.usePlayerItem(player, hand, stack);
                     return InteractionResult.CONSUME;
                 }
+
                 InteractionResult animalInteractResult = animalInteract.get(); // will set in breed mode if adult and not on cooldown, or age up if baby
                 boolean willNotBreed = !animalInteractResult.consumesAction() || dog.isBaby();
                 if (willNotBreed && dog.isOwnedBy(player)) {
@@ -370,7 +451,6 @@ public class DogAi {
             }
         } else if(dog.isFood(stack) && !dog.isAggressive()){
             dog.usePlayerItem(player, hand, stack);
-            Level level = dog.level;
             if (dog.getRandom().nextInt(3) == 0 && !ForgeEventFactory.onAnimalTame(dog, player)) {
                 dog.tame(player);
                 yieldAsPet(dog);
@@ -384,11 +464,35 @@ public class DogAi {
         return InteractionResult.PASS;
     }
 
+    private static boolean hasDigLocation(Dog dog){
+        return dog.getBrain().hasMemoryValue(COTWMemoryModuleTypes.DIG_LOCATION.get());
+    }
+
+    private static boolean hasDigCooldown(Dog dog){
+        return dog.getBrain().hasMemoryValue(MemoryModuleType.DIG_COOLDOWN);
+    }
+
+    public static Optional<BlockPos> generateDigLocation(Dog dog){
+        Vec3 randomPos = LandRandomPos.getPos(dog, 10, 7);
+        if(randomPos == null) return Optional.empty();
+
+        BlockPos blockPos = new BlockPos(randomPos);
+        //CallOfTheWild.LOGGER.info("Generated dig location for {} at {}", dog, blockPos);
+        return Optional.of(blockPos).filter(bp -> dog.level.getBlockState(bp.below()).is(COTWTags.DOGS_CAN_DIG));
+    }
+
+    private static void setDigLocation(Dog dog, BlockPos blockPos){
+        //CallOfTheWild.LOGGER.info("Set dig location for {} at {}", dog, blockPos);
+        dog.getBrain().setMemory(COTWMemoryModuleTypes.DIG_LOCATION.get(), blockPos);
+    }
+
     private static void yieldAsPet(Dog dog) {
         AiHelper.stopWalking(dog);
-        dog.getBrain().eraseMemory(MemoryModuleType.ATTACK_TARGET);
-        dog.getBrain().eraseMemory(MemoryModuleType.AVOID_TARGET);
-        dog.getBrain().eraseMemory(COTWMemoryModuleTypes.PLAYING_WITH_ITEM.get());
+        AiHelper.eraseAllMemories(dog,
+                MemoryModuleType.ATTACK_TARGET,
+                MemoryModuleType.AVOID_TARGET,
+                COTWMemoryModuleTypes.PLAYING_WITH_ITEM.get(),
+                COTWMemoryModuleTypes.DIG_LOCATION.get());
     }
 
     protected static void updateActivity(Dog dog) {
@@ -408,7 +512,8 @@ public class DogAi {
                 MemoryModuleType.ATTACK_TARGET,
                 MemoryModuleType.AVOID_TARGET,
                 MemoryModuleType.IS_PANICKING,
-                COTWMemoryModuleTypes.PLAYING_WITH_ITEM.get()));
+                COTWMemoryModuleTypes.PLAYING_WITH_ITEM.get(),
+                COTWMemoryModuleTypes.DIG_LOCATION.get()));
     }
 
     protected static Optional<SoundEvent> getSoundForCurrentActivity(Dog dog) {
@@ -435,6 +540,8 @@ public class DogAi {
         }
 
         brain.eraseMemory(MemoryModuleType.BREED_TARGET);
+        brain.eraseMemory(COTWMemoryModuleTypes.PLAYING_WITH_ITEM.get());
+        brain.eraseMemory(COTWMemoryModuleTypes.DIG_LOCATION.get());
 
 
         if (dog.isBaby()) {
@@ -459,12 +566,9 @@ public class DogAi {
     protected static void pickUpItem(Dog dog, ItemEntity itemEntity) {
         dog.take(itemEntity, 1);
         ItemStack singleton = removeOneItemFromItemEntity(itemEntity);
-
-        if (isLoved(singleton)) {
-            dog.getBrain().eraseMemory(COTWMemoryModuleTypes.TIME_TRYING_TO_REACH_PLAY_ITEM.get());
-            holdInMouth(dog, singleton);
-            playWithItem(dog);
-        }
+        dog.getBrain().eraseMemory(COTWMemoryModuleTypes.TIME_TRYING_TO_REACH_PLAY_ITEM.get());
+        holdInMouth(dog, singleton);
+        playWithItem(dog);
     }
 
     private static void playWithItem(LivingEntity livingEntity) {
@@ -473,8 +577,7 @@ public class DogAi {
 
     private static void holdInMouth(Dog dog, ItemStack stack) {
         if (dog.hasItemInMouth()) {
-            dog.spawnAtLocation(dog.getItemInMouth());
-            onThrown(dog);
+            stopHoldingItemInMouth(dog);
         }
 
         dog.holdInMouth(stack);
@@ -495,7 +598,7 @@ public class DogAi {
     protected static void stopHoldingItemInMouth(Dog dog) {
         ItemStack mouthStack = dog.getItemInMouth();
         dog.setItemInMouth(ItemStack.EMPTY);
-        GoToTargetAndGiveItem.throwItem(dog, mouthStack, getRandomNearbyPos(dog));
+        BehaviorUtils.throwItem(dog, mouthStack, getRandomNearbyPos(dog));
         onThrown(dog);
     }
 

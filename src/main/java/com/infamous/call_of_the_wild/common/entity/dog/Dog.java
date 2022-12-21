@@ -9,6 +9,8 @@ import com.infamous.call_of_the_wild.common.util.AiHelper;
 import com.infamous.call_of_the_wild.common.util.Helper;
 import com.mojang.serialization.Dynamic;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.particles.BlockParticleOption;
+import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.protocol.game.DebugPackets;
 import net.minecraft.network.syncher.EntityDataAccessor;
@@ -17,6 +19,7 @@ import net.minecraft.network.syncher.SynchedEntityData;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.sounds.SoundEvents;
+import net.minecraft.util.Mth;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.DifficultyInstance;
 import net.minecraft.world.InteractionHand;
@@ -40,6 +43,7 @@ import net.minecraft.world.item.DyeColor;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.ServerLevelAccessor;
+import net.minecraft.world.level.block.RenderShape;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.gameevent.GameEvent;
 import net.minecraft.world.level.pathfinder.BlockPathTypes;
@@ -72,6 +76,7 @@ public class Dog extends TamableAnimal implements InterestedMob, ShakingMob<Dog>
     public final AnimationState jumpAnimationState = new AnimationState();
     public final AnimationState sitAnimationState = new AnimationState();
     public final AnimationState shakeAnimationState = new AnimationState();
+    public final AnimationState diggingAnimationState = new AnimationState();
     private int jumpTicks;
     private int jumpDuration;
     private final MutablePair<Float, Float> shakeAnims = new MutablePair<>(0.0F, 0.0F);
@@ -103,7 +108,7 @@ public class Dog extends TamableAnimal implements InterestedMob, ShakingMob<Dog>
     @Override
     public void onSyncedDataUpdated(EntityDataAccessor<?> dataAccessor) {
         super.onSyncedDataUpdated(dataAccessor);
-        if(dataAccessor == DATA_FLAGS_ID){
+        if(DATA_FLAGS_ID.equals(dataAccessor)){
             if(this.level.isClientSide){
                 if(this.isInSittingPose()){
                     this.walkAnimationState.stop();
@@ -113,6 +118,10 @@ public class Dog extends TamableAnimal implements InterestedMob, ShakingMob<Dog>
                 } else{
                     this.sitAnimationState.stop();
                 }
+            }
+        } else if(DATA_POSE.equals(dataAccessor)){
+            if (this.getPose() == Pose.DIGGING) {
+                this.diggingAnimationState.start(this.tickCount);
             }
         }
     }
@@ -210,6 +219,10 @@ public class Dog extends TamableAnimal implements InterestedMob, ShakingMob<Dog>
                     this.runAnimationState.stop();
                 }
             }
+
+            if (this.getPose() == Pose.DIGGING) {
+                this.clientDiggingParticles(this.diggingAnimationState);
+            }
         }
 
         super.tick();
@@ -221,6 +234,23 @@ public class Dog extends TamableAnimal implements InterestedMob, ShakingMob<Dog>
 
     private boolean isMovingOnLandOrInWater() {
         return this.getDeltaMovement().horizontalDistanceSqr() > 1.0E-6D && (this.isOnGround() || this.isInWaterOrBubble());
+    }
+
+    private void clientDiggingParticles(AnimationState animationState) {
+        if ((float)animationState.getAccumulatedTime() < 4500.0F) {
+            RandomSource random = this.getRandom();
+            BlockState blockStateOn = this.getBlockStateOn();
+            if (blockStateOn.getRenderShape() != RenderShape.INVISIBLE) {
+                //CallOfTheWild.LOGGER.info("Generating particles for block {}", blockStateOn.getBlock());
+                for(int particleCount = 0; particleCount < 10; ++particleCount) {
+                    double x = this.getX() + (double) Mth.randomBetween(random, -0.7F, 0.7F);
+                    double y = this.getY();
+                    double z = this.getZ() + (double)Mth.randomBetween(random, -0.7F, 0.7F);
+                    this.level.addParticle(new BlockParticleOption(ParticleTypes.BLOCK, blockStateOn), x, y, z, 0.0D, 0.0D, 0.0D);
+                }
+            }
+        }
+
     }
 
     @Override
@@ -288,7 +318,7 @@ public class Dog extends TamableAnimal implements InterestedMob, ShakingMob<Dog>
             boolean canInteract = this.isOwnedBy(player)
                     || this.isTame()
                     || this.isFood(stack) && !this.isTame() && !this.isAggressive();
-            return canInteract ? InteractionResult.SUCCESS : InteractionResult.PASS;
+            return canInteract && !this.hasPose(Pose.DIGGING) ? InteractionResult.SUCCESS : InteractionResult.PASS;
         } else {
             return DogAi.mobInteract(this, player, hand, () -> super.mobInteract(player, hand));
         }

@@ -23,7 +23,9 @@ public class DataEventHandler {
         generator.addProvider(isServer, COTWEntityTypeTagProvider.create(generator, existingFileHelper));
 
         COTWBlockTagProvider blockTagProvider = new COTWBlockTagProvider(generator, existingFileHelper);
-        //generator.addProvider(isServer, blockTagProvider);
+        generator.addProvider(isServer, blockTagProvider);
         generator.addProvider(isServer, COTWItemTagProvider.create(generator, blockTagProvider, existingFileHelper));
+
+        generator.addProvider(isServer, new COTWLootTableProvider(generator));
     }
 }

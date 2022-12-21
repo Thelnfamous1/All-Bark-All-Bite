@@ -54,15 +54,13 @@ public class GoToTargetAndGiveItem<E extends LivingEntity> extends Behavior<E> {
       if (maybePositionTracker.isPresent()) {
          PositionTracker positionTracker = maybePositionTracker.get();
          double distanceToMob = positionTracker.currentPosition().distanceTo(mob.getEyePosition());
-         if (distanceToMob < this.closeEnough) {
+         if (distanceToMob <= this.closeEnough) {
             ItemStack toThrow = this.itemGetter.apply(mob).split(1);
             if (!toThrow.isEmpty()) {
-               throwItem(mob, toThrow, getThrowPosition(positionTracker));
+               BehaviorUtils.throwItem(mob, toThrow, getThrowPosition(positionTracker));
                this.onThrown.accept(mob);
                mob.getBrain().setMemory(MemoryModuleType.ITEM_PICKUP_COOLDOWN_TICKS, this.itemPickupCooldown);
             }
-         } else{
-            this.goToTarget(mob);
          }
       }
    }
@@ -83,10 +81,5 @@ public class GoToTargetAndGiveItem<E extends LivingEntity> extends Behavior<E> {
 
    private static Vec3 getThrowPosition(PositionTracker positionTracker) {
       return positionTracker.currentPosition().add(0.0D, 1.0D, 0.0D);
-   }
-
-   public static void throwItem(LivingEntity mob, ItemStack stack, Vec3 throwPosition) {
-      Vec3 vec3 = new Vec3(0.2F, 0.3F, 0.2F);
-      BehaviorUtils.throwItem(mob, stack, throwPosition, vec3, 0.2F);
    }
 }

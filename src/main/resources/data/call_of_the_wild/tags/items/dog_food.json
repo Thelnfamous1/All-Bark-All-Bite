@@ -1,3 +1,8 @@
 {
-  "values": []
+  "values": [
+    "minecraft:apple",
+    "minecraft:carrot",
+    "minecraft:melon_slice",
+    "minecraft:baked_potato"
+  ]
 }

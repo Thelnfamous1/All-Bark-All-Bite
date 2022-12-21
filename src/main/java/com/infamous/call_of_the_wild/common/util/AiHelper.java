@@ -118,18 +118,19 @@ public class AiHelper {
         }
     }
 
-    @SuppressWarnings("OptionalGetWithoutIsPresent")
     public static boolean isNearAvoidTarget(LivingEntity livingEntity, int desiredDistanceFromAvoidTarget) {
-        Brain<?> brain = livingEntity.getBrain();
-        return brain.hasMemoryValue(MemoryModuleType.AVOID_TARGET)
-                && brain.getMemory(MemoryModuleType.AVOID_TARGET).get().closerThan(livingEntity, desiredDistanceFromAvoidTarget);
+        return isNearTarget(livingEntity, desiredDistanceFromAvoidTarget, MemoryModuleType.AVOID_TARGET);
+    }
+
+    public static boolean isNearDisliked(LivingEntity livingEntity, int desiredDistanceFromDisliked) {
+        return isNearTarget(livingEntity, desiredDistanceFromDisliked, COTWMemoryModuleTypes.NEAREST_VISIBLE_DISLIKED.get());
     }
 
     @SuppressWarnings("OptionalGetWithoutIsPresent")
-    public static boolean isNearDisliked(LivingEntity livingEntity, int desiredDistanceFromDisliked) {
+    public static boolean isNearTarget(LivingEntity livingEntity, int desiredDistanceFromTarget, MemoryModuleType<LivingEntity> avoidTarget) {
         Brain<?> brain = livingEntity.getBrain();
-        return brain.hasMemoryValue(COTWMemoryModuleTypes.NEAREST_VISIBLE_DISLIKED.get())
-                && brain.getMemory(COTWMemoryModuleTypes.NEAREST_VISIBLE_DISLIKED.get()).get().closerThan(livingEntity, desiredDistanceFromDisliked);
+        return brain.hasMemoryValue(avoidTarget)
+                && brain.getMemory(avoidTarget).get().closerThan(livingEntity, desiredDistanceFromTarget);
     }
 
     public static boolean hasAnyMemory(LivingEntity livingEntity, MemoryModuleType<?>... memoryModuleTypes){
@@ -138,5 +139,12 @@ public class AiHelper {
             if(brain.hasMemoryValue(memoryModuleType)) return true;
         }
         return false;
+    }
+
+    public static void eraseAllMemories(LivingEntity livingEntity, MemoryModuleType<?>... memoryModuleTypes) {
+        Brain<?> brain = livingEntity.getBrain();
+        for (MemoryModuleType<?> memoryModuleType : memoryModuleTypes) {
+            brain.eraseMemory(memoryModuleType);
+        }
     }
 }
