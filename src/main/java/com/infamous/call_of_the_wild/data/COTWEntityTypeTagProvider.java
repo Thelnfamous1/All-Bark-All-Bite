@@ -21,7 +21,7 @@ public class COTWEntityTypeTagProvider extends EntityTypeTagsProvider {
     @Override
     protected void addTags() {
         this.tag(COTWTags.DOG_ALWAYS_HOSTILES).addTag(EntityTypeTags.SKELETONS);
-        this.tag(COTWTags.DOG_HUNT_TARGETS).add(EntityType.SHEEP, EntityType.RABBIT, EntityType.FOX);
+        this.tag(COTWTags.DOG_HUNT_TARGETS).add(EntityType.FOX, EntityType.RABBIT, EntityType.CHICKEN);
         this.tag(COTWTags.DOG_DISLIKED);
     }
 }

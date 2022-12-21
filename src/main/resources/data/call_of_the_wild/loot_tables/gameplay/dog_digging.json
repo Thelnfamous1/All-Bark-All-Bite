@@ -6,6 +6,11 @@
       "entries": [
         {
           "type": "minecraft:item",
+          "name": "minecraft:rabbit",
+          "weight": 10
+        },
+        {
+          "type": "minecraft:item",
           "name": "minecraft:rabbit_hide",
           "weight": 10
         },
@@ -26,23 +31,19 @@
         },
         {
           "type": "minecraft:item",
-          "name": "minecraft:mutton",
+          "name": "minecraft:leather",
           "weight": 10
         },
         {
           "type": "minecraft:item",
-          "name": "minecraft:white_wool",
-          "weight": 10
-        },
-        {
-          "type": "minecraft:item",
-          "name": "minecraft:bone",
-          "weight": 10
-        },
-        {
-          "type": "minecraft:item",
-          "name": "minecraft:arrow",
-          "weight": 10
+          "functions": [
+            {
+              "function": "minecraft:set_instrument",
+              "options": "#minecraft:regular_goat_horns"
+            }
+          ],
+          "name": "minecraft:goat_horn",
+          "weight": 2
         }
       ],
       "rolls": 1

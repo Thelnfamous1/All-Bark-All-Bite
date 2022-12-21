@@ -124,7 +124,6 @@ public class DogAi {
     private static final float SPEED_MODIFIER_TEMPTED = 1.0F;
     private static final float SPEED_MODIFIER_WALKING = 1.0F;
     private static final float SPEED_MODIFIER_PLAYING = 1.0F; // Dog will sprint with 30% extra speed, meaning final speed is effectively ~1.3F
-    // Dog will sprint with 30% extra speed, meaning final speed is effectively ~1.3F
     private static final int ATTACK_COOLDOWN_TICKS = 20;
     private static final int DESIRED_DISTANCE_FROM_DISLIKED = 6;
     private static final int DESIRED_DISTANCE_FROM_ENTITY_WHEN_AVOIDING = 12;
@@ -149,6 +148,9 @@ public class DogAi {
 
     protected static boolean isLoved(ItemStack stack) {
         return stack.is(COTWTags.DOG_LOVED);
+    }
+    protected static boolean isBuriable(ItemStack stack) {
+        return stack.is(COTWTags.DOG_BURIES);
     }
     protected static Brain<?> makeBrain(Brain<Dog> brain) {
         initCoreActivity(brain);
@@ -186,7 +188,7 @@ public class DogAi {
     }
 
     private static boolean canStopHolding(Dog dog) {
-        return dog.hasItemInMouth();
+        return dog.hasItemInMouth() && !hasDigLocation(dog);
     }
 
     private static boolean isNearDisliked(Dog dog) {
@@ -386,6 +388,10 @@ public class DogAi {
                 .withParameter(LootContextParams.THIS_ENTITY, dog)
                 .withRandom(random);
 
+        if(isBuriable(dog.getItemInMouth())){
+            dog.setItemInMouth(ItemStack.EMPTY);
+        }
+
         boolean pickedUp = false;
         for(ItemStack giftStack : lootTable.getRandomItems(lcb.create(LootContextParamSets.GIFT))) {
             ItemEntity drop = new ItemEntity(dog.level,
@@ -411,12 +417,13 @@ public class DogAi {
 
         if(dog.isTame()){
             if (!(item instanceof DyeItem dyeItem)) {
-                if(isLoved(stack) && !hasDigLocation(dog) && !hasDigCooldown(dog)){
+                if(isBuriable(stack) && !hasDigLocation(dog) && !hasDigCooldown(dog)){
                     Optional<BlockPos> digLocation = generateDigLocation(dog);
                     if(digLocation.isPresent()){
                         yieldAsPet(dog);
                         setDigLocation(dog, digLocation.get());
-                        dog.usePlayerItem(player, hand, stack);
+                        ItemStack singleton = stack.split(1);
+                        holdInMouth(dog, singleton);
                         return InteractionResult.CONSUME;
                     } else{
                         return InteractionResult.PASS;
@@ -464,6 +471,7 @@ public class DogAi {
         return InteractionResult.PASS;
     }
 
+    @SuppressWarnings("BooleanMethodIsAlwaysInverted")
     private static boolean hasDigLocation(Dog dog){
         return dog.getBrain().hasMemoryValue(COTWMemoryModuleTypes.DIG_LOCATION.get());
     }
@@ -478,7 +486,7 @@ public class DogAi {
 
         BlockPos blockPos = new BlockPos(randomPos);
         //CallOfTheWild.LOGGER.info("Generated dig location for {} at {}", dog, blockPos);
-        return Optional.of(blockPos).filter(bp -> dog.level.getBlockState(bp.below()).is(COTWTags.DOGS_CAN_DIG));
+        return Optional.of(blockPos).filter(bp -> dog.level.getBlockState(bp.below()).is(COTWTags.DOG_DIGS_ON));
     }
 
     private static void setDigLocation(Dog dog, BlockPos blockPos){
