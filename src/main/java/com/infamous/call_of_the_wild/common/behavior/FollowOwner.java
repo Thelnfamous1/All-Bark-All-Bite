@@ -1,7 +1,8 @@
 package com.infamous.call_of_the_wild.common.behavior;
 
 import com.google.common.collect.ImmutableMap;
-import com.infamous.call_of_the_wild.common.util.AiHelper;
+import com.infamous.call_of_the_wild.common.util.AiUtil;
+import com.infamous.call_of_the_wild.common.util.GenericAi;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.LivingEntity;
@@ -82,7 +83,7 @@ public class FollowOwner extends Behavior<TamableAnimal> {
     @Override
     public void stop(ServerLevel level, TamableAnimal tamable, long gameTime) {
         this.owner = null;
-        AiHelper.stopWalking(tamable);
+        GenericAi.stopWalking(tamable);
         tamable.setPathfindingMalus(BlockPathTypes.WATER, this.oldWaterCost);
     }
 
@@ -90,7 +91,7 @@ public class FollowOwner extends Behavior<TamableAnimal> {
     public void tick(ServerLevel level, TamableAnimal tamable, long gameTime) {
         BehaviorUtils.lookAtEntity(tamable, this.owner);
         if (--this.timeToRecalcPath <= 0) {
-            this.timeToRecalcPath = AiHelper.reducedTickDelay(10);
+            this.timeToRecalcPath = AiUtil.reducedTickDelay(10);
             if (!tamable.isLeashed() && !tamable.isPassenger()) {
                 if (tamable.distanceToSqr(this.owner) >= TELEPORT_WHEN_DISTANCE_IS * TELEPORT_WHEN_DISTANCE_IS) {
                     this.teleportToOwner(level, tamable);
@@ -125,7 +126,7 @@ public class FollowOwner extends Behavior<TamableAnimal> {
             return false;
         } else {
             tamable.moveTo((double)x + 0.5D, y, (double)z + 0.5D, tamable.getYRot(), tamable.getXRot());
-            AiHelper.stopWalking(tamable);
+            GenericAi.stopWalking(tamable);
             return true;
         }
     }

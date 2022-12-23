@@ -1,12 +1,11 @@
 package com.infamous.call_of_the_wild.common.entity.dog;
 
+import com.google.common.collect.ImmutableList;
+import com.infamous.call_of_the_wild.common.COTWTags;
 import com.infamous.call_of_the_wild.common.entity.*;
-import com.infamous.call_of_the_wild.common.registry.COTWDogVariants;
-import com.infamous.call_of_the_wild.common.registry.COTWEntityDataSerializers;
-import com.infamous.call_of_the_wild.common.registry.COTWEntityTypes;
-import com.infamous.call_of_the_wild.common.registry.COTWMemoryModuleTypes;
-import com.infamous.call_of_the_wild.common.util.AiHelper;
-import com.infamous.call_of_the_wild.common.util.Helper;
+import com.infamous.call_of_the_wild.common.registry.*;
+import com.infamous.call_of_the_wild.common.util.AiUtil;
+import com.infamous.call_of_the_wild.common.util.COTWUtil;
 import com.mojang.serialization.Dynamic;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.particles.BlockParticleOption;
@@ -30,6 +29,8 @@ import net.minecraft.world.entity.ai.Brain;
 import net.minecraft.world.entity.ai.attributes.AttributeSupplier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.ai.memory.MemoryModuleType;
+import net.minecraft.world.entity.ai.sensing.Sensor;
+import net.minecraft.world.entity.ai.sensing.SensorType;
 import net.minecraft.world.entity.animal.Animal;
 import net.minecraft.world.entity.animal.Wolf;
 import net.minecraft.world.entity.animal.horse.AbstractHorse;
@@ -54,10 +55,54 @@ import org.apache.commons.lang3.tuple.MutablePair;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Collection;
-import java.util.UUID;
 
 @SuppressWarnings("NullableProblems")
 public class Dog extends TamableAnimal implements InterestedMob, ShakingMob<Dog>, VariantMob, CollaredMob {
+    public static final Collection<? extends MemoryModuleType<?>> MEMORY_TYPES = ImmutableList.of(
+            MemoryModuleType.ANGRY_AT,
+            MemoryModuleType.ATTACK_COOLING_DOWN,
+            MemoryModuleType.ATTACK_TARGET,
+            MemoryModuleType.AVOID_TARGET,
+            MemoryModuleType.BREED_TARGET,
+            MemoryModuleType.CANT_REACH_WALK_TARGET_SINCE,
+            MemoryModuleType.DIG_COOLDOWN,
+            COTWMemoryModuleTypes.DIG_LOCATION.get(),
+            COTWMemoryModuleTypes.DISABLE_WALK_TO_PLAY_ITEM.get(),
+            MemoryModuleType.HAS_HUNTING_COOLDOWN,
+            MemoryModuleType.HURT_BY,
+            MemoryModuleType.HURT_BY_ENTITY,
+            MemoryModuleType.IS_PANICKING,
+            MemoryModuleType.IS_TEMPTED,
+            MemoryModuleType.ITEM_PICKUP_COOLDOWN_TICKS,
+            MemoryModuleType.LOOK_TARGET,
+            COTWMemoryModuleTypes.NEARBY_ADULTS.get(),
+            MemoryModuleType.NEAREST_ATTACKABLE,
+            MemoryModuleType.NEAREST_LIVING_ENTITIES,
+            MemoryModuleType.NEAREST_PLAYERS,
+            MemoryModuleType.NEAREST_PLAYER_HOLDING_WANTED_ITEM,
+            MemoryModuleType.NEAREST_VISIBLE_ADULT,
+            COTWMemoryModuleTypes.NEAREST_VISIBLE_ADULTS.get(),
+            MemoryModuleType.NEAREST_VISIBLE_ATTACKABLE_PLAYER,
+            MemoryModuleType.NEAREST_VISIBLE_LIVING_ENTITIES,
+            MemoryModuleType.NEAREST_VISIBLE_PLAYER,
+            MemoryModuleType.NEAREST_VISIBLE_WANTED_ITEM,
+            MemoryModuleType.PATH,
+            COTWMemoryModuleTypes.PLAYING_WITH_ITEM.get(),
+            MemoryModuleType.TEMPTING_PLAYER,
+            MemoryModuleType.TEMPTATION_COOLDOWN_TICKS,
+            COTWMemoryModuleTypes.TIME_TRYING_TO_REACH_PLAY_ITEM.get(),
+            MemoryModuleType.UNIVERSAL_ANGER,
+            MemoryModuleType.WALK_TARGET
+    );
+    public static final Collection<? extends SensorType<? extends Sensor<? super Dog>>> SENSOR_TYPES = ImmutableList.of(
+            COTWSensorTypes.ANIMAL_TEMPTATIONS.get(),
+            COTWSensorTypes.DOG_SPECIFIC_SENSOR.get(),
+            SensorType.HURT_BY,
+            SensorType.NEAREST_ADULT,
+            COTWSensorTypes.NEAREST_ADULTS.get(),
+            SensorType.NEAREST_LIVING_ENTITIES,
+            SensorType.NEAREST_ITEMS,
+            SensorType.NEAREST_PLAYERS);
     @SuppressWarnings("unused")
     private static final int FLAG_SITTING = 1; // Used by TamableAnimal
     @SuppressWarnings("unused")
@@ -241,7 +286,6 @@ public class Dog extends TamableAnimal implements InterestedMob, ShakingMob<Dog>
             RandomSource random = this.getRandom();
             BlockState blockStateOn = this.getBlockStateOn();
             if (blockStateOn.getRenderShape() != RenderShape.INVISIBLE) {
-                //CallOfTheWild.LOGGER.info("Generating particles for block {}", blockStateOn.getBlock());
                 for(int particleCount = 0; particleCount < 10; ++particleCount) {
                     double x = this.getX() + (double) Mth.randomBetween(random, -0.7F, 0.7F);
                     double y = this.getY();
@@ -333,7 +377,7 @@ public class Dog extends TamableAnimal implements InterestedMob, ShakingMob<Dog>
             FoodProperties foodProperties = stack.getFoodProperties(this);
             if(foodProperties != null){
                 healAmount = foodProperties.getNutrition();
-                AiHelper.addEatEffect(this, level, foodProperties);
+                AiUtil.addEatEffect(this, level, foodProperties);
             }
             if(this.isInjured()) this.heal(healAmount);
 
@@ -360,7 +404,7 @@ public class Dog extends TamableAnimal implements InterestedMob, ShakingMob<Dog>
     @Override
     public boolean isFood(ItemStack stack) {
         FoodProperties foodProperties = stack.getFoodProperties(this);
-        return DogAi.isFood(stack) || foodProperties != null && foodProperties.isMeat();
+        return stack.is(COTWTags.DOG_FOOD) || foodProperties != null && foodProperties.isMeat();
     }
 
     @Override
@@ -444,7 +488,7 @@ public class Dog extends TamableAnimal implements InterestedMob, ShakingMob<Dog>
         SpawnGroupData spawnGroupData = super.finalizeSpawn(serverLevelAccessor, difficultyInstance, mobSpawnType, groupData, tag);
         Collection<EntityVariant> values = this.getVariantRegistry().getValues();
         RandomSource random = serverLevelAccessor.getRandom();
-        EntityVariant randomVariant = Helper.getRandomObject(values, random);
+        EntityVariant randomVariant = COTWUtil.getRandomObject(values, random);
         this.setVariant(randomVariant);
         return spawnGroupData;
     }
@@ -459,7 +503,7 @@ public class Dog extends TamableAnimal implements InterestedMob, ShakingMob<Dog>
 
     @Override
     protected Brain.Provider<Dog> brainProvider() {
-        return Brain.provider(DogAi.MEMORY_TYPES, DogAi.SENSOR_TYPES);
+        return Brain.provider(MEMORY_TYPES, SENSOR_TYPES);
     }
 
     @Override
@@ -495,10 +539,6 @@ public class Dog extends TamableAnimal implements InterestedMob, ShakingMob<Dog>
         DogAi.pickUpItem(this, itemEntity);
     }
 
-    protected void holdInMouth(ItemStack stack) {
-        this.setItemSlotAndDropWhenKilled(EquipmentSlot.MAINHAND, stack);
-    }
-
     @Override
     public boolean canPickUpLoot() {
         return !this.isOnPickupCooldown();
@@ -514,7 +554,22 @@ public class Dog extends TamableAnimal implements InterestedMob, ShakingMob<Dog>
         }
     }
 
-    public boolean hasItemInMouth() {
+    @Override
+    public SoundEvent getEatingSound(ItemStack stack) {
+        return SoundEvents.FOX_EAT;
+    }
+
+    @Override
+    public boolean doHurtTarget(Entity target) {
+        this.playSoundEvent(SoundEvents.FOX_BITE);
+        return super.doHurtTarget(target);
+    }
+
+    protected void holdInMouth(ItemStack stack) {
+        this.setItemSlotAndDropWhenKilled(EquipmentSlot.MAINHAND, stack);
+    }
+
+    protected boolean hasItemInMouth() {
         return !this.getItemInHand(InteractionHand.MAIN_HAND).isEmpty();
     }
 
@@ -522,11 +577,12 @@ public class Dog extends TamableAnimal implements InterestedMob, ShakingMob<Dog>
         return this.getItemInHand(InteractionHand.MAIN_HAND);
     }
 
-    public void setItemInMouth(ItemStack stack){
+    @SuppressWarnings("SameParameterValue")
+    protected void setItemInMouth(ItemStack stack){
         this.setItemInHand(InteractionHand.MAIN_HAND, stack);
     }
 
-    private boolean isOnPickupCooldown() {
+    protected boolean isOnPickupCooldown() {
         return this.getBrain().hasMemoryValue(MemoryModuleType.ITEM_PICKUP_COOLDOWN_TICKS);
     }
 
@@ -534,12 +590,6 @@ public class Dog extends TamableAnimal implements InterestedMob, ShakingMob<Dog>
     protected void sendDebugPackets() {
         super.sendDebugPackets();
         DebugPackets.sendEntityBrain(this);
-    }
-
-    @Override
-    public void setOwnerUUID(@Nullable UUID ownerUUID) {
-        super.setOwnerUUID(ownerUUID);
-        this.getBrain().setMemory(COTWMemoryModuleTypes.OWNER.get(), ownerUUID);
     }
 
     // VariantMob
@@ -627,6 +677,6 @@ public class Dog extends TamableAnimal implements InterestedMob, ShakingMob<Dog>
 
     @Override
     public boolean isInteresting(ItemStack stack) {
-        return DogAi.isLoved(stack) || this.isFood(stack);
+        return DogAi.canFetch(stack) || DogAi.canBury(stack) || this.isFood(stack);
     }
 }

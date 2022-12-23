@@ -1,7 +1,8 @@
 package com.infamous.call_of_the_wild.common.behavior;
 
 import com.google.common.collect.ImmutableMap;
-import com.infamous.call_of_the_wild.common.util.AiHelper;
+import com.infamous.call_of_the_wild.common.util.AiUtil;
+import com.infamous.call_of_the_wild.common.util.GenericAi;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.Mob;
@@ -38,14 +39,14 @@ public class LeapAtTarget extends Behavior<Mob> {
         if (mob.isVehicle()) {
             return false;
         } else {
-            Optional<LivingEntity> optionalTarget = AiHelper.getAttackTarget(mob);
+            Optional<LivingEntity> optionalTarget = GenericAi.getAttackTarget(mob);
             if(optionalTarget.isPresent()){
                 double distanceToTargetSqr = mob.distanceToSqr(optionalTarget.get());
                 if (!(distanceToTargetSqr < MIN_LEAP_DISTANCE_SQR) && !(distanceToTargetSqr > MAX_LEAP_DISTANCE_SQR)) {
                     if (!mob.isOnGround()) {
                         return false;
                     } else {
-                        return mob.getRandom().nextInt(AiHelper.reducedTickDelay(5)) == 0;
+                        return mob.getRandom().nextInt(AiUtil.reducedTickDelay(5)) == 0;
                     }
                 } else {
                     return false;
@@ -59,7 +60,7 @@ public class LeapAtTarget extends Behavior<Mob> {
     @SuppressWarnings("OptionalGetWithoutIsPresent")
     @Override
     public void start(ServerLevel level, Mob mob, long gameTime) {
-        LivingEntity target = AiHelper.getAttackTarget(mob).get();
+        LivingEntity target = GenericAi.getAttackTarget(mob).get();
         Vec3 deltaMovement = mob.getDeltaMovement();
         Vec3 positionDiff = new Vec3(target.getX() - mob.getX(), 0.0D, target.getZ() - mob.getZ());
         if (positionDiff.lengthSqr() > 1.0E-7D) {

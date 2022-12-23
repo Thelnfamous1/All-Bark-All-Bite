@@ -1,7 +1,7 @@
 package com.infamous.call_of_the_wild.common.behavior;
 
 import com.google.common.collect.ImmutableMap;
-import com.infamous.call_of_the_wild.common.util.AiHelper;
+import com.infamous.call_of_the_wild.common.util.GenericAi;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.TamableAnimal;
@@ -37,7 +37,7 @@ public class SitWhenOrderedTo extends Behavior<TamableAnimal> {
 
     @Override
     protected void start(ServerLevel level, TamableAnimal tamable, long gameTime) {
-        AiHelper.stopWalking(tamable);
+        GenericAi.stopWalking(tamable);
         tamable.setInSittingPose(true);
     }
 

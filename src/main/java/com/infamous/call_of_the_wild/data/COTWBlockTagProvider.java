@@ -17,6 +17,6 @@ public class COTWBlockTagProvider extends BlockTagsProvider {
 
     @Override
     protected void addTags() {
-        this.tag(COTWTags.DOG_DIGS_ON).addTag(BlockTags.DIRT).addTag(BlockTags.SAND).addTag(Tags.Blocks.GRAVEL).add(Blocks.CLAY).addTag(BlockTags.SNOW);
+        this.tag(COTWTags.DOG_CAN_DIG).addTag(BlockTags.DIRT).addTag(BlockTags.SAND).addTag(Tags.Blocks.GRAVEL).add(Blocks.CLAY).addTag(BlockTags.SNOW);
     }
 }

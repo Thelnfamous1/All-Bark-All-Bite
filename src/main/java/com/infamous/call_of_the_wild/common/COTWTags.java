@@ -12,14 +12,14 @@ import net.minecraft.world.level.block.Block;
 
 public class COTWTags {
     public static final TagKey<Item> DOG_BURIES = ItemTags.create(new ResourceLocation(CallOfTheWild.MODID, "dog_buries"));
-    public static final TagKey<Item> DOG_LOVED = ItemTags.create(new ResourceLocation(CallOfTheWild.MODID, "dog_loved"));
+    public static final TagKey<Item> DOG_FETCHES = ItemTags.create(new ResourceLocation(CallOfTheWild.MODID, "dog_fetches"));
     public static final TagKey<Item> DOG_FOOD = ItemTags.create(new ResourceLocation(CallOfTheWild.MODID, "dog_food"));
     public static final TagKey<EntityType<?>> DOG_HUNT_TARGETS = createEntityTypeTag("dog_hunt_targets");
 
     public static final TagKey<EntityType<?>> DOG_ALWAYS_HOSTILES = createEntityTypeTag("dog_always_hostiles");
     public static final TagKey<EntityType<?>> DOG_DISLIKED = createEntityTypeTag("dog_disliked");
 
-    public static final TagKey<Block> DOG_DIGS_ON = BlockTags.create(new ResourceLocation(CallOfTheWild.MODID, "dog_digs_on"));
+    public static final TagKey<Block> DOG_CAN_DIG = BlockTags.create(new ResourceLocation(CallOfTheWild.MODID, "dog_can_dig"));
 
     private static TagKey<EntityType<?>> createEntityTypeTag(String path) {
         return TagKey.create(Registry.ENTITY_TYPE_REGISTRY, new ResourceLocation(CallOfTheWild.MODID, path));

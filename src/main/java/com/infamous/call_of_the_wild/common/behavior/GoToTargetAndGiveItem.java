@@ -21,16 +21,14 @@ public class GoToTargetAndGiveItem<E extends LivingEntity> extends Behavior<E> {
    private final Function<E, Optional<PositionTracker>> targetPositionGetter;
    private final float speedModifier;
    private final int closeEnough;
-   private final int itemPickupCooldown;
    private final Consumer<E> onThrown;
 
-   public GoToTargetAndGiveItem(Function<E, ItemStack> itemGetter, Function<E, Optional<PositionTracker>> targetPositionGetter, float speedModifier, int closeEnough, int itemPickupCooldown, Consumer<E> onThrown) {
-      super(Map.of(MemoryModuleType.LOOK_TARGET, MemoryStatus.REGISTERED, MemoryModuleType.WALK_TARGET, MemoryStatus.REGISTERED, MemoryModuleType.ITEM_PICKUP_COOLDOWN_TICKS, MemoryStatus.REGISTERED));
+   public GoToTargetAndGiveItem(Function<E, ItemStack> itemGetter, Function<E, Optional<PositionTracker>> targetPositionGetter, float speedModifier, int closeEnough, Consumer<E> onThrown) {
+      super(Map.of(MemoryModuleType.LOOK_TARGET, MemoryStatus.REGISTERED, MemoryModuleType.WALK_TARGET, MemoryStatus.REGISTERED));
       this.itemGetter = itemGetter;
       this.targetPositionGetter = targetPositionGetter;
       this.speedModifier = speedModifier;
       this.closeEnough = closeEnough;
-      this.itemPickupCooldown = itemPickupCooldown;
       this.onThrown = onThrown;
    }
 
@@ -59,7 +57,6 @@ public class GoToTargetAndGiveItem<E extends LivingEntity> extends Behavior<E> {
             if (!toThrow.isEmpty()) {
                BehaviorUtils.throwItem(mob, toThrow, getThrowPosition(positionTracker));
                this.onThrown.accept(mob);
-               mob.getBrain().setMemory(MemoryModuleType.ITEM_PICKUP_COOLDOWN_TICKS, this.itemPickupCooldown);
             }
          }
       }

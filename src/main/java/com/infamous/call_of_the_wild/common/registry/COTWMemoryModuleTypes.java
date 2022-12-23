@@ -3,7 +3,6 @@ package com.infamous.call_of_the_wild.common.registry;
 import com.infamous.call_of_the_wild.CallOfTheWild;
 import com.mojang.serialization.Codec;
 import net.minecraft.core.BlockPos;
-import net.minecraft.core.UUIDUtil;
 import net.minecraft.world.entity.AgeableMob;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.memory.MemoryModuleType;
@@ -13,7 +12,6 @@ import net.minecraftforge.registries.RegistryObject;
 
 import java.util.List;
 import java.util.Optional;
-import java.util.UUID;
 
 public class COTWMemoryModuleTypes {
 
@@ -38,10 +36,6 @@ public class COTWMemoryModuleTypes {
     public static RegistryObject<MemoryModuleType<Boolean>> DISABLE_WALK_TO_PLAY_ITEM = MEMORY_MODULE_TYPES.register(
             "disable_walk_to_play_item",
             () -> new MemoryModuleType<>(Optional.empty()));
-
-    public static RegistryObject<MemoryModuleType<UUID>> OWNER = MEMORY_MODULE_TYPES.register(
-            "owner",
-            () -> new MemoryModuleType<>(Optional.of(UUIDUtil.CODEC)));
 
     public static RegistryObject<MemoryModuleType<BlockPos>> DIG_LOCATION = MEMORY_MODULE_TYPES.register(
             "dig_location",

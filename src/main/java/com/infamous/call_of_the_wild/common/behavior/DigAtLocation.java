@@ -21,19 +21,15 @@ public class DigAtLocation<E extends LivingEntity> extends Behavior<E> {
    private static final long CHECK_COOLDOWN = 10L;
    private static final double DISTANCE = 1.73D;
    private long lastCheck;
-   private final Consumer<E> onDigStarted;
    private final Consumer<E> onDigCompleted;
-   private final Consumer<E> onDigStopped;
    private final long digDuration;
    private long digUpAtTime;
 
-   public DigAtLocation(Consumer<E> onDigStarted, Consumer<E> onDigCompleted, Consumer<E> onDigStopped, long digDuration) {
+   public DigAtLocation(Consumer<E> onDigCompleted, long digDuration) {
       super(ImmutableMap.of(
               COTWMemoryModuleTypes.DIG_LOCATION.get(), MemoryStatus.VALUE_PRESENT,
               MemoryModuleType.LOOK_TARGET, MemoryStatus.REGISTERED));
-      this.onDigStarted = onDigStarted;
       this.onDigCompleted = onDigCompleted;
-      this.onDigStopped = onDigStopped;
       this.digDuration = digDuration;
    }
 
@@ -54,7 +50,6 @@ public class DigAtLocation<E extends LivingEntity> extends Behavior<E> {
       brain.getMemory(COTWMemoryModuleTypes.DIG_LOCATION.get()).ifPresent((bp) -> brain.setMemory(MemoryModuleType.LOOK_TARGET, new BlockPosTracker(bp)));
       mob.setPose(Pose.DIGGING);
       this.digUpAtTime = gameTime + this.digDuration;
-      this.onDigStarted.accept(mob);
    }
 
    @Override
@@ -63,13 +58,12 @@ public class DigAtLocation<E extends LivingEntity> extends Behavior<E> {
       if(gameTime % 4L == 0L)
          brain.getMemory(COTWMemoryModuleTypes.DIG_LOCATION.get())
               .ifPresent((bp) -> {
-                 //CallOfTheWild.LOGGER.info("Playing dig sound for {}", mob);
                  SoundType soundType = level.getBlockState(bp.below()).getSoundType(level, bp, mob);
                  mob.playSound(soundType.getHitSound());
               });
       if(gameTime >= this.digUpAtTime){
-         brain.eraseMemory(COTWMemoryModuleTypes.DIG_LOCATION.get());
          this.onDigCompleted.accept(mob);
+         brain.eraseMemory(COTWMemoryModuleTypes.DIG_LOCATION.get());
       }
    }
 
@@ -95,6 +89,5 @@ public class DigAtLocation<E extends LivingEntity> extends Behavior<E> {
       if (mob.hasPose(Pose.DIGGING)) {
          mob.setPose(Pose.STANDING);
       }
-      this.onDigStopped.accept(mob);
    }
 }

@@ -1,7 +1,8 @@
 package com.infamous.call_of_the_wild.common.behavior;
 
 import com.google.common.collect.ImmutableMap;
-import com.infamous.call_of_the_wild.common.util.AiHelper;
+import com.infamous.call_of_the_wild.common.util.AiUtil;
+import com.infamous.call_of_the_wild.common.util.GenericAi;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.Mob;
@@ -49,7 +50,7 @@ public abstract class TargetBehavior<E extends Mob> extends Behavior<E> {
 
     @Override
     protected boolean canStillUse(ServerLevel level, E mob, long gameTime) {
-        Optional<LivingEntity> optionalTarget = AiHelper.getAttackTarget(mob);
+        Optional<LivingEntity> optionalTarget = GenericAi.getAttackTarget(mob);
         if(optionalTarget.isPresent()){
             LivingEntity target = optionalTarget.get();
             if (!mob.canAttack(target)) {
@@ -67,7 +68,7 @@ public abstract class TargetBehavior<E extends Mob> extends Behavior<E> {
                         if (this.mustSee) {
                             if (mob.getSensing().hasLineOfSight(target)) {
                                 this.unseenTicks = 0;
-                            } else if (++this.unseenTicks > AiHelper.reducedTickDelay(this.unseenMemoryTicks)) {
+                            } else if (++this.unseenTicks > AiUtil.reducedTickDelay(this.unseenMemoryTicks)) {
                                 return false;
                             }
                         }
@@ -124,7 +125,7 @@ public abstract class TargetBehavior<E extends Mob> extends Behavior<E> {
     }
 
     private boolean canReach(E mob, LivingEntity target) {
-        this.reachCacheTime = AiHelper.reducedTickDelay(10 + mob.getRandom().nextInt(5));
+        this.reachCacheTime = AiUtil.reducedTickDelay(10 + mob.getRandom().nextInt(5));
         Path pathToTarget = mob.getNavigation().createPath(target, 0);
         if (pathToTarget == null) {
             return false;

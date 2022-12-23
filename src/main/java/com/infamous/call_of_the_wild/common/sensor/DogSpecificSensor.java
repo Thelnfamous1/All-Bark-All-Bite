@@ -6,7 +6,7 @@ import com.infamous.call_of_the_wild.common.behavior.Beg;
 import com.infamous.call_of_the_wild.common.entity.dog.Dog;
 import com.infamous.call_of_the_wild.common.entity.dog.DogAi;
 import com.infamous.call_of_the_wild.common.registry.COTWMemoryModuleTypes;
-import com.infamous.call_of_the_wild.common.util.AiHelper;
+import com.infamous.call_of_the_wild.common.util.AiUtil;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.Brain;
@@ -81,7 +81,7 @@ public class DogSpecificSensor extends Sensor<Dog> {
     }
 
     private boolean isClose(Dog dog, LivingEntity target) {
-        double followRange = AiHelper.getFollowRange(dog);
+        double followRange = AiUtil.getFollowRange(dog);
         return target.distanceToSqr(dog) <= followRange * followRange;
     }
 
