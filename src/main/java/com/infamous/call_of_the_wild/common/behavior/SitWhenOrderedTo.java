@@ -42,7 +42,7 @@ public class SitWhenOrderedTo extends Behavior<TamableAnimal> {
     }
 
     @Override
-    protected boolean timedOut(long p_22537_) {
+    protected boolean timedOut(long gameTime) {
         return false;
     }
 

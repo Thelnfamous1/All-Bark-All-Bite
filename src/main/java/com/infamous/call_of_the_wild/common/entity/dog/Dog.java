@@ -102,7 +102,8 @@ public class Dog extends TamableAnimal implements InterestedMob, ShakingMob<Dog>
             COTWSensorTypes.NEAREST_ADULTS.get(),
             SensorType.NEAREST_LIVING_ENTITIES,
             SensorType.NEAREST_ITEMS,
-            SensorType.NEAREST_PLAYERS);
+            SensorType.NEAREST_PLAYERS
+    );
     @SuppressWarnings("unused")
     private static final int FLAG_SITTING = 1; // Used by TamableAnimal
     @SuppressWarnings("unused")
@@ -561,8 +562,9 @@ public class Dog extends TamableAnimal implements InterestedMob, ShakingMob<Dog>
 
     @Override
     public boolean doHurtTarget(Entity target) {
-        this.playSoundEvent(SoundEvents.FOX_BITE);
-        return super.doHurtTarget(target);
+        boolean hurtTarget = super.doHurtTarget(target);
+        if(hurtTarget) this.playSoundEvent(SoundEvents.FOX_BITE);
+        return hurtTarget;
     }
 
     protected void holdInMouth(ItemStack stack) {
@@ -675,8 +677,4 @@ public class Dog extends TamableAnimal implements InterestedMob, ShakingMob<Dog>
         return this.interestedAngles;
     }
 
-    @Override
-    public boolean isInteresting(ItemStack stack) {
-        return DogAi.canFetch(stack) || DogAi.canBury(stack) || this.isFood(stack);
-    }
 }

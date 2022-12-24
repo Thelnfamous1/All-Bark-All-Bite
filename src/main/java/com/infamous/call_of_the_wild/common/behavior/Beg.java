@@ -1,7 +1,6 @@
 package com.infamous.call_of_the_wild.common.behavior;
 
 import com.google.common.collect.ImmutableMap;
-import com.infamous.call_of_the_wild.common.entity.InterestedMob;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.behavior.Behavior;
@@ -9,29 +8,36 @@ import net.minecraft.world.entity.ai.behavior.BehaviorUtils;
 import net.minecraft.world.entity.ai.memory.MemoryModuleType;
 import net.minecraft.world.entity.ai.memory.MemoryStatus;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.ItemStack;
 
 import java.util.Optional;
+import java.util.function.BiConsumer;
+import java.util.function.BiPredicate;
 
 @SuppressWarnings("NullableProblems")
-public class Beg<T extends LivingEntity & InterestedMob> extends Behavior<T> {
+public class Beg<T extends LivingEntity> extends Behavior<T> {
+    private final BiPredicate<T, ItemStack> isInteresting;
+    private final BiConsumer<T, Boolean> toggleInterest;
     private final float lookDistance;
 
-    public Beg(float lookDistance) {
+    public Beg(BiPredicate<T, ItemStack> isInteresting, BiConsumer<T, Boolean> toggleInterest, float lookDistance) {
         super(ImmutableMap.of(
                 MemoryModuleType.NEAREST_PLAYER_HOLDING_WANTED_ITEM, MemoryStatus.VALUE_PRESENT,
                 MemoryModuleType.LOOK_TARGET, MemoryStatus.REGISTERED), 40, 80);
+        this.isInteresting = isInteresting;
+        this.toggleInterest = toggleInterest;
         this.lookDistance = lookDistance;
     }
 
     @SuppressWarnings("OptionalGetWithoutIsPresent")
     @Override
     public boolean checkExtraStartConditions(ServerLevel level, T mob) {
-        return playerHoldingInteresting(this.getPlayerHoldWantedItem(mob).get(), mob);
+        return this.playerHoldingInteresting(this.getPlayerHoldWantedItem(mob).get(), mob);
     }
 
     @Override
     public void start(ServerLevel level, T mob, long gameTime) {
-        mob.setIsInterested(true);
+        this.toggleInterest.accept(mob, true);
     }
 
     @Override
@@ -49,11 +55,15 @@ public class Beg<T extends LivingEntity & InterestedMob> extends Behavior<T> {
             } else if (mob.distanceToSqr(player) > (double)(this.lookDistance * this.lookDistance)) {
                 return false;
             } else {
-                return playerHoldingInteresting(player, mob);
+                return this.playerHoldingInteresting(player, mob);
             }
         } else{
             return false;
         }
+    }
+
+    private boolean playerHoldingInteresting(Player player, T mob) {
+        return player.isHolding(is -> this.isInteresting.test(mob, is));
     }
 
     private Optional<Player> getPlayerHoldWantedItem(T mob) {
@@ -62,10 +72,6 @@ public class Beg<T extends LivingEntity & InterestedMob> extends Behavior<T> {
 
     @Override
     public void stop(ServerLevel level, T mob, long gameTime) {
-        mob.setIsInterested(false);
-    }
-
-    public static <T extends LivingEntity & InterestedMob> boolean playerHoldingInteresting(Player player, T mob) {
-        return player.isHolding(mob::isInteresting);
+        this.toggleInterest.accept(mob, false);
     }
 }

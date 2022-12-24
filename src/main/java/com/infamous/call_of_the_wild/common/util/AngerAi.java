@@ -2,6 +2,7 @@ package com.infamous.call_of_the_wild.common.util;
 
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.NeutralMob;
 import net.minecraft.world.entity.ai.Brain;
 import net.minecraft.world.entity.ai.behavior.BehaviorUtils;
 import net.minecraft.world.entity.ai.memory.MemoryModuleType;
@@ -46,6 +47,10 @@ public class AngerAi {
             Brain<?> brain = livingEntity.getBrain();
             brain.eraseMemory(MemoryModuleType.CANT_REACH_WALK_TARGET_SINCE);
             brain.setMemoryWithExpiry(MemoryModuleType.ANGRY_AT, target.getUUID(), angerTimeInTicks);
+            if(livingEntity instanceof NeutralMob neutralMob){
+                neutralMob.setTarget(target);
+                neutralMob.setRemainingPersistentAngerTime(angerTimeInTicks);
+            }
 
             if (target.getType() == EntityType.PLAYER && livingEntity.level.getGameRules().getBoolean(GameRules.RULE_UNIVERSAL_ANGER)) {
                 brain.setMemoryWithExpiry(MemoryModuleType.UNIVERSAL_ANGER, true, angerTimeInTicks);

@@ -1,7 +1,6 @@
 package com.infamous.call_of_the_wild.common.entity;
 
 import net.minecraft.util.Mth;
-import net.minecraft.world.item.ItemStack;
 import org.apache.commons.lang3.tuple.MutablePair;
 
 public interface InterestedMob {
@@ -28,5 +27,4 @@ public interface InterestedMob {
 
     MutablePair<Float, Float> getInterestedAngles();
 
-    boolean isInteresting(ItemStack stack);
 }

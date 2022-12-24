@@ -49,6 +49,11 @@ public abstract class TargetBehavior<E extends Mob> extends Behavior<E> {
     }
 
     @Override
+    protected boolean timedOut(long gameTime) {
+        return false;
+    }
+
+    @Override
     protected boolean canStillUse(ServerLevel level, E mob, long gameTime) {
         Optional<LivingEntity> optionalTarget = GenericAi.getAttackTarget(mob);
         if(optionalTarget.isPresent()){

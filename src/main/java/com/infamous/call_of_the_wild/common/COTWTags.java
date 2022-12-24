@@ -21,6 +21,14 @@ public class COTWTags {
 
     public static final TagKey<Block> DOG_CAN_DIG = BlockTags.create(new ResourceLocation(CallOfTheWild.MODID, "dog_can_dig"));
 
+
+    public static final TagKey<Item> WOLF_LOVED = ItemTags.create(new ResourceLocation(CallOfTheWild.MODID, "wolf_loved"));
+    public static final TagKey<Item> WOLF_FOOD = ItemTags.create(new ResourceLocation(CallOfTheWild.MODID, "wolf_food"));
+    public static final TagKey<EntityType<?>> WOLF_HUNT_TARGETS = createEntityTypeTag("wolf_hunt_targets");
+
+    public static final TagKey<EntityType<?>> WOLF_ALWAYS_HOSTILES = createEntityTypeTag("wolf_always_hostiles");
+    public static final TagKey<EntityType<?>> WOLF_DISLIKED = createEntityTypeTag("wolf_disliked");
+
     private static TagKey<EntityType<?>> createEntityTypeTag(String path) {
         return TagKey.create(Registry.ENTITY_TYPE_REGISTRY, new ResourceLocation(CallOfTheWild.MODID, path));
     }

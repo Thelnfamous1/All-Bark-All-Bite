@@ -23,5 +23,8 @@ public class COTWItemTagProvider extends ItemTagsProvider {
         this.tag(COTWTags.DOG_BURIES).add(Items.BONE);
         this.tag(COTWTags.DOG_FETCHES).addTag(COTWTags.DOG_BURIES).add(Items.STICK);
         this.tag(COTWTags.DOG_FOOD).add(Items.APPLE, Items.CARROT, Items.MELON_SLICE, Items.BAKED_POTATO);
+
+        this.tag(COTWTags.WOLF_LOVED).add(Items.BONE);
+        this.tag(COTWTags.WOLF_FOOD);
     }
 }
