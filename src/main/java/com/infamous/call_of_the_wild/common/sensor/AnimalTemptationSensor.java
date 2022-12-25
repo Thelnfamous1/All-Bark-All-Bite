@@ -28,7 +28,7 @@ public class AnimalTemptationSensor extends Sensor<Animal> {
               .filter(EntitySelector.NO_SPECTATORS)
               .filter((sp) -> TEMPT_TARGETING.test(animal, sp))
               .filter((sp) -> animal.closerThan(sp, TEMPTATION_RANGE))
-              .filter(sp -> playerHoldingFood(animal, sp))
+              .filter(sp -> this.playerHoldingFood(animal, sp))
               .sorted(Comparator.comparingDouble(animal::distanceToSqr))
               .toList();
       if (!temptingPlayers.isEmpty()) {

@@ -18,6 +18,10 @@ public class GenericAi {
         return ageableMob.getBrain().getMemory(COTWMemoryModuleTypes.NEARBY_ADULTS.get()).orElse(ImmutableList.of());
     }
 
+    public static List<AgeableMob> getNearbyVisibleAdults(LivingEntity ageableMob) {
+        return ageableMob.getBrain().getMemory(COTWMemoryModuleTypes.NEAREST_VISIBLE_ADULTS.get()).orElse(ImmutableList.of());
+    }
+
     public static Optional<Player> getNearestVisibleTargetablePlayer(LivingEntity livingEntity) {
         return livingEntity.getBrain().getMemory(MemoryModuleType.NEAREST_VISIBLE_ATTACKABLE_PLAYER);
     }

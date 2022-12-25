@@ -17,6 +17,19 @@ public class DogAnimation {
                             new Keyframe(0f, KeyframeAnimations.scaleVec(1.6f, 1.6f, 1.6f),
                                     AnimationChannel.Interpolations.LINEAR))).build();
 
+    public static final AnimationDefinition DOG_IDLE = AnimationDefinition.Builder.withLength(0f)
+            .addAnimation(AndreDogModel.HEAD,
+                    new AnimationChannel(AnimationChannel.Targets.ROTATION,
+                            new Keyframe(0f, KeyframeAnimations.degreeVec(0f, 0f, 0f),
+                                    AnimationChannel.Interpolations.LINEAR)))
+            .addAnimation(AndreDogModel.TAIL,
+                    new AnimationChannel(AnimationChannel.Targets.POSITION,
+                            new Keyframe(0f, KeyframeAnimations.posVec(0f, 0f, -2f),
+                                    AnimationChannel.Interpolations.LINEAR)))
+            .addAnimation(AndreDogModel.TAIL,
+                    new AnimationChannel(AnimationChannel.Targets.ROTATION,
+                            new Keyframe(0f, KeyframeAnimations.degreeVec(30f, 0f, 0f),
+                                    AnimationChannel.Interpolations.LINEAR))).build();
     public static final AnimationDefinition DOG_WALK = AnimationDefinition.Builder.withLength(0.96f).looping()
             .addAnimation(AndreDogModel.RIGHT_HIND_LEG,
                     new AnimationChannel(AnimationChannel.Targets.ROTATION,

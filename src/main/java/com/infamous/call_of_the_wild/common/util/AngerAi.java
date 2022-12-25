@@ -42,7 +42,7 @@ public class AngerAi {
         }
     }
 
-    private static void setAngerTarget(LivingEntity livingEntity, LivingEntity target, int angerTimeInTicks) {
+    public static void setAngerTarget(LivingEntity livingEntity, LivingEntity target, int angerTimeInTicks) {
         if (Sensor.isEntityAttackableIgnoringLineOfSight(livingEntity, target)) {
             Brain<?> brain = livingEntity.getBrain();
             brain.eraseMemory(MemoryModuleType.CANT_REACH_WALK_TARGET_SINCE);
@@ -66,11 +66,11 @@ public class AngerAi {
         allies.forEach((d) -> setAngerTargetIfCloserThanCurrent(d, target, angerTimeInTicks));
     }
 
-    private static void setAngerTargetIfCloserThanCurrent(LivingEntity livingEntity, LivingEntity target, int angerTimeInTicks) {
-        Optional<LivingEntity> angerTarget = getAngerTarget(livingEntity);
-        LivingEntity nearestTarget = BehaviorUtils.getNearestTarget(livingEntity, angerTarget, target);
-        if (angerTarget.isEmpty() || angerTarget.get() != nearestTarget) {
-            setAngerTarget(livingEntity, nearestTarget, angerTimeInTicks);
-        }
+    public static void setAngerTargetIfCloserThanCurrent(LivingEntity mob, LivingEntity target, int angerTimeInTicks) {
+       Optional<LivingEntity> optional = getAngerTarget(mob);
+       LivingEntity livingentity = BehaviorUtils.getNearestTarget(mob, optional, target);
+       if (optional.isEmpty() || optional.get() != livingentity) {
+          setAngerTarget(mob, livingentity, angerTimeInTicks);
+       }
     }
 }

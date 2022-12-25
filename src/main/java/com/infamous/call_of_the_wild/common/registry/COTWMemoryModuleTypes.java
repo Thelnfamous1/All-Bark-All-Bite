@@ -40,4 +40,7 @@ public class COTWMemoryModuleTypes {
     public static RegistryObject<MemoryModuleType<BlockPos>> DIG_LOCATION = MEMORY_MODULE_TYPES.register(
             "dig_location",
             () -> new MemoryModuleType<>(Optional.empty()));
+
+    public static final RegistryObject<MemoryModuleType<LivingEntity>> NEAREST_VISIBLE_HUNTABLE = MEMORY_MODULE_TYPES.register("nearest_visible_huntable",
+            () -> new MemoryModuleType<>(Optional.empty()));
 }

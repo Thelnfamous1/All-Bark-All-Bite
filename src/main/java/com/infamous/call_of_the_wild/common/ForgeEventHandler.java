@@ -72,7 +72,9 @@ public class ForgeEventHandler {
             wolf.targetSelector.removeAllGoals();
             NbtOps nbtOps = NbtOps.INSTANCE;
             Brain<Wolf> replacement = WolfAi.makeBrain(BrainUtil.makeBrain(WolfAi.MEMORY_TYPES, WolfAi.SENSOR_TYPES, BrainUtil.makeDynamic(nbtOps)));
-            BrainUtil.replaceBrain(wolf, serverLevel, replacement, event.loadedFromDisk());
+            boolean loadedFromDisk = event.loadedFromDisk();
+            BrainUtil.replaceBrain(wolf, serverLevel, replacement, loadedFromDisk);
+            //if(!loadedFromDisk) WolflikeAi.initMemories(wolf, wolf.getRandom());
         }
     }
 
@@ -107,11 +109,10 @@ public class ForgeEventHandler {
     static void onEntitySize(EntityEvent.Size event){
         if(event.getEntity().getType() == EntityType.WOLF){
             EntityDimensions newSize = event.getNewSize();
-            event.setNewSize(newSize.scale(1.25F), true);
+            event.setNewSize(newSize.scale(WolfAi.WOLF_SIZE_SCALE), true);
         }
     }
 
-    @SuppressWarnings("unchecked")
     @SubscribeEvent
     static void onLivingUpdate(LivingEvent.LivingTickEvent event){
         LivingEntity livingEntity = event.getEntity();
@@ -119,14 +120,19 @@ public class ForgeEventHandler {
                 && livingEntity instanceof Wolf wolf
                 && livingEntity.getType() == EntityType.WOLF
                 && !wolf.level.isClientSide){
-            Level level = wolf.level;
-            level.getProfiler().push("wolfBrain");
-            ((Brain<Wolf>)wolf.getBrain()).tick((ServerLevel)level, wolf);
-            level.getProfiler().pop();
-            level.getProfiler().push("wolfActivityUpdate");
-            WolfAi.updateActivity(wolf);
-            level.getProfiler().pop();
+            updateWolfBrain(wolf);
         }
+    }
+
+    @SuppressWarnings("unchecked")
+    private static void updateWolfBrain(Wolf wolf) {
+        Level level = wolf.level;
+        level.getProfiler().push("wolfBrain");
+        ((Brain<Wolf>) wolf.getBrain()).tick((ServerLevel)level, wolf);
+        level.getProfiler().pop();
+        level.getProfiler().push("wolfActivityUpdate");
+        WolfAi.updateActivity(wolf);
+        level.getProfiler().pop();
     }
 
     @SubscribeEvent

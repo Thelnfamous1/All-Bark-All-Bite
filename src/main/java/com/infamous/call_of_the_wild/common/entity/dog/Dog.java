@@ -68,7 +68,8 @@ public class Dog extends TamableAnimal implements InterestedMob, ShakingMob<Dog>
             MemoryModuleType.DIG_COOLDOWN,
             COTWMemoryModuleTypes.DIG_LOCATION.get(),
             COTWMemoryModuleTypes.DISABLE_WALK_TO_PLAY_ITEM.get(),
-            MemoryModuleType.HAS_HUNTING_COOLDOWN,
+            //MemoryModuleType.HAS_HUNTING_COOLDOWN,
+            MemoryModuleType.HUNTED_RECENTLY,
             MemoryModuleType.HURT_BY,
             MemoryModuleType.HURT_BY_ENTITY,
             MemoryModuleType.IS_PANICKING,
@@ -84,6 +85,7 @@ public class Dog extends TamableAnimal implements InterestedMob, ShakingMob<Dog>
             COTWMemoryModuleTypes.NEAREST_VISIBLE_ADULTS.get(),
             MemoryModuleType.NEAREST_VISIBLE_ATTACKABLE_PLAYER,
             MemoryModuleType.NEAREST_VISIBLE_LIVING_ENTITIES,
+            COTWMemoryModuleTypes.NEAREST_VISIBLE_HUNTABLE.get(),
             MemoryModuleType.NEAREST_VISIBLE_PLAYER,
             MemoryModuleType.NEAREST_VISIBLE_WANTED_ITEM,
             MemoryModuleType.PATH,
@@ -117,10 +119,11 @@ public class Dog extends TamableAnimal implements InterestedMob, ShakingMob<Dog>
     private final MutablePair<Float, Float> interestedAngles = new MutablePair<>(0.0F, 0.0F);
 
     public final AnimationState babyAnimationState = new AnimationState();
+    public final AnimationState sitAnimationState = new AnimationState();
+    public AnimationState idleAnimationState = new AnimationState();
     public final AnimationState walkAnimationState = new AnimationState();
     public final AnimationState runAnimationState = new AnimationState();
     public final AnimationState jumpAnimationState = new AnimationState();
-    public final AnimationState sitAnimationState = new AnimationState();
     public final AnimationState shakeAnimationState = new AnimationState();
     public final AnimationState diggingAnimationState = new AnimationState();
     private int jumpTicks;
@@ -157,6 +160,7 @@ public class Dog extends TamableAnimal implements InterestedMob, ShakingMob<Dog>
         if(DATA_FLAGS_ID.equals(dataAccessor)){
             if(this.level.isClientSide){
                 if(this.isInSittingPose()){
+                    this.idleAnimationState.stop();
                     this.walkAnimationState.stop();
                     this.runAnimationState.stop();
                     this.jumpAnimationState.stop();
@@ -250,9 +254,11 @@ public class Dog extends TamableAnimal implements InterestedMob, ShakingMob<Dog>
 
             boolean midJump = this.jumpDuration != 0;
             if(!midJump && this.jumpAnimationState.isStarted()) this.jumpAnimationState.stop();
+            boolean moving = this.isMovingOnLandOrInWater();
 
             if(!this.isInSittingPose()){
-                if (this.isMovingOnLandOrInWater() && !midJump) {
+                if (moving && !midJump) {
+                    this.idleAnimationState.stop();
                     if(this.isSprinting()){
                         this.walkAnimationState.stop();
                         this.runAnimationState.startIfStopped(this.tickCount);
@@ -261,6 +267,7 @@ public class Dog extends TamableAnimal implements InterestedMob, ShakingMob<Dog>
                         this.walkAnimationState.startIfStopped(this.tickCount);
                     }
                 } else {
+                    if(!midJump) this.idleAnimationState.startIfStopped(this.tickCount);
                     this.walkAnimationState.stop();
                     this.runAnimationState.stop();
                 }
@@ -491,6 +498,7 @@ public class Dog extends TamableAnimal implements InterestedMob, ShakingMob<Dog>
         RandomSource random = serverLevelAccessor.getRandom();
         EntityVariant randomVariant = COTWUtil.getRandomObject(values, random);
         this.setVariant(randomVariant);
+        WolflikeAi.initMemories(this, random);
         return spawnGroupData;
     }
 

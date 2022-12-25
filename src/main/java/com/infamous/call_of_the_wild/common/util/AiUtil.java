@@ -1,17 +1,24 @@
 package com.infamous.call_of_the_wild.common.util;
 
 import com.mojang.datafixers.util.Pair;
+import net.minecraft.tags.TagKey;
 import net.minecraft.util.Mth;
 import net.minecraft.world.effect.MobEffectInstance;
+import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.Mob;
 import net.minecraft.world.entity.ai.Brain;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.ai.memory.MemoryModuleType;
+import net.minecraft.world.entity.ai.sensing.Sensor;
+import net.minecraft.world.entity.animal.Turtle;
+import net.minecraft.world.entity.animal.horse.Llama;
 import net.minecraft.world.food.FoodProperties;
 import net.minecraft.world.level.Level;
 
 public class AiUtil {
+    private static final int LLAMA_MAX_STRENGTH = 5;
+
     public static int reducedTickDelay(int ticks) {
         return Mth.positiveCeilDiv(ticks, 2);
     }
@@ -41,5 +48,34 @@ public class AiUtil {
         for (MemoryModuleType<?> memoryModuleType : memoryModuleTypes) {
             brain.eraseMemory(memoryModuleType);
         }
+    }
+
+    public static boolean isAttackable(Mob mob, LivingEntity target, TagKey<EntityType<?>> alwaysHostiles){
+        return isClose(mob, target) && isHostileTarget(target, alwaysHostiles) && Sensor.isEntityAttackable(mob, target);
+    }
+
+    public static boolean isClose(Mob mob, LivingEntity target) {
+        double followRange = getFollowRange(mob);
+        return target.distanceToSqr(mob) <= followRange * followRange;
+    }
+
+    public static boolean isHostileTarget(LivingEntity target, TagKey<EntityType<?>> alwaysHostiles) {
+        return target.getType().is(alwaysHostiles);
+    }
+
+    public static boolean isHuntable(Mob mob, LivingEntity target, TagKey<EntityType<?>> huntTargets){
+        return isClose(mob, target) && isHuntTarget(mob, target, huntTargets) && Sensor.isEntityAttackable(mob, target);
+    }
+
+    public static boolean isHuntTarget(LivingEntity mob, LivingEntity target, TagKey<EntityType<?>> huntTargets) {
+        return !mob.getBrain().hasMemoryValue(MemoryModuleType.HAS_HUNTING_COOLDOWN)
+                && !mob.getBrain().hasMemoryValue(MemoryModuleType.HUNTED_RECENTLY)
+                && (target.getType().is(huntTargets)
+                    || target instanceof Turtle turtle && Turtle.BABY_ON_LAND_SELECTOR.test(turtle));
+    }
+
+    public static boolean isDisliked(LivingEntity mob, LivingEntity target, TagKey<EntityType<?>> disliked) {
+        return target.getType().is(disliked)
+                    || target instanceof Llama llama && llama.getStrength() >= mob.getRandom().nextInt(LLAMA_MAX_STRENGTH);
     }
 }

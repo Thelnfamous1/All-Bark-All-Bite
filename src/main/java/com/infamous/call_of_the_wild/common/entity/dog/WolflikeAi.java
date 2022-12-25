@@ -1,12 +1,15 @@
 package com.infamous.call_of_the_wild.common.entity.dog;
 
+import com.infamous.call_of_the_wild.common.behavior.hunter.StartHunting;
 import com.infamous.call_of_the_wild.common.util.GenericAi;
+import com.infamous.call_of_the_wild.common.util.HunterAi;
+import net.minecraft.util.RandomSource;
 import net.minecraft.util.TimeUtil;
 import net.minecraft.util.valueproviders.UniformInt;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.TamableAnimal;
 import net.minecraft.world.entity.ai.Brain;
-import net.minecraft.world.entity.ai.behavior.*;
+import net.minecraft.world.entity.ai.behavior.BehaviorUtils;
 import net.minecraft.world.entity.ai.memory.MemoryModuleType;
 import net.minecraft.world.entity.ai.sensing.Sensor;
 import net.minecraft.world.entity.player.Player;
@@ -18,7 +21,6 @@ public class WolflikeAi {
     static final UniformInt ANGER_DURATION = TimeUtil.rangeOfSeconds(20, 39); // same as Wolf's persistent anger time
     static final UniformInt AVOID_DURATION = TimeUtil.rangeOfSeconds(5, 7);
     static final UniformInt RETREAT_DURATION = TimeUtil.rangeOfSeconds(5, 20);
-    static final UniformInt TIME_BETWEEN_HUNTS = TimeUtil.rangeOfSeconds(30, 120);
     static final float JUMP_CHANCE_IN_WATER = 0.8F;
     static final float SPEED_MODIFIER_BREEDING = 1.0F;
     static final float SPEED_MODIFIER_CHASING = 1.0F; // Dog will sprint with 30% extra speed, meaning final speed is effectively ~1.3F
@@ -33,6 +35,11 @@ public class WolflikeAi {
     static final int MAX_LOOK_DIST = 8;
     static final byte SUCCESSFUL_TAME_ID = 7;
     static final byte FAILED_TAME_ID = 6;
+
+    public static void initMemories(TamableAnimal tamableAnimal, RandomSource randomSource) {
+        int huntCooldownInTicks = StartHunting.TIME_BETWEEN_HUNTS.sample(randomSource);
+        HunterAi.setHuntedRecently(tamableAnimal, huntCooldownInTicks);
+    }
 
     static boolean shouldPanic(LivingEntity livingEntity) {
         return livingEntity.isFreezing() || livingEntity.isOnFire();

@@ -4,6 +4,8 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.infamous.call_of_the_wild.common.COTWTags;
 import com.infamous.call_of_the_wild.common.behavior.*;
+import com.infamous.call_of_the_wild.common.behavior.hunter.RememberIfHuntTargetWasKilled;
+import com.infamous.call_of_the_wild.common.behavior.hunter.StartHunting;
 import com.infamous.call_of_the_wild.common.registry.COTWMemoryModuleTypes;
 import com.infamous.call_of_the_wild.common.registry.COTWSensorTypes;
 import com.infamous.call_of_the_wild.common.util.AiUtil;
@@ -39,7 +41,8 @@ public class WolfAi {
             MemoryModuleType.AVOID_TARGET,
             MemoryModuleType.BREED_TARGET,
             MemoryModuleType.CANT_REACH_WALK_TARGET_SINCE,
-            MemoryModuleType.HAS_HUNTING_COOLDOWN,
+            //MemoryModuleType.HAS_HUNTING_COOLDOWN,
+            MemoryModuleType.HUNTED_RECENTLY,
             MemoryModuleType.HURT_BY,
             MemoryModuleType.HURT_BY_ENTITY,
             MemoryModuleType.IS_PANICKING,
@@ -54,6 +57,7 @@ public class WolfAi {
             COTWMemoryModuleTypes.NEAREST_VISIBLE_ADULTS.get(),
             MemoryModuleType.NEAREST_VISIBLE_ATTACKABLE_PLAYER,
             MemoryModuleType.NEAREST_VISIBLE_LIVING_ENTITIES,
+            COTWMemoryModuleTypes.NEAREST_VISIBLE_HUNTABLE.get(),
             MemoryModuleType.NEAREST_VISIBLE_PLAYER,
             MemoryModuleType.PATH,
             MemoryModuleType.TEMPTING_PLAYER,
@@ -71,6 +75,7 @@ public class WolfAi {
             SensorType.NEAREST_PLAYERS,
             COTWSensorTypes.WOLF_SPECIFIC_SENSOR.get()
     );
+    public static final float WOLF_SIZE_SCALE = 1.25F;
 
     public static Brain<Wolf> makeBrain(Brain<Wolf> brain) {
         initCoreActivity(brain);
@@ -110,8 +115,13 @@ public class WolfAi {
                         new SetWalkTargetFromAttackTargetIfTargetOutOfReach(WolflikeAi.SPEED_MODIFIER_CHASING),
                         new LeapAtTarget(),
                         new MeleeAttack(WolflikeAi.ATTACK_COOLDOWN_TICKS),
+                        new RememberIfHuntTargetWasKilled<>(WolfAi::isHuntTarget),
                         new EraseMemoryIf<>(BehaviorUtils::isBreeding, MemoryModuleType.ATTACK_TARGET)),
                 MemoryModuleType.ATTACK_TARGET);
+    }
+
+    private static boolean isHuntTarget(Wolf wolf, LivingEntity target) {
+        return AiUtil.isHuntTarget(wolf, target, COTWTags.WOLF_HUNT_TARGETS);
     }
 
     private static void initRetreatActivity(Brain<Wolf> brain) {
@@ -154,7 +164,7 @@ public class WolfAi {
         }
     }
 
-    public static boolean wantsToAvoid(EntityType<?> entityType) {
+    private static boolean wantsToAvoid(EntityType<?> entityType) {
         return entityType.is(COTWTags.WOLF_DISLIKED);
     }
 
@@ -170,7 +180,12 @@ public class WolfAi {
                         new Beg<>(WolfAi::isInteresting, Wolf::setIsInterested, WolflikeAi.MAX_LOOK_DIST),
                         createIdleLookBehaviors(),
                         createIdleMovementBehaviors(),
-                        new StartAttacking<>(WolfAi::canAttack, WolflikeAi::findNearestValidAttackTarget)));
+                        new StartAttacking<>(WolfAi::canAttack, WolflikeAi::findNearestValidAttackTarget),
+                        new StartHunting<>(WolfAi::canHunt)));
+    }
+
+    private static boolean canHunt(Wolf wolf){
+        return !wolf.isBaby() && canAttack(wolf);
     }
 
     private static boolean canBeTempted(Wolf wolf) {
@@ -193,9 +208,7 @@ public class WolfAi {
         Activity previous = brain.getActiveNonCoreActivity().orElse(null);
         brain.setActiveActivityToFirstValid(ImmutableList.of(Activity.FIGHT, Activity.AVOID, Activity.IDLE));
         Activity current = brain.getActiveNonCoreActivity().orElse(null);
-        if (previous == Activity.FIGHT && current != Activity.FIGHT) {
-            brain.setMemoryWithExpiry(MemoryModuleType.HAS_HUNTING_COOLDOWN, true, WolflikeAi.TIME_BETWEEN_HUNTS.sample(wolf.getRandom()));
-        }
+
         if (previous != current) {
             getSoundForCurrentActivity(wolf).ifPresent(se -> wolf.playSound(getSoundForActivity(wolf, current), 0.4F, wolf.getVoicePitch()));
         }

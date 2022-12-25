@@ -144,6 +144,7 @@ public class AndreDogModel<T extends Dog> extends HierarchicalModel<T> {
 		this.animateHeadLookTarget(headYRot, headXRot);
 		this.animate(dog.babyAnimationState, DogAnimation.DOG_BABY_SCALING, bob);
 		this.animate(dog.sitAnimationState, DogAnimation.DOG_SIT, bob);
+		this.animate(dog.idleAnimationState, DogAnimation.DOG_IDLE, bob);
 		this.animate(dog.walkAnimationState, DogAnimation.DOG_WALK, bob);
 		this.animate(dog.runAnimationState, DogAnimation.DOG_RUN, bob);
 		this.animate(dog.jumpAnimationState, DogAnimation.DOG_JUMP, bob);

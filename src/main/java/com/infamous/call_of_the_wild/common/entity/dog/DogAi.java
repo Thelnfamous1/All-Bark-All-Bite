@@ -4,6 +4,12 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.infamous.call_of_the_wild.common.COTWTags;
 import com.infamous.call_of_the_wild.common.behavior.*;
+import com.infamous.call_of_the_wild.common.behavior.hunter.RememberIfHuntTargetWasKilled;
+import com.infamous.call_of_the_wild.common.behavior.hunter.StartHunting;
+import com.infamous.call_of_the_wild.common.behavior.play.StartPlayingWithItemIfSeen;
+import com.infamous.call_of_the_wild.common.behavior.play.StopHoldingItemIfNoLongerPlaying;
+import com.infamous.call_of_the_wild.common.behavior.play.StopPlayingIfItemTooFarAway;
+import com.infamous.call_of_the_wild.common.behavior.play.StopPlayingIfTiredOfTryingToReachItem;
 import com.infamous.call_of_the_wild.common.registry.COTWEntityTypes;
 import com.infamous.call_of_the_wild.common.registry.COTWMemoryModuleTypes;
 import com.infamous.call_of_the_wild.common.util.AiUtil;
@@ -108,8 +114,13 @@ public class DogAi {
                         new RunIf<>(WolflikeAi::canAttack, new SetWalkTargetFromAttackTargetIfTargetOutOfReach(WolflikeAi.SPEED_MODIFIER_CHASING)),
                         new RunIf<>(WolflikeAi::canAttack, new LeapAtTarget(), true),
                         new RunIf<>(WolflikeAi::canAttack, new MeleeAttack(WolflikeAi.ATTACK_COOLDOWN_TICKS)),
+                        new RememberIfHuntTargetWasKilled<>(DogAi::isHuntTarget),
                         new EraseMemoryIf<>(BehaviorUtils::isBreeding, MemoryModuleType.ATTACK_TARGET)),
                 MemoryModuleType.ATTACK_TARGET);
+    }
+
+    private static boolean isHuntTarget(Dog dog, LivingEntity target) {
+        return AiUtil.isHuntTarget(dog, target, COTWTags.DOG_HUNT_TARGETS);
     }
 
     private static void initRetreatActivity(Brain<Dog> brain) {
@@ -154,7 +165,7 @@ public class DogAi {
         }
     }
 
-    public static boolean wantsToAvoid(EntityType<?> entityType) {
+    private static boolean wantsToAvoid(EntityType<?> entityType) {
         return entityType.is(COTWTags.DOG_DISLIKED);
     }
 
@@ -254,7 +265,12 @@ public class DogAi {
                         new RunIf<>(DogAi::canBeg, new Beg<>(DogAi::isInteresting, Dog::setIsInterested, WolflikeAi.MAX_LOOK_DIST), true),
                         createIdleLookBehaviors(),
                         new RunIf<>(WolflikeAi::canWander, createIdleMovementBehaviors(), true),
-                        new StartAttacking<>(WolflikeAi::canAttack, WolflikeAi::findNearestValidAttackTarget)));
+                        new StartAttacking<>(WolflikeAi::canAttack, WolflikeAi::findNearestValidAttackTarget),
+                        new StartHunting<>(DogAi::canHunt)));
+    }
+
+    private static boolean canHunt(Dog dog){
+        return !dog.isBaby() && !dog.isTame() && WolflikeAi.canAttack(dog);
     }
 
     private static boolean canBeg(Dog dog){
@@ -370,9 +386,7 @@ public class DogAi {
         Activity previous = brain.getActiveNonCoreActivity().orElse(null);
         brain.setActiveActivityToFirstValid(ImmutableList.of(Activity.FIGHT, Activity.AVOID, Activity.DIG, Activity.PLAY, Activity.IDLE));
         Activity current = brain.getActiveNonCoreActivity().orElse(null);
-        if (previous == Activity.FIGHT && current != Activity.FIGHT) {
-            brain.setMemoryWithExpiry(MemoryModuleType.HAS_HUNTING_COOLDOWN, true, WolflikeAi.TIME_BETWEEN_HUNTS.sample(dog.getRandom()));
-        }
+
         if (previous != current) {
             getSoundForCurrentActivity(dog).ifPresent(dog::playSoundEvent);
         }
