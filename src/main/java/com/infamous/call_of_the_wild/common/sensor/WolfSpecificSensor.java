@@ -3,6 +3,7 @@ package com.infamous.call_of_the_wild.common.sensor;
 import com.google.common.collect.ImmutableSet;
 import com.infamous.call_of_the_wild.common.COTWTags;
 import com.infamous.call_of_the_wild.common.entity.dog.WolfAi;
+import com.infamous.call_of_the_wild.common.entity.dog.WolflikeAi;
 import com.infamous.call_of_the_wild.common.registry.COTWMemoryModuleTypes;
 import com.infamous.call_of_the_wild.common.util.AiUtil;
 import net.minecraft.server.level.ServerLevel;
@@ -48,10 +49,10 @@ public class WolfSpecificSensor extends Sensor<Wolf> {
 
         for (LivingEntity livingEntity : nvle.findAll((le) -> true)) {
             if(nearestDisliked.isEmpty()
-                    && (AiUtil.isDisliked(wolf, livingEntity, COTWTags.WOLF_DISLIKED) || isAvoidablePlayer(wolf, livingEntity))){
+                    && (WolflikeAi.isDisliked(wolf, livingEntity, COTWTags.WOLF_DISLIKED) || isAvoidablePlayer(wolf, livingEntity))){
                 nearestDisliked = Optional.of(livingEntity);
             } else if(nearestHuntable.isEmpty()
-                    && AiUtil.isHuntable(wolf, livingEntity, COTWTags.WOLF_HUNT_TARGETS)){
+                    && WolflikeAi.isHuntable(wolf, livingEntity, COTWTags.WOLF_HUNT_TARGETS)){
                 nearestHuntable = Optional.of(livingEntity);
             } else if(nearestAttackable.isEmpty()
                     && AiUtil.isAttackable(wolf, livingEntity, COTWTags.WOLF_ALWAYS_HOSTILES)){

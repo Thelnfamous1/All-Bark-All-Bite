@@ -8,15 +8,14 @@ import net.minecraft.world.entity.ai.behavior.Behavior;
 import net.minecraft.world.entity.ai.memory.MemoryModuleType;
 import net.minecraft.world.entity.ai.memory.MemoryStatus;
 import net.minecraft.world.entity.item.ItemEntity;
-import net.minecraft.world.item.ItemStack;
 
-import java.util.function.Predicate;
+import java.util.function.BiPredicate;
 
 @SuppressWarnings("NullableProblems")
 public class StartPlayingWithItemIfSeen<E extends LivingEntity> extends Behavior<E> {
-   private final Predicate<ItemStack> isWanted;
+   private final BiPredicate<E, ItemEntity> isWanted;
 
-   public StartPlayingWithItemIfSeen(Predicate<ItemStack> isWanted) {
+   public StartPlayingWithItemIfSeen(BiPredicate<E, ItemEntity> isWanted) {
       super(ImmutableMap.of(
               MemoryModuleType.NEAREST_VISIBLE_WANTED_ITEM, MemoryStatus.VALUE_PRESENT,
               COTWMemoryModuleTypes.PLAYING_WITH_ITEM.get(), MemoryStatus.VALUE_ABSENT,
@@ -28,7 +27,7 @@ public class StartPlayingWithItemIfSeen<E extends LivingEntity> extends Behavior
    @Override
    protected boolean checkExtraStartConditions(ServerLevel level, E mob) {
       ItemEntity wantedItem = mob.getBrain().getMemory(MemoryModuleType.NEAREST_VISIBLE_WANTED_ITEM).get();
-      return this.isWanted.test(wantedItem.getItem());
+      return this.isWanted.test(mob, wantedItem);
    }
 
    @Override

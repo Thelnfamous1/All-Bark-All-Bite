@@ -24,6 +24,7 @@ public class StartHunting<E extends LivingEntity> extends Behavior<E> {
    public StartHunting(Predicate<E> canHuntPredicate) {
       super(ImmutableMap.of(
               COTWMemoryModuleTypes.NEAREST_VISIBLE_HUNTABLE.get(), MemoryStatus.VALUE_PRESENT,
+              MemoryModuleType.ATTACK_TARGET, MemoryStatus.VALUE_ABSENT,
               MemoryModuleType.ANGRY_AT, MemoryStatus.VALUE_ABSENT,
               MemoryModuleType.HUNTED_RECENTLY, MemoryStatus.VALUE_ABSENT,
               COTWMemoryModuleTypes.NEAREST_VISIBLE_ADULTS.get(), MemoryStatus.REGISTERED,

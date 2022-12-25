@@ -1,17 +1,23 @@
 package com.infamous.call_of_the_wild.common.entity.dog;
 
 import com.infamous.call_of_the_wild.common.behavior.hunter.StartHunting;
+import com.infamous.call_of_the_wild.common.util.AiUtil;
 import com.infamous.call_of_the_wild.common.util.GenericAi;
 import com.infamous.call_of_the_wild.common.util.HunterAi;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.tags.TagKey;
 import net.minecraft.util.RandomSource;
 import net.minecraft.util.TimeUtil;
 import net.minecraft.util.valueproviders.UniformInt;
+import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.TamableAnimal;
 import net.minecraft.world.entity.ai.Brain;
 import net.minecraft.world.entity.ai.behavior.BehaviorUtils;
 import net.minecraft.world.entity.ai.memory.MemoryModuleType;
 import net.minecraft.world.entity.ai.sensing.Sensor;
+import net.minecraft.world.entity.animal.Wolf;
+import net.minecraft.world.entity.animal.horse.Llama;
 import net.minecraft.world.entity.player.Player;
 
 import java.util.Optional;
@@ -35,10 +41,11 @@ public class WolflikeAi {
     static final int MAX_LOOK_DIST = 8;
     static final byte SUCCESSFUL_TAME_ID = 7;
     static final byte FAILED_TAME_ID = 6;
+    private static final int LLAMA_MAX_STRENGTH = 5;
 
-    public static void initMemories(TamableAnimal tamableAnimal, RandomSource randomSource) {
+    public static void initMemories(LivingEntity livingEntity, RandomSource randomSource) {
         int huntCooldownInTicks = StartHunting.TIME_BETWEEN_HUNTS.sample(randomSource);
-        HunterAi.setHuntedRecently(tamableAnimal, huntCooldownInTicks);
+        HunterAi.setHuntedRecently(livingEntity, huntCooldownInTicks);
     }
 
     static boolean shouldPanic(LivingEntity livingEntity) {
@@ -99,5 +106,21 @@ public class WolflikeAi {
         LivingEntity owner = tamableAnimal.getOwner();
         if(owner == null) return true;
         return tamableAnimal.wantsToAttack(attacker, owner);
+    }
+
+    /**
+     * Called by {@link com.infamous.call_of_the_wild.common.sensor.WolfSpecificSensor#doTick(ServerLevel, Wolf)}
+     * and {@link com.infamous.call_of_the_wild.common.sensor.DogSpecificSensor#doTick(ServerLevel, Dog)}
+     */
+    public static boolean isDisliked(LivingEntity mob, LivingEntity target, TagKey<EntityType<?>> disliked) {
+        return target.getType().is(disliked) || target instanceof Llama llama && llama.getStrength() >= mob.getRandom().nextInt(LLAMA_MAX_STRENGTH);
+    }
+
+    /**
+     * Called by {@link com.infamous.call_of_the_wild.common.sensor.WolfSpecificSensor#doTick(ServerLevel, Wolf)}
+     * and {@link com.infamous.call_of_the_wild.common.sensor.DogSpecificSensor#doTick(ServerLevel, Dog)}
+     */
+    public static boolean isHuntable(TamableAnimal tamableAnimal, LivingEntity livingEntity, TagKey<EntityType<?>> huntTargets) {
+        return AiUtil.isHuntable(tamableAnimal, livingEntity, huntTargets) || AiUtil.isHuntableBabyTurtle(tamableAnimal, livingEntity);
     }
 }

@@ -10,8 +10,10 @@ import com.infamous.call_of_the_wild.common.registry.COTWMemoryModuleTypes;
 import com.infamous.call_of_the_wild.common.registry.COTWSensorTypes;
 import com.infamous.call_of_the_wild.common.util.AiUtil;
 import com.infamous.call_of_the_wild.common.util.AngerAi;
+import com.infamous.call_of_the_wild.common.util.BrainUtil;
 import com.infamous.call_of_the_wild.common.util.GenericAi;
 import com.mojang.datafixers.util.Pair;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.util.valueproviders.UniformInt;
@@ -26,7 +28,6 @@ import net.minecraft.world.entity.ai.sensing.SensorType;
 import net.minecraft.world.entity.animal.Wolf;
 import net.minecraft.world.entity.schedule.Activity;
 import net.minecraft.world.item.ItemStack;
-import net.minecraftforge.event.entity.living.LivingDamageEvent;
 import net.minecraftforge.event.entity.living.LivingEvent;
 
 import java.util.Collection;
@@ -105,7 +106,22 @@ public class WolfAi {
                                 MemoryModuleType.AVOID_TARGET,
                                 WolflikeAi.AVOID_DURATION),
                         new CountDownCooldownTicks(MemoryModuleType.TEMPTATION_COOLDOWN_TICKS),
+                        new Retaliate<>(WolfAi::wasHurtBy),
                         new StopBeingAngryIfTargetDead<>()));
+    }
+
+    private static void wasHurtBy(Wolf wolf, LivingEntity attacker) {
+        AiUtil.eraseAllMemories(wolf,
+                MemoryModuleType.BREED_TARGET);
+
+        if (wolf.isBaby()) {
+            GenericAi.setAvoidTarget(wolf, attacker, WolflikeAi.RETREAT_DURATION.sample(wolf.level.random));
+            if (Sensor.isEntityAttackableIgnoringLineOfSight(wolf, attacker)) {
+                AngerAi.broadcastAngerTarget(GenericAi.getNearbyAdults(wolf).stream().map(Wolf.class::cast).filter(w -> WolflikeAi.wantsToRetaliate(w, attacker)).toList(), attacker, WolflikeAi.ANGER_DURATION.sample(wolf.getRandom()));
+            }
+        } else if(!wolf.getBrain().isActive(Activity.AVOID)){
+            AngerAi.maybeRetaliate(wolf, GenericAi.getNearbyAdults(wolf).stream().map(Wolf.class::cast).filter(w -> WolflikeAi.wantsToRetaliate(w, attacker)).toList(), attacker, WolflikeAi.ANGER_DURATION.sample(wolf.getRandom()), 4.0D);
+        }
     }
 
     private static void initFightActivity(Brain<Wolf> brain) {
@@ -236,21 +252,17 @@ public class WolfAi {
         }
     }
 
+
     /**
-     * Called by {@link com.infamous.call_of_the_wild.common.ForgeEventHandler#onLivingDamage(LivingDamageEvent)}
+     * Called by {@link com.infamous.call_of_the_wild.common.ForgeEventHandler#onLivingUpdate(LivingEvent.LivingTickEvent)}
      */
-    public static void wasHurtBy(Wolf wolf, LivingEntity attacker) {
-
-        AiUtil.eraseAllMemories(wolf,
-                MemoryModuleType.BREED_TARGET);
-
-        if (wolf.isBaby()) {
-            GenericAi.setAvoidTarget(wolf, attacker, WolflikeAi.RETREAT_DURATION.sample(wolf.level.random));
-            if (Sensor.isEntityAttackableIgnoringLineOfSight(wolf, attacker)) {
-                AngerAi.broadcastAngerTarget(GenericAi.getNearbyAdults(wolf).stream().map(Wolf.class::cast).filter(w -> WolflikeAi.wantsToRetaliate(w, attacker)).toList(), attacker, WolflikeAi.ANGER_DURATION.sample(wolf.getRandom()));
-            }
-        } else if(!wolf.getBrain().isActive(Activity.AVOID)){
-            AngerAi.maybeRetaliate(wolf, GenericAi.getNearbyAdults(wolf).stream().map(Wolf.class::cast).filter(w -> WolflikeAi.wantsToRetaliate(w, attacker)).toList(), attacker, WolflikeAi.ANGER_DURATION.sample(wolf.getRandom()), 4.0D);
-        }
+    public static void updateAi(ServerLevel serverLevel, Wolf wolf) {
+        serverLevel.getProfiler().push("wolfBrain");
+        BrainUtil.getTypedBrain(wolf).tick(serverLevel, wolf);
+        serverLevel.getProfiler().pop();
+        serverLevel.getProfiler().push("wolfActivityUpdate");
+        updateActivity(wolf);
+        serverLevel.getProfiler().pop();
     }
+
 }

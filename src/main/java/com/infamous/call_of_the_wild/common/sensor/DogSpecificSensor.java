@@ -4,6 +4,7 @@ import com.google.common.collect.ImmutableSet;
 import com.infamous.call_of_the_wild.common.COTWTags;
 import com.infamous.call_of_the_wild.common.entity.dog.Dog;
 import com.infamous.call_of_the_wild.common.entity.dog.DogAi;
+import com.infamous.call_of_the_wild.common.entity.dog.WolflikeAi;
 import com.infamous.call_of_the_wild.common.registry.COTWMemoryModuleTypes;
 import com.infamous.call_of_the_wild.common.util.AiUtil;
 import net.minecraft.server.level.ServerLevel;
@@ -44,11 +45,11 @@ public class DogSpecificSensor extends Sensor<Dog> {
         for (LivingEntity livingEntity : nvle.findAll((le) -> true)) {
             if(nearestDisliked.isEmpty()
                     && !tame
-                    && AiUtil.isDisliked(dog, livingEntity, COTWTags.DOG_DISLIKED)){
+                    && WolflikeAi.isDisliked(dog, livingEntity, COTWTags.DOG_DISLIKED)){
                 nearestDisliked = Optional.of(livingEntity);
             } else if(nearestHuntable.isEmpty()
                     && !tame
-                    && AiUtil.isHuntable(dog, livingEntity, COTWTags.DOG_HUNT_TARGETS)){
+                    && WolflikeAi.isHuntable(dog, livingEntity, COTWTags.DOG_HUNT_TARGETS)){
                 nearestHuntable = Optional.of(livingEntity);
             } else if(nearestAttackable.isEmpty()
                     && AiUtil.isAttackable(dog, livingEntity, COTWTags.DOG_ALWAYS_HOSTILES)){

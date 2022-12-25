@@ -1,10 +1,7 @@
 package com.infamous.call_of_the_wild.common.registry;
 
 import com.infamous.call_of_the_wild.CallOfTheWild;
-import com.infamous.call_of_the_wild.common.sensor.AdultsSensor;
-import com.infamous.call_of_the_wild.common.sensor.AnimalTemptationSensor;
-import com.infamous.call_of_the_wild.common.sensor.DogSpecificSensor;
-import com.infamous.call_of_the_wild.common.sensor.WolfSpecificSensor;
+import com.infamous.call_of_the_wild.common.sensor.*;
 import net.minecraft.world.entity.ai.sensing.SensorType;
 import net.minecraftforge.registries.DeferredRegister;
 import net.minecraftforge.registries.ForgeRegistries;

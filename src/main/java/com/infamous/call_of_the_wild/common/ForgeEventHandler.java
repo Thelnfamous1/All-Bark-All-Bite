@@ -1,10 +1,13 @@
 package com.infamous.call_of_the_wild.common;
 
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Maps;
 import com.infamous.call_of_the_wild.CallOfTheWild;
 import com.infamous.call_of_the_wild.common.entity.DogSpawner;
 import com.infamous.call_of_the_wild.common.entity.dog.Dog;
 import com.infamous.call_of_the_wild.common.entity.dog.WolfAi;
+import com.infamous.call_of_the_wild.common.entity.dog.WolflikeAi;
+import com.infamous.call_of_the_wild.common.registry.COTWEntityTypes;
 import com.infamous.call_of_the_wild.common.util.BrainUtil;
 import com.infamous.call_of_the_wild.common.util.ReflectionUtil;
 import net.minecraft.nbt.NbtOps;
@@ -16,19 +19,25 @@ import net.minecraft.world.entity.EntityDimensions;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.Brain;
+import net.minecraft.world.entity.ai.behavior.Behavior;
+import net.minecraft.world.entity.ai.behavior.InteractWith;
+import net.minecraft.world.entity.ai.behavior.RunOne;
+import net.minecraft.world.entity.ai.behavior.SetEntityLookTarget;
 import net.minecraft.world.entity.ai.goal.AvoidEntityGoal;
 import net.minecraft.world.entity.ai.goal.target.NearestAttackableTargetGoal;
+import net.minecraft.world.entity.ai.memory.MemoryModuleType;
 import net.minecraft.world.entity.animal.Fox;
 import net.minecraft.world.entity.animal.Rabbit;
 import net.minecraft.world.entity.animal.Wolf;
 import net.minecraft.world.entity.animal.horse.Llama;
 import net.minecraft.world.entity.monster.AbstractSkeleton;
+import net.minecraft.world.entity.npc.Villager;
+import net.minecraft.world.entity.schedule.Activity;
 import net.minecraft.world.level.CustomSpawner;
 import net.minecraft.world.level.Level;
 import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.event.entity.EntityEvent;
 import net.minecraftforge.event.entity.EntityJoinLevelEvent;
-import net.minecraftforge.event.entity.living.LivingDamageEvent;
 import net.minecraftforge.event.entity.living.LivingEvent;
 import net.minecraftforge.eventbus.api.EventPriority;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
@@ -38,6 +47,7 @@ import org.apache.commons.compress.utils.Lists;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 @Mod.EventBusSubscriber(bus = Mod.EventBusSubscriber.Bus.FORGE, modid = CallOfTheWild.MODID)
 public class ForgeEventHandler {
@@ -66,7 +76,12 @@ public class ForgeEventHandler {
         ServerLevel serverLevel = (ServerLevel) event.getLevel();
 
         Entity entity = event.getEntity();
-        handleDogInteractionGoals(entity);
+        addMobDogInteractionGoals(entity);
+
+        if(entity instanceof Villager villager){
+            addVillagerDogInteractionBehaviors(villager);
+        }
+
         if(entity instanceof Wolf wolf && entity.getType() == EntityType.WOLF){
             wolf.goalSelector.removeAllGoals();
             wolf.targetSelector.removeAllGoals();
@@ -74,11 +89,11 @@ public class ForgeEventHandler {
             Brain<Wolf> replacement = WolfAi.makeBrain(BrainUtil.makeBrain(WolfAi.MEMORY_TYPES, WolfAi.SENSOR_TYPES, BrainUtil.makeDynamic(nbtOps)));
             boolean loadedFromDisk = event.loadedFromDisk();
             BrainUtil.replaceBrain(wolf, serverLevel, replacement, loadedFromDisk);
-            //if(!loadedFromDisk) WolflikeAi.initMemories(wolf, wolf.getRandom());
+            if(!loadedFromDisk) WolflikeAi.initMemories(wolf, wolf.getRandom());
         }
     }
 
-    private static void handleDogInteractionGoals(Entity entity) {
+    private static void addMobDogInteractionGoals(Entity entity) {
         if(entity instanceof Fox fox){
             fox.goalSelector.addGoal(4, new AvoidEntityGoal<>(fox, Dog.class, 8.0F, 1.6D, 1.4D,
                     (le) -> !((Dog)le).isTame() && !(boolean) ReflectionUtil.callMethod(FOX_IS_DEFENDING, fox)));
@@ -105,6 +120,48 @@ public class ForgeEventHandler {
         }
     }
 
+    /**
+     * See {@link net.minecraft.world.entity.ai.behavior.VillagerGoalPackages}
+     */
+    private static void addVillagerDogInteractionBehaviors(Villager villager) {
+        Map<Integer, Map<Activity, Set<Behavior<? super Villager>>>> availableBehaviorsByPriority = BrainUtil.getAvailableBehaviorsByPriority(villager.getBrain());
+        for(Integer priority : availableBehaviorsByPriority.keySet()){
+            if(priority != 2 && priority != 5) continue; // Villager RunOne behaviors that make them look at or interact with cats are only of priority 2 or 5
+
+            Map<Activity, Set<Behavior<? super Villager>>> availableBehaviors = availableBehaviorsByPriority.get(priority);
+
+            boolean addedPlayLook = false; // Look behavior is added before interact behavior for PLAY
+            boolean addedPlayInteract = false;
+            for(Behavior<?> behavior : availableBehaviors.getOrDefault(Activity.PLAY, ImmutableSet.of())){
+                if(addedPlayLook && addedPlayInteract) break;
+                if(behavior instanceof RunOne<?> runOne){
+                    if(!addedPlayLook){
+                        BrainUtil.getGateBehaviors(runOne).add(new SetEntityLookTarget(COTWEntityTypes.DOG.get(), 8.0F), 8);
+                        addedPlayLook = true;
+                        continue;
+                    }
+                    BrainUtil.getGateBehaviors(runOne).add(InteractWith.of(COTWEntityTypes.DOG.get(), 8, MemoryModuleType.INTERACTION_TARGET, 0.5F, 2), 1);
+                    addedPlayInteract = true;
+                }
+            }
+
+            boolean addedIdleInteract = false; // Interact behavior is added before look behavior for IDLE
+            boolean addedIdleLook = false;
+            for(Behavior<?> behavior : availableBehaviors.getOrDefault(Activity.IDLE, ImmutableSet.of())){
+                if(addedIdleInteract && addedIdleLook) break;
+                if(behavior instanceof RunOne<?> runOne){
+                    if(!addedIdleInteract){
+                        BrainUtil.getGateBehaviors(runOne).add(InteractWith.of(COTWEntityTypes.DOG.get(), 8, MemoryModuleType.INTERACTION_TARGET, 0.5F, 2), 1);
+                        addedIdleInteract = true;
+                        continue;
+                    }
+                    BrainUtil.getGateBehaviors(runOne).add(new SetEntityLookTarget(COTWEntityTypes.DOG.get(), 8.0F), 8);
+                    addedIdleLook = true;
+                }
+            }
+        }
+    }
+
     @SubscribeEvent
     static void onEntitySize(EntityEvent.Size event){
         if(event.getEntity().getType() == EntityType.WOLF){
@@ -119,30 +176,9 @@ public class ForgeEventHandler {
         if(!event.isCanceled()
                 && livingEntity instanceof Wolf wolf
                 && livingEntity.getType() == EntityType.WOLF
-                && !wolf.level.isClientSide){
-            updateWolfBrain(wolf);
+                && wolf.level instanceof ServerLevel level){
+            WolfAi.updateAi(level, wolf);
         }
     }
 
-    @SuppressWarnings("unchecked")
-    private static void updateWolfBrain(Wolf wolf) {
-        Level level = wolf.level;
-        level.getProfiler().push("wolfBrain");
-        ((Brain<Wolf>) wolf.getBrain()).tick((ServerLevel)level, wolf);
-        level.getProfiler().pop();
-        level.getProfiler().push("wolfActivityUpdate");
-        WolfAi.updateActivity(wolf);
-        level.getProfiler().pop();
-    }
-
-    @SubscribeEvent
-    static void onLivingDamage(LivingDamageEvent event){
-        LivingEntity livingEntity = event.getEntity();
-        if(!event.isCanceled()
-                && livingEntity instanceof Wolf wolf
-                && livingEntity.getType() == EntityType.WOLF
-                && event.getSource().getEntity() instanceof LivingEntity attacker){
-            WolfAi.wasHurtBy(wolf, attacker);
-        }
-    }
 }

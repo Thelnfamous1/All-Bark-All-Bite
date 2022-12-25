@@ -12,12 +12,10 @@ import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.ai.memory.MemoryModuleType;
 import net.minecraft.world.entity.ai.sensing.Sensor;
 import net.minecraft.world.entity.animal.Turtle;
-import net.minecraft.world.entity.animal.horse.Llama;
 import net.minecraft.world.food.FoodProperties;
 import net.minecraft.world.level.Level;
 
 public class AiUtil {
-    private static final int LLAMA_MAX_STRENGTH = 5;
 
     public static int reducedTickDelay(int ticks) {
         return Mth.positiveCeilDiv(ticks, 2);
@@ -68,14 +66,15 @@ public class AiUtil {
     }
 
     public static boolean isHuntTarget(LivingEntity mob, LivingEntity target, TagKey<EntityType<?>> huntTargets) {
-        return !mob.getBrain().hasMemoryValue(MemoryModuleType.HAS_HUNTING_COOLDOWN)
-                && !mob.getBrain().hasMemoryValue(MemoryModuleType.HUNTED_RECENTLY)
-                && (target.getType().is(huntTargets)
-                    || target instanceof Turtle turtle && Turtle.BABY_ON_LAND_SELECTOR.test(turtle));
+        return !hasAnyMemory(mob, MemoryModuleType.HUNTED_RECENTLY, MemoryModuleType.HAS_HUNTING_COOLDOWN)
+                && target.getType().is(huntTargets);
     }
 
-    public static boolean isDisliked(LivingEntity mob, LivingEntity target, TagKey<EntityType<?>> disliked) {
-        return target.getType().is(disliked)
-                    || target instanceof Llama llama && llama.getStrength() >= mob.getRandom().nextInt(LLAMA_MAX_STRENGTH);
+    public static boolean isHuntableBabyTurtle(Mob mob, LivingEntity target) {
+        return isClose(mob, target)
+                && !hasAnyMemory(mob, MemoryModuleType.HUNTED_RECENTLY, MemoryModuleType.HAS_HUNTING_COOLDOWN)
+                && target instanceof Turtle turtle
+                && Turtle.BABY_ON_LAND_SELECTOR.test(turtle)
+                && Sensor.isEntityAttackable(mob, turtle);
     }
 }

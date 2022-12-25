@@ -25,7 +25,6 @@ import net.minecraft.sounds.SoundEvents;
 import net.minecraft.util.valueproviders.UniformInt;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
-import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.*;
 import net.minecraft.world.entity.ai.Brain;
 import net.minecraft.world.entity.ai.behavior.*;
@@ -92,19 +91,51 @@ public class DogAi {
                         new RunIf<>(DogAi::canPlay, new StartPlayingWithItemIfSeen<>(DogAi::canFetch)),
                         new CountDownCooldownTicks(MemoryModuleType.TEMPTATION_COOLDOWN_TICKS),
                         new CountDownCooldownTicks(MemoryModuleType.ITEM_PICKUP_COOLDOWN_TICKS),
+                        new Retaliate<>(DogAi::wasHurtBy),
                         new StopBeingAngryIfTargetDead<>()));
-    }
-
-    protected static boolean canFetch(ItemStack stack) {
-        return stack.is(COTWTags.DOG_FETCHES);
     }
 
     private static boolean canStopHolding(Dog dog) {
         return dog.hasItemInMouth() && !hasDigLocation(dog);
     }
 
+    private static void stopHoldingItemInMouth(Dog dog) {
+        ItemStack mouthStack = dog.getItemInMouth();
+        dog.setItemInMouth(ItemStack.EMPTY);
+        BehaviorUtils.throwItem(dog, mouthStack, GenericAi.getRandomNearbyPos(dog, 4, 2));
+        onThrown(dog);
+    }
+
+    private static boolean canFetch(Dog dog, ItemEntity itemEntity){
+        return canFetch(itemEntity.getItem()) && itemEntity.closerThan(dog, MAX_FETCH_DISTANCE);
+    }
+
     private static boolean canPlay(Dog dog){
         return !dog.isOrderedToSit() && dog.isTame();
+    }
+
+    protected static boolean canFetch(ItemStack stack) {
+        return stack.is(COTWTags.DOG_FETCHES);
+    }
+
+    private static void wasHurtBy(Dog dog, LivingEntity attacker) {
+        if (dog.hasItemInMouth()) {
+            stopHoldingItemInMouth(dog);
+        }
+
+        AiUtil.eraseAllMemories(dog,
+                MemoryModuleType.BREED_TARGET,
+                COTWMemoryModuleTypes.PLAYING_WITH_ITEM.get(),
+                COTWMemoryModuleTypes.DIG_LOCATION.get());
+
+        if (dog.isBaby()) {
+            GenericAi.setAvoidTarget(dog, attacker, WolflikeAi.RETREAT_DURATION.sample(dog.level.random));
+            if (Sensor.isEntityAttackableIgnoringLineOfSight(dog, attacker)) {
+                AngerAi.broadcastAngerTarget(GenericAi.getNearbyAdults(dog).stream().map(Dog.class::cast).filter(d -> WolflikeAi.wantsToRetaliate(d, attacker)).toList(), attacker, WolflikeAi.ANGER_DURATION.sample(dog.getRandom()));
+            }
+        } else if(!dog.getBrain().isActive(Activity.AVOID)){
+            AngerAi.maybeRetaliate(dog, GenericAi.getNearbyAdults(dog).stream().map(Dog.class::cast).filter(d -> WolflikeAi.wantsToRetaliate(d, attacker)).toList(), attacker, WolflikeAi.ANGER_DURATION.sample(dog.getRandom()), 4.0D);
+        }
     }
 
     private static void initFightActivity(Brain<Dog> brain) {
@@ -212,7 +243,7 @@ public class DogAi {
                 ImmutableList.of(
                         new RunIf<>(DogAi::canPlay, new GoToWantedItem<>(DogAi::isNotHoldingItem, SPEED_MODIFIER_PLAYING, true, MAX_FETCH_DISTANCE)),
                         new RunIf<>(DogAi::canPlay, new GoToTargetAndGiveItem<>(Dog::getItemInMouth, DogAi::getOwnerPositionTracker, SPEED_MODIFIER_PLAYING, STOP_FOLLOW_DISTANCE, DogAi::onThrown), true),
-                        new RunIf<>(DogAi::canPlay, new StayCloseToTarget<>(DogAi::getOwnerPositionTracker, STOP_FOLLOW_DISTANCE, STOP_FOLLOW_DISTANCE + 1, SPEED_MODIFIER_PLAYING)),
+                        new RunIf<>(DogAi::canPlay, new StayCloseToTarget<>(DogAi::getOwnerPositionTracker, STOP_FOLLOW_DISTANCE, STOP_FOLLOW_DISTANCE, SPEED_MODIFIER_PLAYING)),
                         new StopPlayingIfItemTooFarAway<>(DogAi::canStopPlayingIfItemTooFar, MAX_FETCH_DISTANCE),
                         new StopPlayingIfTiredOfTryingToReachItem<>(DogAi::canGetTiredTryingToReachItem, MAX_TIME_TO_REACH_ITEM, DISABLE_PLAY_TIME),
                         new EraseMemoryIf<>(DogAi::wantsToStopPlaying, COTWMemoryModuleTypes.PLAYING_WITH_ITEM.get())),
@@ -362,10 +393,6 @@ public class DogAi {
         return Optional.of(blockPos).filter(bp -> dog.level.getBlockState(bp.below()).is(COTWTags.DOG_CAN_DIG));
     }
 
-    private static void setDigLocation(Dog dog, BlockPos blockPos){
-        dog.getBrain().setMemory(COTWMemoryModuleTypes.DIG_LOCATION.get(), blockPos);
-    }
-
     private static void yieldAsPet(Dog dog) {
         GenericAi.stopWalking(dog);
 
@@ -376,6 +403,18 @@ public class DogAi {
                 MemoryModuleType.AVOID_TARGET,
                 COTWMemoryModuleTypes.PLAYING_WITH_ITEM.get(),
                 COTWMemoryModuleTypes.DIG_LOCATION.get());
+    }
+
+    private static void setDigLocation(Dog dog, BlockPos blockPos){
+        dog.getBrain().setMemory(COTWMemoryModuleTypes.DIG_LOCATION.get(), blockPos);
+    }
+
+    private static void holdInMouth(Dog dog, ItemStack stack) {
+        if (dog.hasItemInMouth()) {
+            stopHoldingItemInMouth(dog);
+        }
+
+        dog.holdInMouth(stack);
     }
 
     /**
@@ -417,29 +456,6 @@ public class DogAi {
     }
 
     /**
-     * Called by {@link Dog#hurt(DamageSource, float)}
-     */
-    protected static void wasHurtBy(Dog dog, LivingEntity attacker) {
-        if (dog.hasItemInMouth()) {
-            stopHoldingItemInMouth(dog);
-        }
-
-        AiUtil.eraseAllMemories(dog,
-                MemoryModuleType.BREED_TARGET,
-                COTWMemoryModuleTypes.PLAYING_WITH_ITEM.get(),
-                COTWMemoryModuleTypes.DIG_LOCATION.get());
-
-        if (dog.isBaby()) {
-            GenericAi.setAvoidTarget(dog, attacker, WolflikeAi.RETREAT_DURATION.sample(dog.level.random));
-            if (Sensor.isEntityAttackableIgnoringLineOfSight(dog, attacker)) {
-                AngerAi.broadcastAngerTarget(GenericAi.getNearbyAdults(dog).stream().map(Dog.class::cast).filter(d -> WolflikeAi.wantsToRetaliate(d, attacker)).toList(), attacker, WolflikeAi.ANGER_DURATION.sample(dog.getRandom()));
-            }
-        } else if(!dog.getBrain().isActive(Activity.AVOID)){
-            AngerAi.maybeRetaliate(dog, GenericAi.getNearbyAdults(dog).stream().map(Dog.class::cast).filter(d -> WolflikeAi.wantsToRetaliate(d, attacker)).toList(), attacker, WolflikeAi.ANGER_DURATION.sample(dog.getRandom()), 4.0D);
-        }
-    }
-
-    /**
      * Called by {@link Dog#wantsToPickUp(ItemStack)}
      */
     protected static boolean wantsToPickup(Dog dog, ItemStack stack) {
@@ -464,21 +480,6 @@ public class DogAi {
         dog.getBrain().eraseMemory(COTWMemoryModuleTypes.TIME_TRYING_TO_REACH_PLAY_ITEM.get());
         holdInMouth(dog, singleton);
         playWithItem(dog);
-    }
-
-    private static void holdInMouth(Dog dog, ItemStack stack) {
-        if (dog.hasItemInMouth()) {
-            stopHoldingItemInMouth(dog);
-        }
-
-        dog.holdInMouth(stack);
-    }
-
-    protected static void stopHoldingItemInMouth(Dog dog) {
-        ItemStack mouthStack = dog.getItemInMouth();
-        dog.setItemInMouth(ItemStack.EMPTY);
-        BehaviorUtils.throwItem(dog, mouthStack, GenericAi.getRandomNearbyPos(dog, 4, 2));
-        onThrown(dog);
     }
 
     private static void playWithItem(LivingEntity livingEntity) {

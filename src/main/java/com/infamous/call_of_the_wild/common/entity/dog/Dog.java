@@ -336,17 +336,7 @@ public class Dog extends TamableAnimal implements InterestedMob, ShakingMob<Dog>
                 amount = (amount + 1.0F) / 2.0F;
             }
 
-            boolean wasHurt = super.hurt(source, amount);
-
-            if (this.level.isClientSide) {
-                return false;
-            } else {
-                if (wasHurt && sourceEntity instanceof LivingEntity attacker) {
-                    DogAi.wasHurtBy(this, attacker);
-                }
-
-                return wasHurt;
-            }
+            return super.hurt(source, amount);
         }
     }
 

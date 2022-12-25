@@ -7,19 +7,26 @@ import net.minecraft.nbt.Tag;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.Brain;
+import net.minecraft.world.entity.ai.behavior.Behavior;
+import net.minecraft.world.entity.ai.behavior.GateBehavior;
+import net.minecraft.world.entity.ai.behavior.ShufflingList;
 import net.minecraft.world.entity.ai.memory.ExpirableValue;
 import net.minecraft.world.entity.ai.memory.MemoryModuleType;
 import net.minecraft.world.entity.ai.sensing.Sensor;
 import net.minecraft.world.entity.ai.sensing.SensorType;
+import net.minecraft.world.entity.schedule.Activity;
 
 import java.util.Collection;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 
 @SuppressWarnings("unchecked")
 public class BrainUtil {
 
     private static final String LIVING_ENTITY_BRAIN = "f_20939_";
+    private static final String GATE_BEHAVIOR_BEHAVIORS = "f_22871_";
+    private static final String BRAIN_AVAILABLE_BEHAVIORS_BY_PRIORITY = "f_21845_";
 
     public static <T extends LivingEntity> Brain.Provider<?> brainProvider(Collection<? extends MemoryModuleType<?>> memoryTypes, Collection<? extends SensorType<? extends Sensor<? super T>>> sensorTypes) {
         return Brain.provider(memoryTypes, sensorTypes);
@@ -50,5 +57,18 @@ public class BrainUtil {
 
     public static Dynamic<Tag> makeDynamic(NbtOps nbtOps) {
         return new Dynamic<>(nbtOps, nbtOps.createMap(ImmutableMap.of(nbtOps.createString("memories"), nbtOps.emptyMap())));
+    }
+
+    @SuppressWarnings("unchecked")
+    public static <T extends LivingEntity> Brain<T> getTypedBrain(T mob) {
+        return (Brain<T>) mob.getBrain();
+    }
+
+    public static <E extends LivingEntity> Map<Integer, Map<Activity, Set<Behavior<? super E>>>> getAvailableBehaviorsByPriority(Brain<E> brain){
+        return ReflectionUtil.getField(BRAIN_AVAILABLE_BEHAVIORS_BY_PRIORITY, Brain.class, brain);
+    }
+
+    public static <E extends LivingEntity> ShufflingList<Behavior<? super E>> getGateBehaviors(GateBehavior<E> gateBehavior){
+        return ReflectionUtil.getField(GATE_BEHAVIOR_BEHAVIORS, GateBehavior.class, gateBehavior);
     }
 }

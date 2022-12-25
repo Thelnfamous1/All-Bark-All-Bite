@@ -39,10 +39,6 @@ public class GoToTargetAndGiveItem<E extends LivingEntity> extends Behavior<E> {
 
    @Override
    protected void start(ServerLevel level, E mob, long gameTime) {
-      this.goToTarget(mob);
-   }
-
-   private void goToTarget(E mob) {
       this.targetPositionGetter.apply(mob).ifPresent((pt) -> BehaviorUtils.setWalkAndLookTargetMemories(mob, pt, this.speedModifier, this.closeEnough));
    }
 

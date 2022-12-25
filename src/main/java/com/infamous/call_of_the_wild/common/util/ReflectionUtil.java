@@ -43,4 +43,16 @@ public class ReflectionUtil {
             throw new RuntimeException(e);
         }
     }
+
+    @SuppressWarnings("unchecked")
+    public static <T> T getField(String fieldName, Class<?> targetClass, Object obj){
+        Field field = CACHED_FIELDS.computeIfAbsent(fieldName, k -> ObfuscationReflectionHelper.findField(targetClass, fieldName));
+
+        try {
+            return (T) field.get(obj);
+        } catch (IllegalAccessException e) {
+            CallOfTheWild.LOGGER.error("Reflection error for field named {} retrieved on {}", fieldName, obj);
+            throw new RuntimeException(e);
+        }
+    }
 }
