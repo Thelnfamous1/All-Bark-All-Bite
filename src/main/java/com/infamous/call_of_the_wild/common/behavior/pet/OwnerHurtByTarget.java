@@ -1,5 +1,6 @@
-package com.infamous.call_of_the_wild.common.behavior;
+package com.infamous.call_of_the_wild.common.behavior.pet;
 
+import com.infamous.call_of_the_wild.common.behavior.TargetBehavior;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.TamableAnimal;

@@ -19,6 +19,7 @@ public class CallOfTheWild
     public CallOfTheWild()
     {
         IEventBus modEventBus = FMLJavaModLoadingContext.get().getModEventBus();
+        COTWActivities.ACTIVITIES.register(modEventBus);
         COTWDogVariants.DOG_VARIANTS.register(modEventBus);
         COTWEntityDataSerializers.ENTITY_DATA_SERIALIZERS.register(modEventBus);
         COTWEntityTypes.ENTITY_TYPES.register(modEventBus);

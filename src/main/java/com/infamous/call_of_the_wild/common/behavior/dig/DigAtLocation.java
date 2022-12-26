@@ -1,4 +1,4 @@
-package com.infamous.call_of_the_wild.common.behavior;
+package com.infamous.call_of_the_wild.common.behavior.dig;
 
 import com.google.common.collect.ImmutableMap;
 import com.infamous.call_of_the_wild.common.registry.COTWMemoryModuleTypes;
@@ -20,7 +20,7 @@ import java.util.function.Consumer;
 public class DigAtLocation<E extends LivingEntity> extends Behavior<E> {
    private static final long CHECK_COOLDOWN = 10L;
    private static final double DISTANCE = 1.73D;
-   private long lastCheck;
+   private long lastCheckTimestamp;
    private final Consumer<E> onDigCompleted;
    private final long digDuration;
    private long digUpAtTime;
@@ -35,10 +35,10 @@ public class DigAtLocation<E extends LivingEntity> extends Behavior<E> {
 
    @SuppressWarnings("OptionalGetWithoutIsPresent")
    protected boolean checkExtraStartConditions(ServerLevel level, E mob) {
-      if (level.getGameTime() - this.lastCheck < CHECK_COOLDOWN) {
+      if (level.getGameTime() - this.lastCheckTimestamp < CHECK_COOLDOWN) {
          return false;
       } else {
-         this.lastCheck = level.getGameTime();
+         this.lastCheckTimestamp = level.getGameTime();
          BlockPos blockPos = mob.getBrain().getMemory(COTWMemoryModuleTypes.DIG_LOCATION.get()).get();
          return blockPos.closerToCenterThan(mob.position(), DISTANCE);
       }

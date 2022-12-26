@@ -6,6 +6,7 @@ import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.item.ItemStack;
 
 import java.util.Collection;
+import java.util.stream.Stream;
 
 public class COTWUtil {
 
@@ -25,4 +26,10 @@ public class COTWUtil {
 
         return singleton;
     }
+
+    @SuppressWarnings("unchecked")
+    public static <U> Stream<U> castStream(Stream<?> stream) {
+        return (Stream<U>) stream;
+    }
+
 }

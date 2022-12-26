@@ -4,8 +4,12 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.infamous.call_of_the_wild.common.COTWTags;
 import com.infamous.call_of_the_wild.common.behavior.*;
+import com.infamous.call_of_the_wild.common.behavior.pet.OwnerHurtByTarget;
 import com.infamous.call_of_the_wild.common.behavior.hunter.RememberIfHuntTargetWasKilled;
 import com.infamous.call_of_the_wild.common.behavior.hunter.StartHunting;
+import com.infamous.call_of_the_wild.common.behavior.pet.OwnerHurtTarget;
+import com.infamous.call_of_the_wild.common.behavior.pet.SitWhenOrderedTo;
+import com.infamous.call_of_the_wild.common.behavior.pet.StopSittingToWalk;
 import com.infamous.call_of_the_wild.common.registry.COTWMemoryModuleTypes;
 import com.infamous.call_of_the_wild.common.registry.COTWSensorTypes;
 import com.infamous.call_of_the_wild.common.util.AiUtil;
@@ -16,22 +20,21 @@ import com.mojang.datafixers.util.Pair;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.sounds.SoundEvents;
-import net.minecraft.util.valueproviders.UniformInt;
-import net.minecraft.world.entity.EntityType;
-import net.minecraft.world.entity.LivingEntity;
-import net.minecraft.world.entity.TamableAnimal;
+import net.minecraft.world.entity.*;
 import net.minecraft.world.entity.ai.Brain;
 import net.minecraft.world.entity.ai.behavior.*;
 import net.minecraft.world.entity.ai.memory.MemoryModuleType;
 import net.minecraft.world.entity.ai.sensing.Sensor;
 import net.minecraft.world.entity.ai.sensing.SensorType;
 import net.minecraft.world.entity.animal.Wolf;
+import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.entity.schedule.Activity;
 import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.event.entity.living.LivingEvent;
 
 import java.util.Collection;
 import java.util.Optional;
+import java.util.function.Predicate;
 
 public class WolfAi {
 
@@ -43,13 +46,17 @@ public class WolfAi {
             MemoryModuleType.BREED_TARGET,
             MemoryModuleType.CANT_REACH_WALK_TARGET_SINCE,
             //MemoryModuleType.HAS_HUNTING_COOLDOWN,
+            COTWMemoryModuleTypes.HOWLED_RECENTLY.get(),
             MemoryModuleType.HUNTED_RECENTLY,
             MemoryModuleType.HURT_BY,
             MemoryModuleType.HURT_BY_ENTITY,
+            MemoryModuleType.INTERACTION_TARGET,
             MemoryModuleType.IS_PANICKING,
             MemoryModuleType.IS_TEMPTED,
             MemoryModuleType.LOOK_TARGET,
             COTWMemoryModuleTypes.NEARBY_ADULTS.get(),
+            COTWMemoryModuleTypes.NEARBY_BABIES.get(),
+            COTWMemoryModuleTypes.NEARBY_KIN.get(),
             MemoryModuleType.NEAREST_ATTACKABLE,
             MemoryModuleType.NEAREST_LIVING_ENTITIES,
             MemoryModuleType.NEAREST_PLAYERS,
@@ -57,9 +64,13 @@ public class WolfAi {
             MemoryModuleType.NEAREST_VISIBLE_ADULT,
             COTWMemoryModuleTypes.NEAREST_VISIBLE_ADULTS.get(),
             MemoryModuleType.NEAREST_VISIBLE_ATTACKABLE_PLAYER,
-            MemoryModuleType.NEAREST_VISIBLE_LIVING_ENTITIES,
+            COTWMemoryModuleTypes.NEAREST_VISIBLE_BABIES.get(),
             COTWMemoryModuleTypes.NEAREST_VISIBLE_HUNTABLE.get(),
+            COTWMemoryModuleTypes.NEAREST_VISIBLE_KIN.get(),
+            MemoryModuleType.NEAREST_VISIBLE_LIVING_ENTITIES,
             MemoryModuleType.NEAREST_VISIBLE_PLAYER,
+            COTWMemoryModuleTypes.PACK_LEADER.get(),
+            COTWMemoryModuleTypes.PACK_SIZE.get(),
             MemoryModuleType.PATH,
             MemoryModuleType.TEMPTING_PLAYER,
             MemoryModuleType.TEMPTATION_COOLDOWN_TICKS,
@@ -69,14 +80,18 @@ public class WolfAi {
     public static final Collection<? extends SensorType<? extends Sensor<? super Wolf>>> SENSOR_TYPES = ImmutableList.of(
             COTWSensorTypes.ANIMAL_TEMPTATIONS.get(),
             SensorType.HURT_BY,
-            SensorType.NEAREST_ADULT,
-            COTWSensorTypes.NEAREST_ADULTS.get(),
+
+            // dependent on NEAREST_VISIBLE_LIVING_ENTITIES
             SensorType.NEAREST_LIVING_ENTITIES,
+            SensorType.NEAREST_ADULT,
+            COTWSensorTypes.NEAREST_KIN.get(),
+
             SensorType.NEAREST_ITEMS,
             SensorType.NEAREST_PLAYERS,
             COTWSensorTypes.WOLF_SPECIFIC_SENSOR.get()
     );
     public static final float WOLF_SIZE_SCALE = 1.25F;
+    private static final Predicate<Entity> NOT_DISCRETE_NOT_CREATIVE_OR_SPECTATOR = (e) -> !e.isDiscrete() && EntitySelector.NO_CREATIVE_OR_SPECTATOR.test(e);
 
     public static Brain<Wolf> makeBrain(Brain<Wolf> brain) {
         initCoreActivity(brain);
@@ -105,9 +120,25 @@ public class WolfAi {
                                 COTWMemoryModuleTypes.NEAREST_VISIBLE_DISLIKED.get(),
                                 MemoryModuleType.AVOID_TARGET,
                                 WolflikeAi.AVOID_DURATION),
+                        new EraseMemoryIf<>(WolfAi::wantsToStopBeingTempted, MemoryModuleType.TEMPTING_PLAYER),
                         new CountDownCooldownTicks(MemoryModuleType.TEMPTATION_COOLDOWN_TICKS),
                         new Retaliate<>(WolfAi::wasHurtBy),
                         new StopBeingAngryIfTargetDead<>()));
+    }
+
+    @SuppressWarnings("OptionalGetWithoutIsPresent")
+    private static boolean wantsToStopBeingTempted(Wolf wolf) {
+        Brain<?> brain = wolf.getBrain();
+        if (!brain.hasMemoryValue(MemoryModuleType.TEMPTING_PLAYER)) {
+            return true;
+        } else {
+            Player player = brain.getMemory(MemoryModuleType.TEMPTING_PLAYER).get();
+            return wantsToAvoidPlayer(wolf, player);
+        }
+    }
+
+    public static boolean wantsToAvoidPlayer(Wolf wolf, Player player) {
+        return !wolf.isOwnedBy(player) && NOT_DISCRETE_NOT_CREATIVE_OR_SPECTATOR.test(player);
     }
 
     private static void wasHurtBy(Wolf wolf, LivingEntity attacker) {
@@ -129,7 +160,7 @@ public class WolfAi {
                 ImmutableList.of(
                         new StopAttackingIfTargetInvalid<>(),
                         new SetWalkTargetFromAttackTargetIfTargetOutOfReach(WolflikeAi.SPEED_MODIFIER_CHASING),
-                        new LeapAtTarget(),
+                        new JumpAtTarget(),
                         new MeleeAttack(WolflikeAi.ATTACK_COOLDOWN_TICKS),
                         new RememberIfHuntTargetWasKilled<>(WolfAi::isHuntTarget),
                         new EraseMemoryIf<>(BehaviorUtils::isBreeding, MemoryModuleType.ATTACK_TARGET)),
@@ -143,24 +174,27 @@ public class WolfAi {
     private static void initRetreatActivity(Brain<Wolf> brain) {
         brain.addActivityAndRemoveMemoryWhenStopped(Activity.AVOID, 0,
                 ImmutableList.of(
-                        SetWalkTargetAwayFrom.entity(MemoryModuleType.AVOID_TARGET, WolflikeAi.SPEED_MODIFIER_RETREATING, WolflikeAi.DESIRED_DISTANCE_FROM_ENTITY_WHEN_AVOIDING, false),
+                        SetWalkTargetAwayFrom.entity(MemoryModuleType.AVOID_TARGET, WolflikeAi.SPEED_MODIFIER_RETREATING, WolflikeAi.DESIRED_DISTANCE_FROM_ENTITY_WHEN_AVOIDING, true),
                         createIdleLookBehaviors(),
                         createIdleMovementBehaviors(),
                         new EraseMemoryIf<>(WolfAi::wantsToStopFleeing, MemoryModuleType.AVOID_TARGET)),
                 MemoryModuleType.AVOID_TARGET);
     }
 
-    private static RunSometimes<Wolf> createIdleLookBehaviors() {
-        return new RunSometimes<>(
-                new SetEntityLookTarget(EntityType.PLAYER, WolflikeAi.MAX_LOOK_DIST),
-                UniformInt.of(30, 60));
+    private static RunOne<Wolf> createIdleLookBehaviors() {
+        return new RunOne<>(
+                ImmutableList.of(
+                        Pair.of(new SetEntityLookTarget(EntityType.WOLF, WolflikeAi.MAX_LOOK_DIST), 1),
+                        Pair.of(new SetEntityLookTarget(WolflikeAi.MAX_LOOK_DIST), 1),
+                        Pair.of(new DoNothing(30, 60), 1)));
     }
 
     private static RunOne<Wolf> createIdleMovementBehaviors() {
         return new RunOne<>(
                 ImmutableList.of(
                         Pair.of(new RandomStroll(WolflikeAi.SPEED_MODIFIER_WALKING), 2),
-                        Pair.of(new SetWalkTargetFromLookTarget(WolflikeAi.SPEED_MODIFIER_WALKING, 3), 2),
+                        Pair.of(InteractWith.of(EntityType.WOLF, WolflikeAi.INTERACTION_RANGE, MemoryModuleType.INTERACTION_TARGET, WolflikeAi.SPEED_MODIFIER_WALKING, 2), 2),
+                        Pair.of(new RunIf<>(GenericAi::doesntSeeAnyPlayerHoldingWantedItem, new SetWalkTargetFromLookTarget(WolflikeAi.SPEED_MODIFIER_WALKING, 3)), 2),
                         Pair.of(new DoNothing(30, 60), 1)));
     }
 
@@ -175,7 +209,7 @@ public class WolfAi {
             if (wantsToAvoid(avoidType)) {
                 return !brain.isMemoryValue(COTWMemoryModuleTypes.NEAREST_VISIBLE_DISLIKED.get(), avoidTarget);
             } else {
-                return !tamableAnimal.isBaby();
+                return false;
             }
         }
     }
@@ -188,32 +222,26 @@ public class WolfAi {
         brain.addActivity(Activity.IDLE, 0,
                 ImmutableList.of(
                         new AnimalMakeLove(EntityType.WOLF, WolflikeAi.SPEED_MODIFIER_BREEDING),
-                        new RunOne<>(
-                                ImmutableList.of(
-                                        Pair.of(new RunIf<>(WolfAi::canBeTempted, new FollowTemptation(WolflikeAi::getSpeedModifierTempted), true), 1),
-                                        Pair.of(new BabyFollowAdult<>(WolflikeAi.ADULT_FOLLOW_RANGE, WolflikeAi.SPEED_MODIFIER_FOLLOWING_ADULT), 1))
-                        ),
+                        new FollowTemptation(WolflikeAi::getSpeedModifierTempted),
+                        new FollowPackLeader<>(WolflikeAi.ADULT_FOLLOW_RANGE, WolflikeAi::getMaxPackSize, WolflikeAi.SPEED_MODIFIER_FOLLOWING_ADULT),
+                        new BabyFollowAdult<>(WolflikeAi.ADULT_FOLLOW_RANGE, WolflikeAi.SPEED_MODIFIER_FOLLOWING_ADULT),
                         new Beg<>(WolfAi::isInteresting, Wolf::setIsInterested, WolflikeAi.MAX_LOOK_DIST),
-                        createIdleLookBehaviors(),
-                        createIdleMovementBehaviors(),
                         new StartAttacking<>(WolfAi::canAttack, WolflikeAi::findNearestValidAttackTarget),
-                        new StartHunting<>(WolfAi::canHunt)));
+                        new StartHunting<>(WolfAi::canHunt),
+                        createIdleLookBehaviors(),
+                        createIdleMovementBehaviors()));
     }
 
-    private static boolean canHunt(Wolf wolf){
-        return !wolf.isBaby() && canAttack(wolf);
-    }
-
-    private static boolean canBeTempted(Wolf wolf) {
-        return wolf.getBrain().getMemory(MemoryModuleType.TEMPTING_PLAYER).map(le -> le.isDiscrete() || wolf.isOwnedBy(le)).isPresent();
+    public static boolean isInteresting(Wolf wolf, ItemStack stack) {
+        return wolf.isFood(stack) || stack.is(COTWTags.WOLF_LOVED);
     }
 
     private static boolean canAttack(Wolf wolf) {
         return !BehaviorUtils.isBreeding(wolf);
     }
 
-    public static boolean isInteresting(Wolf wolf, ItemStack stack) {
-        return wolf.isFood(stack) || stack.is(COTWTags.WOLF_LOVED);
+    private static boolean canHunt(Wolf wolf){
+        return !wolf.isBaby() && canAttack(wolf);
     }
 
     /**
@@ -234,6 +262,8 @@ public class WolfAi {
                 MemoryModuleType.ATTACK_TARGET,
                 MemoryModuleType.AVOID_TARGET,
                 MemoryModuleType.IS_PANICKING));
+
+        FollowPackLeader.updatePack(wolf);
     }
 
     protected static Optional<SoundEvent> getSoundForCurrentActivity(Wolf wolf) {
@@ -265,4 +295,8 @@ public class WolfAi {
         serverLevel.getProfiler().pop();
     }
 
+    public static boolean isDisliked(Wolf wolf, LivingEntity livingEntity) {
+        return WolflikeAi.isDisliked(wolf, livingEntity, COTWTags.WOLF_DISLIKED)
+                || livingEntity instanceof Player player && wantsToAvoidPlayer(wolf, player);
+    }
 }

@@ -9,29 +9,19 @@ import net.minecraft.world.entity.Mob;
 import net.minecraft.world.entity.ai.behavior.Behavior;
 import net.minecraft.world.entity.ai.memory.MemoryModuleType;
 import net.minecraft.world.entity.ai.memory.MemoryStatus;
-import net.minecraft.world.phys.Vec3;
 
 import java.util.Optional;
 
 @SuppressWarnings("NullableProblems")
-public class LeapAtTarget extends Behavior<Mob> {
+public class JumpAtTarget extends Behavior<Mob> {
     public static final double MIN_LEAP_DISTANCE_SQR = 4.0D; // 2 * 2
     public static final double MAX_LEAP_DISTANCE_SQR = 16.0D; // 4 * 4
-    private final double yDelta;
+    private static final long LEAP_INTERVAL = 100L;
 
-    private final boolean jump;
+    private long lastLeapTimestamp;
 
-    @SuppressWarnings("unused")
-    public LeapAtTarget(double yDelta) {
+    public JumpAtTarget() {
         super(ImmutableMap.of(MemoryModuleType.ATTACK_TARGET, MemoryStatus.VALUE_PRESENT));
-        this.yDelta = yDelta;
-        this.jump = false;
-    }
-
-    public LeapAtTarget() {
-        super(ImmutableMap.of(MemoryModuleType.ATTACK_TARGET, MemoryStatus.VALUE_PRESENT));
-        this.yDelta = 0.0F;
-        this.jump = true;
     }
 
     @Override
@@ -43,7 +33,7 @@ public class LeapAtTarget extends Behavior<Mob> {
             if(optionalTarget.isPresent()){
                 double distanceToTargetSqr = mob.distanceToSqr(optionalTarget.get());
                 if (!(distanceToTargetSqr < MIN_LEAP_DISTANCE_SQR) && !(distanceToTargetSqr > MAX_LEAP_DISTANCE_SQR)) {
-                    if (!mob.isOnGround()) {
+                    if (this.canJump(mob, level.getGameTime())) {
                         return false;
                     } else {
                         return mob.getRandom().nextInt(AiUtil.reducedTickDelay(5)) == 0;
@@ -57,22 +47,18 @@ public class LeapAtTarget extends Behavior<Mob> {
         }
     }
 
-    @SuppressWarnings("OptionalGetWithoutIsPresent")
+    private boolean canJump(Mob mob, long gameTime) {
+        return !mob.isOnGround() && gameTime >= this.lastLeapTimestamp + LEAP_INTERVAL;
+    }
+
     @Override
     public void start(ServerLevel level, Mob mob, long gameTime) {
-        LivingEntity target = GenericAi.getAttackTarget(mob).get();
-        Vec3 deltaMovement = mob.getDeltaMovement();
-        Vec3 positionDiff = new Vec3(target.getX() - mob.getX(), 0.0D, target.getZ() - mob.getZ());
-        if (positionDiff.lengthSqr() > 1.0E-7D) {
-            positionDiff = positionDiff.normalize().scale(0.4D).add(deltaMovement.scale(0.2D));
-        }
-
-        mob.setDeltaMovement(positionDiff.x, this.jump ? positionDiff.y : this.yDelta, positionDiff.z);
-        if(this.jump) mob.getJumpControl().jump();
+        mob.getJumpControl().jump();
+        this.lastLeapTimestamp = gameTime;
     }
 
     @Override
     public boolean canStillUse(ServerLevel level, Mob mob, long gameTime) {
-        return !mob.isOnGround();
+        return this.canJump(mob, gameTime);
     }
 }

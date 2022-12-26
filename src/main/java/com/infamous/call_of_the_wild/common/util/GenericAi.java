@@ -14,12 +14,20 @@ import java.util.Optional;
 
 public class GenericAi {
 
-    public static List<AgeableMob> getNearbyAdults(LivingEntity ageableMob) {
+    public static List<LivingEntity> getNearbyAdults(LivingEntity ageableMob) {
         return ageableMob.getBrain().getMemory(COTWMemoryModuleTypes.NEARBY_ADULTS.get()).orElse(ImmutableList.of());
     }
 
-    public static List<AgeableMob> getNearbyVisibleAdults(LivingEntity ageableMob) {
+    public static List<LivingEntity> getNearbyVisibleAdults(LivingEntity ageableMob) {
         return ageableMob.getBrain().getMemory(COTWMemoryModuleTypes.NEAREST_VISIBLE_ADULTS.get()).orElse(ImmutableList.of());
+    }
+
+    public static List<LivingEntity> getNearbyKin(LivingEntity ageableMob) {
+        return ageableMob.getBrain().getMemory(COTWMemoryModuleTypes.NEARBY_KIN.get()).orElse(ImmutableList.of());
+    }
+
+    public static List<LivingEntity> getNearbyVisibleKin(LivingEntity ageableMob) {
+        return ageableMob.getBrain().getMemory(COTWMemoryModuleTypes.NEAREST_VISIBLE_KIN.get()).orElse(ImmutableList.of());
     }
 
     public static Optional<Player> getNearestVisibleTargetablePlayer(LivingEntity livingEntity) {
@@ -58,5 +66,13 @@ public class GenericAi {
     public static Vec3 getRandomNearbyPos(PathfinderMob pathfinderMob, int maxXZDistance, int maxYDistance) {
         Vec3 pos = LandRandomPos.getPos(pathfinderMob, maxXZDistance, maxYDistance);
         return pos == null ? pathfinderMob.position() : pos;
+    }
+
+    public static boolean seesPlayerHoldingWantedItem(LivingEntity livingEntity) {
+        return livingEntity.getBrain().hasMemoryValue(MemoryModuleType.NEAREST_PLAYER_HOLDING_WANTED_ITEM);
+    }
+
+    public static boolean doesntSeeAnyPlayerHoldingWantedItem(LivingEntity livingEntity) {
+        return !seesPlayerHoldingWantedItem(livingEntity);
     }
 }

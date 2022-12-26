@@ -57,7 +57,7 @@ import org.jetbrains.annotations.Nullable;
 import java.util.Collection;
 
 @SuppressWarnings("NullableProblems")
-public class Dog extends TamableAnimal implements InterestedMob, ShakingMob<Dog>, VariantMob, CollaredMob {
+public class Dog extends TamableAnimal implements InterestedMob, ShakingMob, VariantMob, CollaredMob {
     public static final Collection<? extends MemoryModuleType<?>> MEMORY_TYPES = ImmutableList.of(
             MemoryModuleType.ANGRY_AT,
             MemoryModuleType.ATTACK_COOLING_DOWN,
@@ -67,16 +67,22 @@ public class Dog extends TamableAnimal implements InterestedMob, ShakingMob<Dog>
             MemoryModuleType.CANT_REACH_WALK_TARGET_SINCE,
             MemoryModuleType.DIG_COOLDOWN,
             COTWMemoryModuleTypes.DIG_LOCATION.get(),
+            COTWMemoryModuleTypes.DISABLE_WALK_TO_FETCH_ITEM.get(),
             COTWMemoryModuleTypes.DISABLE_WALK_TO_PLAY_ITEM.get(),
+            COTWMemoryModuleTypes.FETCHING_DISABLED.get(),
+            COTWMemoryModuleTypes.FETCHING_ITEM.get(),
             //MemoryModuleType.HAS_HUNTING_COOLDOWN,
             MemoryModuleType.HUNTED_RECENTLY,
             MemoryModuleType.HURT_BY,
             MemoryModuleType.HURT_BY_ENTITY,
+            MemoryModuleType.INTERACTION_TARGET,
             MemoryModuleType.IS_PANICKING,
             MemoryModuleType.IS_TEMPTED,
             MemoryModuleType.ITEM_PICKUP_COOLDOWN_TICKS,
             MemoryModuleType.LOOK_TARGET,
             COTWMemoryModuleTypes.NEARBY_ADULTS.get(),
+            COTWMemoryModuleTypes.NEARBY_BABIES.get(),
+            COTWMemoryModuleTypes.NEARBY_KIN.get(),
             MemoryModuleType.NEAREST_ATTACKABLE,
             MemoryModuleType.NEAREST_LIVING_ENTITIES,
             MemoryModuleType.NEAREST_PLAYERS,
@@ -84,25 +90,32 @@ public class Dog extends TamableAnimal implements InterestedMob, ShakingMob<Dog>
             MemoryModuleType.NEAREST_VISIBLE_ADULT,
             COTWMemoryModuleTypes.NEAREST_VISIBLE_ADULTS.get(),
             MemoryModuleType.NEAREST_VISIBLE_ATTACKABLE_PLAYER,
-            MemoryModuleType.NEAREST_VISIBLE_LIVING_ENTITIES,
+            COTWMemoryModuleTypes.NEAREST_VISIBLE_BABIES.get(),
             COTWMemoryModuleTypes.NEAREST_VISIBLE_HUNTABLE.get(),
+            COTWMemoryModuleTypes.NEAREST_VISIBLE_KIN.get(),
+            MemoryModuleType.NEAREST_VISIBLE_LIVING_ENTITIES,
             MemoryModuleType.NEAREST_VISIBLE_PLAYER,
             MemoryModuleType.NEAREST_VISIBLE_WANTED_ITEM,
             MemoryModuleType.PATH,
+            COTWMemoryModuleTypes.PLAYING_DISABLED.get(),
             COTWMemoryModuleTypes.PLAYING_WITH_ITEM.get(),
             MemoryModuleType.TEMPTING_PLAYER,
             MemoryModuleType.TEMPTATION_COOLDOWN_TICKS,
+            COTWMemoryModuleTypes.TIME_TRYING_TO_REACH_FETCH_ITEM.get(),
             COTWMemoryModuleTypes.TIME_TRYING_TO_REACH_PLAY_ITEM.get(),
             MemoryModuleType.UNIVERSAL_ANGER,
             MemoryModuleType.WALK_TARGET
     );
     public static final Collection<? extends SensorType<? extends Sensor<? super Dog>>> SENSOR_TYPES = ImmutableList.of(
             COTWSensorTypes.ANIMAL_TEMPTATIONS.get(),
-            COTWSensorTypes.DOG_SPECIFIC_SENSOR.get(),
             SensorType.HURT_BY,
-            SensorType.NEAREST_ADULT,
-            COTWSensorTypes.NEAREST_ADULTS.get(),
+
+            // dependent on NEAREST_VISIBLE_LIVING_ENTITIES
             SensorType.NEAREST_LIVING_ENTITIES,
+            SensorType.NEAREST_ADULT,
+            COTWSensorTypes.NEAREST_KIN.get(),
+            COTWSensorTypes.DOG_SPECIFIC_SENSOR.get(),
+
             SensorType.NEAREST_ITEMS,
             SensorType.NEAREST_PLAYERS
     );
@@ -234,7 +247,7 @@ public class Dog extends TamableAnimal implements InterestedMob, ShakingMob<Dog>
     @Override
     public void aiStep() {
         super.aiStep();
-        this.aiStepShaking(this);
+        this.aiStepShaking();
         if (this.jumpTicks != this.jumpDuration) {
             ++this.jumpTicks;
         } else if (this.jumpDuration != 0) {
@@ -281,7 +294,7 @@ public class Dog extends TamableAnimal implements InterestedMob, ShakingMob<Dog>
         super.tick();
         if(this.isAlive()){
             this.tickInterest();
-            this.tickShaking(this);
+            this.tickShaking();
         }
     }
 
@@ -396,7 +409,7 @@ public class Dog extends TamableAnimal implements InterestedMob, ShakingMob<Dog>
             this.jumpDuration = 10; // half a second, which is the same length as the jump animation
             this.jumpTicks = 0;
         }
-        else if(!this.handleShakingEvent(this, id)) super.handleEntityEvent(id);
+        else if(!this.handleShakingEvent(id)) super.handleEntityEvent(id);
     }
 
     @Override

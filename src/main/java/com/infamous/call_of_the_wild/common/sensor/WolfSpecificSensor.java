@@ -7,8 +7,6 @@ import com.infamous.call_of_the_wild.common.entity.dog.WolflikeAi;
 import com.infamous.call_of_the_wild.common.registry.COTWMemoryModuleTypes;
 import com.infamous.call_of_the_wild.common.util.AiUtil;
 import net.minecraft.server.level.ServerLevel;
-import net.minecraft.world.entity.Entity;
-import net.minecraft.world.entity.EntitySelector;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.Brain;
 import net.minecraft.world.entity.ai.memory.MemoryModuleType;
@@ -19,12 +17,9 @@ import net.minecraft.world.entity.player.Player;
 
 import java.util.Optional;
 import java.util.Set;
-import java.util.function.Predicate;
 
 @SuppressWarnings("NullableProblems")
 public class WolfSpecificSensor extends Sensor<Wolf> {
-
-    private static final Predicate<Entity> NOT_DISCRETE_NOT_CREATIVE_OR_SPECTATOR = (e) -> !e.isDiscrete() && EntitySelector.NO_CREATIVE_OR_SPECTATOR.test(e);
 
     @Override
     public Set<MemoryModuleType<?>> requires() {
@@ -43,13 +38,12 @@ public class WolfSpecificSensor extends Sensor<Wolf> {
         Optional<LivingEntity> nearestDisliked = Optional.empty();
         Optional<LivingEntity> nearestHuntable = Optional.empty();
         Optional<LivingEntity> nearestAttackable = Optional.empty();
-        Optional<Player> nearestPlayerHoldingLovedItem = Optional.empty();
+        Optional<Player> nearestPlayerHoldingWantedItem = Optional.empty();
 
         NearestVisibleLivingEntities nvle = brain.getMemory(MemoryModuleType.NEAREST_VISIBLE_LIVING_ENTITIES).orElse(NearestVisibleLivingEntities.empty());
 
         for (LivingEntity livingEntity : nvle.findAll((le) -> true)) {
-            if(nearestDisliked.isEmpty()
-                    && (WolflikeAi.isDisliked(wolf, livingEntity, COTWTags.WOLF_DISLIKED) || isAvoidablePlayer(wolf, livingEntity))){
+            if(nearestDisliked.isEmpty() && WolfAi.isDisliked(wolf, livingEntity)){
                 nearestDisliked = Optional.of(livingEntity);
             } else if(nearestHuntable.isEmpty()
                     && WolflikeAi.isHuntable(wolf, livingEntity, COTWTags.WOLF_HUNT_TARGETS)){
@@ -58,10 +52,10 @@ public class WolfSpecificSensor extends Sensor<Wolf> {
                     && AiUtil.isAttackable(wolf, livingEntity, COTWTags.WOLF_ALWAYS_HOSTILES)){
                 nearestAttackable = Optional.of(livingEntity);
             } else if (livingEntity instanceof Player player) {
-                if (nearestPlayerHoldingLovedItem.isEmpty()
-                        && !isAvoidablePlayer(wolf, player)
+                if (nearestPlayerHoldingWantedItem.isEmpty()
+                        && !WolfAi.wantsToAvoidPlayer(wolf, player)
                         && player.isHolding(is -> WolfAi.isInteresting(wolf, is))) {
-                    nearestPlayerHoldingLovedItem = Optional.of(player);
+                    nearestPlayerHoldingWantedItem = Optional.of(player);
                 }
             }
         }
@@ -69,10 +63,7 @@ public class WolfSpecificSensor extends Sensor<Wolf> {
         brain.setMemory(COTWMemoryModuleTypes.NEAREST_VISIBLE_DISLIKED.get(), nearestDisliked);
         brain.setMemory(COTWMemoryModuleTypes.NEAREST_VISIBLE_HUNTABLE.get(), nearestHuntable);
         brain.setMemory(MemoryModuleType.NEAREST_ATTACKABLE, nearestAttackable);
-        brain.setMemory(MemoryModuleType.NEAREST_PLAYER_HOLDING_WANTED_ITEM, nearestPlayerHoldingLovedItem);
+        brain.setMemory(MemoryModuleType.NEAREST_PLAYER_HOLDING_WANTED_ITEM, nearestPlayerHoldingWantedItem);
     }
 
-    private static boolean isAvoidablePlayer(Wolf wolf, LivingEntity target) {
-        return target instanceof Player player && !wolf.isOwnedBy(player) && NOT_DISCRETE_NOT_CREATIVE_OR_SPECTATOR.test(player);
-    }
 }

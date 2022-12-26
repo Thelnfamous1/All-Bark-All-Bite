@@ -1,4 +1,4 @@
-package com.infamous.call_of_the_wild.common.behavior;
+package com.infamous.call_of_the_wild.common.behavior.pet;
 
 import com.google.common.collect.ImmutableMap;
 import net.minecraft.server.level.ServerLevel;

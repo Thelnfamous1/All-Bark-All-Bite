@@ -11,8 +11,8 @@ public class COTWSensorTypes {
 
     public static final DeferredRegister<SensorType<?>> SENSOR_TYPES = DeferredRegister.create(ForgeRegistries.SENSOR_TYPES, CallOfTheWild.MODID);
 
-    public static final RegistryObject<SensorType<AdultsSensor>> NEAREST_ADULTS = SENSOR_TYPES.register("nearest_adults",
-            () -> new SensorType<>(AdultsSensor::new));
+    public static final RegistryObject<SensorType<KinshipSensor>> NEAREST_KIN = SENSOR_TYPES.register("nearest_kin",
+            () -> new SensorType<>(KinshipSensor::new));
 
     public static final RegistryObject<SensorType<DogSpecificSensor>> DOG_SPECIFIC_SENSOR = SENSOR_TYPES.register("dog_specific_sensor",
             () -> new SensorType<>(DogSpecificSensor::new));

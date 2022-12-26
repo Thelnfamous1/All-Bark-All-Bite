@@ -1,4 +1,4 @@
-package com.infamous.call_of_the_wild.common.behavior;
+package com.infamous.call_of_the_wild.common.behavior.item;
 
 import java.util.Map;
 import java.util.Optional;

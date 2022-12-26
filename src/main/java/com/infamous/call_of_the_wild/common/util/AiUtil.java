@@ -77,4 +77,9 @@ public class AiUtil {
                 && Turtle.BABY_ON_LAND_SELECTOR.test(turtle)
                 && Sensor.isEntityAttackable(mob, turtle);
     }
+
+    public static boolean canBeConsideredAnAlly(LivingEntity mob, LivingEntity other) {
+        return mob.isAlliedTo(other) ||
+                mob.getType() == other.getType() && mob.getTeam() == null && other.getTeam() == null;
+    }
 }

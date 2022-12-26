@@ -1,26 +1,28 @@
-package com.infamous.call_of_the_wild.common.behavior.play;
+package com.infamous.call_of_the_wild.common.behavior.item;
 
 import com.google.common.collect.ImmutableMap;
-import com.infamous.call_of_the_wild.common.registry.COTWMemoryModuleTypes;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.behavior.Behavior;
 import net.minecraft.world.entity.ai.memory.MemoryModuleType;
 import net.minecraft.world.entity.ai.memory.MemoryStatus;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.function.Predicate;
 
 @SuppressWarnings("NullableProblems")
-public class StopPlayingIfItemTooFarAway<E extends LivingEntity> extends Behavior<E> {
+public class StopItemActivityIfItemTooFarAway<E extends LivingEntity> extends Behavior<E> {
    private final int maxDistanceToItem;
    private final Predicate<E> canStopPlaying;
+   private final MemoryModuleType<Boolean> itemActivity;
 
-   public StopPlayingIfItemTooFarAway(Predicate<E> canStopPlaying, int maxDistanceToItem) {
+   public StopItemActivityIfItemTooFarAway(Predicate<E> canStopPlaying, int maxDistanceToItem, @NotNull MemoryModuleType<Boolean> itemActivity) {
       super(ImmutableMap.of(
-              COTWMemoryModuleTypes.PLAYING_WITH_ITEM.get(), MemoryStatus.VALUE_PRESENT,
+              itemActivity, MemoryStatus.VALUE_PRESENT,
               MemoryModuleType.NEAREST_VISIBLE_WANTED_ITEM, MemoryStatus.REGISTERED));
       this.canStopPlaying = canStopPlaying;
       this.maxDistanceToItem = maxDistanceToItem;
+      this.itemActivity = itemActivity;
    }
 
    protected boolean checkExtraStartConditions(ServerLevel level, E mob) {
@@ -31,6 +33,6 @@ public class StopPlayingIfItemTooFarAway<E extends LivingEntity> extends Behavio
    }
 
    protected void start(ServerLevel level, E mob, long gameTime) {
-      mob.getBrain().eraseMemory(COTWMemoryModuleTypes.PLAYING_WITH_ITEM.get());
+      mob.getBrain().eraseMemory(this.itemActivity);
    }
 }

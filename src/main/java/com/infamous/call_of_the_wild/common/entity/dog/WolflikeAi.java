@@ -23,6 +23,7 @@ import net.minecraft.world.entity.player.Player;
 import java.util.Optional;
 
 public class WolflikeAi {
+    static final int INTERACTION_RANGE = 8;
     static final UniformInt ADULT_FOLLOW_RANGE = UniformInt.of(5, 16);
     static final UniformInt ANGER_DURATION = TimeUtil.rangeOfSeconds(20, 39); // same as Wolf's persistent anger time
     static final UniformInt AVOID_DURATION = TimeUtil.rangeOfSeconds(5, 7);
@@ -122,5 +123,10 @@ public class WolflikeAi {
      */
     public static boolean isHuntable(TamableAnimal tamableAnimal, LivingEntity livingEntity, TagKey<EntityType<?>> huntTargets) {
         return AiUtil.isHuntable(tamableAnimal, livingEntity, huntTargets) || AiUtil.isHuntableBabyTurtle(tamableAnimal, livingEntity);
+    }
+
+    @SuppressWarnings("unused")
+    static int getMaxPackSize(LivingEntity livingEntity) {
+        return 8;
     }
 }

@@ -1,4 +1,4 @@
-package com.infamous.call_of_the_wild.common.behavior;
+package com.infamous.call_of_the_wild.common.behavior.pet;
 
 import com.google.common.collect.ImmutableMap;
 import com.infamous.call_of_the_wild.common.util.AiUtil;
@@ -77,7 +77,7 @@ public class FollowOwner extends Behavior<TamableAnimal> {
         this.timeToRecalcPath = 0;
         this.oldWaterCost = tamable.getPathfindingMalus(BlockPathTypes.WATER);
         tamable.setPathfindingMalus(BlockPathTypes.WATER, 0.0F);
-        BehaviorUtils.setWalkAndLookTargetMemories(tamable, this.owner, this.speedModifier, this.tooFar);
+        BehaviorUtils.setWalkAndLookTargetMemories(tamable, this.owner, this.speedModifier, this.closeEnough);
     }
 
     @Override

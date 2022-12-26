@@ -37,7 +37,7 @@ public class Retaliate<E extends Mob> extends Behavior<E> {
 
     private boolean isNotAlreadyRetaliatingAgainst(E mob, LivingEntity hurtByEntity) {
         DamageSource lastDamageSource = mob.getLastDamageSource();
-        return lastDamageSource == null || lastDamageSource.getEntity() != hurtByEntity;
+        return lastDamageSource != null && lastDamageSource.getEntity() != hurtByEntity;
     }
 
     @Override
