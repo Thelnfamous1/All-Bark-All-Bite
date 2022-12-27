@@ -12,10 +12,7 @@ import com.infamous.call_of_the_wild.common.behavior.pet.SitWhenOrderedTo;
 import com.infamous.call_of_the_wild.common.behavior.pet.StopSittingToWalk;
 import com.infamous.call_of_the_wild.common.registry.COTWMemoryModuleTypes;
 import com.infamous.call_of_the_wild.common.registry.COTWSensorTypes;
-import com.infamous.call_of_the_wild.common.util.AiUtil;
-import com.infamous.call_of_the_wild.common.util.AngerAi;
-import com.infamous.call_of_the_wild.common.util.BrainUtil;
-import com.infamous.call_of_the_wild.common.util.GenericAi;
+import com.infamous.call_of_the_wild.common.util.*;
 import com.mojang.datafixers.util.Pair;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundEvent;
@@ -30,6 +27,7 @@ import net.minecraft.world.entity.animal.Wolf;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.entity.schedule.Activity;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.gameevent.GameEvent;
 import net.minecraftforge.event.entity.living.LivingEvent;
 
 import java.util.Collection;
@@ -92,6 +90,7 @@ public class WolfAi {
     );
     public static final float WOLF_SIZE_SCALE = 1.25F;
     private static final Predicate<Entity> NOT_DISCRETE_NOT_CREATIVE_OR_SPECTATOR = (e) -> !e.isDiscrete() && EntitySelector.NO_CREATIVE_OR_SPECTATOR.test(e);
+    private static final int HOWL_VOLUME = 4;
 
     public static Brain<Wolf> makeBrain(Brain<Wolf> brain) {
         initCoreActivity(brain);
@@ -162,7 +161,7 @@ public class WolfAi {
                         new SetWalkTargetFromAttackTargetIfTargetOutOfReach(WolflikeAi.SPEED_MODIFIER_CHASING),
                         new JumpAtTarget(),
                         new MeleeAttack(WolflikeAi.ATTACK_COOLDOWN_TICKS),
-                        new RememberIfHuntTargetWasKilled<>(WolfAi::isHuntTarget),
+                        new RememberIfHuntTargetWasKilled<>(WolfAi::isHuntTarget, WolflikeAi.TIME_BETWEEN_HUNTS),
                         new EraseMemoryIf<>(BehaviorUtils::isBreeding, MemoryModuleType.ATTACK_TARGET)),
                 MemoryModuleType.ATTACK_TARGET);
     }
@@ -221,15 +220,38 @@ public class WolfAi {
     private static void initIdleActivity(Brain<Wolf> brain) {
         brain.addActivity(Activity.IDLE, 0,
                 ImmutableList.of(
+                        new Howl<>(WolfAi::canAlert, WolfAi::onHowlStarted, WolfAi::getAlertableSpeedModifier, WolflikeAi.STOP_FOLLOW_DISTANCE, WolflikeAi.TIME_BETWEEN_HOWLS),
                         new AnimalMakeLove(EntityType.WOLF, WolflikeAi.SPEED_MODIFIER_BREEDING),
                         new FollowTemptation(WolflikeAi::getSpeedModifierTempted),
                         new FollowPackLeader<>(WolflikeAi.ADULT_FOLLOW_RANGE, WolflikeAi::getMaxPackSize, WolflikeAi.SPEED_MODIFIER_FOLLOWING_ADULT),
                         new BabyFollowAdult<>(WolflikeAi.ADULT_FOLLOW_RANGE, WolflikeAi.SPEED_MODIFIER_FOLLOWING_ADULT),
                         new Beg<>(WolfAi::isInteresting, Wolf::setIsInterested, WolflikeAi.MAX_LOOK_DIST),
                         new StartAttacking<>(WolfAi::canAttack, WolflikeAi::findNearestValidAttackTarget),
-                        new StartHunting<>(WolfAi::canHunt),
+                        new StartHunting<>(WolfAi::canHunt, WolflikeAi.TIME_BETWEEN_HUNTS),
                         createIdleLookBehaviors(),
                         createIdleMovementBehaviors()));
+    }
+
+    private static boolean canAlert(Wolf wolf, LivingEntity other){
+        if(wolf.getType() == other.getType()){
+            return !AiUtil.hasAnyMemory(other,
+                    MemoryModuleType.ATTACK_TARGET,
+                    MemoryModuleType.AVOID_TARGET,
+                    MemoryModuleType.IS_PANICKING,
+                    MemoryModuleType.TEMPTING_PLAYER)
+                    && PackAi.canLead(other, wolf, WolflikeAi.getMaxPackSize(wolf));
+        }
+        return false;
+    }
+
+    private static void onHowlStarted(Wolf wolf){
+        GenericAi.stopWalking(wolf);
+        wolf.playSound(SoundEvents.WOLF_HOWL, HOWL_VOLUME, wolf.getVoicePitch());
+        wolf.gameEvent(GameEvent.ENTITY_ROAR);
+    }
+
+    private static float getAlertableSpeedModifier(LivingEntity livingEntity){
+        return WolflikeAi.SPEED_MODIFIER_WALKING;
     }
 
     public static boolean isInteresting(Wolf wolf, ItemStack stack) {
@@ -263,7 +285,7 @@ public class WolfAi {
                 MemoryModuleType.AVOID_TARGET,
                 MemoryModuleType.IS_PANICKING));
 
-        FollowPackLeader.updatePack(wolf);
+        PackAi.updatePack(wolf, FollowPackLeader.INTERVAL_TICKS);
     }
 
     protected static Optional<SoundEvent> getSoundForCurrentActivity(Wolf wolf) {

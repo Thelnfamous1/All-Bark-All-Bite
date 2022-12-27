@@ -5,7 +5,7 @@ import com.infamous.call_of_the_wild.common.COTWTags;
 import com.infamous.call_of_the_wild.common.entity.*;
 import com.infamous.call_of_the_wild.common.registry.*;
 import com.infamous.call_of_the_wild.common.util.AiUtil;
-import com.infamous.call_of_the_wild.common.util.COTWUtil;
+import com.infamous.call_of_the_wild.common.util.MiscUtil;
 import com.mojang.serialization.Dynamic;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.particles.BlockParticleOption;
@@ -499,7 +499,7 @@ public class Dog extends TamableAnimal implements InterestedMob, ShakingMob, Var
         SpawnGroupData spawnGroupData = super.finalizeSpawn(serverLevelAccessor, difficultyInstance, mobSpawnType, groupData, tag);
         Collection<EntityVariant> values = this.getVariantRegistry().getValues();
         RandomSource random = serverLevelAccessor.getRandom();
-        EntityVariant randomVariant = COTWUtil.getRandomObject(values, random);
+        EntityVariant randomVariant = MiscUtil.getRandomObject(values, random);
         this.setVariant(randomVariant);
         WolflikeAi.initMemories(this, random);
         return spawnGroupData;

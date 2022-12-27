@@ -6,7 +6,6 @@ import com.infamous.call_of_the_wild.common.util.AngerAi;
 import com.infamous.call_of_the_wild.common.util.GenericAi;
 import com.infamous.call_of_the_wild.common.util.HunterAi;
 import net.minecraft.server.level.ServerLevel;
-import net.minecraft.util.TimeUtil;
 import net.minecraft.util.valueproviders.UniformInt;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.behavior.Behavior;
@@ -17,11 +16,12 @@ import java.util.function.Predicate;
 
 @SuppressWarnings("NullableProblems")
 public class StartHunting<E extends LivingEntity> extends Behavior<E> {
-   public static final UniformInt TIME_BETWEEN_HUNTS = TimeUtil.rangeOfSeconds(30, 120);
    private static final int ANGER_TIME_IN_TICKS = 600;
 
    private final Predicate<E> canHuntPredicate;
-   public StartHunting(Predicate<E> canHuntPredicate) {
+   private final UniformInt huntCooldown;
+
+   public StartHunting(Predicate<E> canHuntPredicate, UniformInt huntCooldown) {
       super(ImmutableMap.of(
               COTWMemoryModuleTypes.NEAREST_VISIBLE_HUNTABLE.get(), MemoryStatus.VALUE_PRESENT,
               MemoryModuleType.ATTACK_TARGET, MemoryStatus.VALUE_ABSENT,
@@ -30,6 +30,7 @@ public class StartHunting<E extends LivingEntity> extends Behavior<E> {
               COTWMemoryModuleTypes.NEAREST_VISIBLE_ADULTS.get(), MemoryStatus.REGISTERED,
               COTWMemoryModuleTypes.NEARBY_ADULTS.get(), MemoryStatus.REGISTERED));
       this.canHuntPredicate = canHuntPredicate;
+      this.huntCooldown = huntCooldown;
    }
 
    @Override
@@ -42,7 +43,7 @@ public class StartHunting<E extends LivingEntity> extends Behavior<E> {
    protected void start(ServerLevel level, E mob, long gameTime) {
       LivingEntity target = mob.getBrain().getMemory(COTWMemoryModuleTypes.NEAREST_VISIBLE_HUNTABLE.get()).get();
       AngerAi.setAngerTarget(mob, target, ANGER_TIME_IN_TICKS);
-      int huntCooldownInTicks = TIME_BETWEEN_HUNTS.sample(mob.level.random);
+      int huntCooldownInTicks = this.huntCooldown.sample(mob.level.random);
       HunterAi.setHuntedRecently(mob, huntCooldownInTicks);
       AngerAi.broadcastAngerTarget(GenericAi.getNearbyAdults(mob), target, ANGER_TIME_IN_TICKS);
       HunterAi.broadcastHuntedRecently(huntCooldownInTicks, GenericAi.getNearbyVisibleAdults(mob));

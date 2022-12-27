@@ -48,7 +48,7 @@ public class GoToTargetAndGiveItem<E extends LivingEntity> extends Behavior<E> {
       if (maybePositionTracker.isPresent()) {
          PositionTracker positionTracker = maybePositionTracker.get();
          double distanceToMob = positionTracker.currentPosition().distanceTo(mob.getEyePosition());
-         if (distanceToMob <= this.closeEnough) {
+         if (distanceToMob < this.closeEnough) {
             ItemStack toThrow = this.itemGetter.apply(mob).split(1);
             if (!toThrow.isEmpty()) {
                BehaviorUtils.throwItem(mob, toThrow, getThrowPosition(positionTracker));

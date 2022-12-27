@@ -80,6 +80,8 @@ public class AiUtil {
 
     public static boolean canBeConsideredAnAlly(LivingEntity mob, LivingEntity other) {
         return mob.isAlliedTo(other) ||
-                mob.getType() == other.getType() && mob.getTeam() == null && other.getTeam() == null;
+                (mob.getType() == other.getType() || mob.getMobType() == other.getMobType())
+                        && mob.getTeam() == null && other.getTeam() == null;
     }
+
 }

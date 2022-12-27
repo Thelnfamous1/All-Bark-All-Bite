@@ -74,7 +74,6 @@ public class ForgeEventHandler {
     static void onEntityJoinLevel(EntityJoinLevelEvent event){
         if(event.getLevel().isClientSide) return;
         ServerLevel serverLevel = (ServerLevel) event.getLevel();
-
         Entity entity = event.getEntity();
         addMobDogInteractionGoals(entity);
 

@@ -19,7 +19,7 @@ import com.infamous.call_of_the_wild.common.registry.COTWEntityTypes;
 import com.infamous.call_of_the_wild.common.registry.COTWMemoryModuleTypes;
 import com.infamous.call_of_the_wild.common.util.AiUtil;
 import com.infamous.call_of_the_wild.common.util.AngerAi;
-import com.infamous.call_of_the_wild.common.util.COTWUtil;
+import com.infamous.call_of_the_wild.common.util.MiscUtil;
 import com.infamous.call_of_the_wild.common.util.GenericAi;
 import com.infamous.call_of_the_wild.data.COTWBuiltInLootTables;
 import com.mojang.datafixers.util.Pair;
@@ -60,7 +60,6 @@ public class DogAi {
     public static final int MAX_FETCH_DISTANCE = 16;
     public static final int MAX_TIME_TO_REACH_ITEM = 200;
     private static final int START_FOLLOW_DISTANCE = 10;
-    private static final int STOP_FOLLOW_DISTANCE = 2;
     private static final long DIG_DURATION = 100L;
 
     protected static Brain<?> makeBrain(Brain<Dog> brain) {
@@ -149,7 +148,7 @@ public class DogAi {
                         new RunIf<>(WolflikeAi::canAttack, new SetWalkTargetFromAttackTargetIfTargetOutOfReach(WolflikeAi.SPEED_MODIFIER_CHASING)),
                         new RunIf<>(WolflikeAi::canAttack, new JumpAtTarget(), true),
                         new RunIf<>(WolflikeAi::canAttack, new MeleeAttack(WolflikeAi.ATTACK_COOLDOWN_TICKS)),
-                        new RememberIfHuntTargetWasKilled<>(DogAi::isHuntTarget),
+                        new RememberIfHuntTargetWasKilled<>(DogAi::isHuntTarget, WolflikeAi.TIME_BETWEEN_HUNTS),
                         new EraseMemoryIf<>(BehaviorUtils::isBreeding, MemoryModuleType.ATTACK_TARGET)),
                 MemoryModuleType.ATTACK_TARGET);
     }
@@ -215,7 +214,7 @@ public class DogAi {
         brain.addActivityAndRemoveMemoryWhenStopped(Activity.DIG,
                 0,
                 ImmutableList.of(
-                        new RunIf<>(DogAi::canFetch, new GoToTargetLocation<>(COTWMemoryModuleTypes.DIG_LOCATION.get(), STOP_FOLLOW_DISTANCE, SPEED_MODIFIER_FETCHING)),
+                        new RunIf<>(DogAi::canFetch, new GoToTargetLocation<>(COTWMemoryModuleTypes.DIG_LOCATION.get(), WolflikeAi.STOP_FOLLOW_DISTANCE, SPEED_MODIFIER_FETCHING)),
                         new RunIf<>(DogAi::canFetch, new DigAtLocation<>(DogAi::onDigCompleted, DIG_DURATION), true)),
                 COTWMemoryModuleTypes.DIG_LOCATION.get());
     }
@@ -260,8 +259,8 @@ public class DogAi {
         brain.addActivityAndRemoveMemoryWhenStopped(COTWActivities.FETCH.get(), 0,
                 ImmutableList.of(
                         new RunIf<>(DogAi::canFetch, new GoToWantedItem<>(DogAi::isNotHoldingItem, SPEED_MODIFIER_FETCHING, true, MAX_FETCH_DISTANCE)),
-                        new RunIf<>(DogAi::canFetch, new GoToTargetAndGiveItem<>(Dog::getItemInMouth, DogAi::getOwnerPositionTracker, SPEED_MODIFIER_FETCHING, STOP_FOLLOW_DISTANCE, DogAi::onThrown), true),
-                        new RunIf<>(DogAi::canFetch, new StayCloseToTarget<>(DogAi::getOwnerPositionTracker, STOP_FOLLOW_DISTANCE, STOP_FOLLOW_DISTANCE, SPEED_MODIFIER_FETCHING)),
+                        new RunIf<>(DogAi::canFetch, new GoToTargetAndGiveItem<>(Dog::getItemInMouth, DogAi::getOwnerPositionTracker, SPEED_MODIFIER_FETCHING, WolflikeAi.STOP_FOLLOW_DISTANCE, DogAi::onThrown), true),
+                        new RunIf<>(DogAi::canFetch, new StayCloseToTarget<>(DogAi::getOwnerPositionTracker, WolflikeAi.STOP_FOLLOW_DISTANCE, WolflikeAi.STOP_FOLLOW_DISTANCE, SPEED_MODIFIER_FETCHING)),
                         new StopItemActivityIfItemTooFarAway<>(DogAi::canStopFetchingIfItemTooFar, MAX_FETCH_DISTANCE, COTWMemoryModuleTypes.FETCHING_ITEM.get()),
                         new StopItemActivityIfTiredOfTryingToReachItem<>(DogAi::canGetTiredTryingToReachItem, MAX_TIME_TO_REACH_ITEM, DISABLE_FETCH_TIME, COTWMemoryModuleTypes.FETCHING_ITEM.get(), COTWMemoryModuleTypes.TIME_TRYING_TO_REACH_FETCH_ITEM.get(), COTWMemoryModuleTypes.DISABLE_WALK_TO_FETCH_ITEM.get()),
                         new EraseMemoryIf<>(DogAi::wantsToStopFetching, COTWMemoryModuleTypes.FETCHING_ITEM.get())),
@@ -304,13 +303,13 @@ public class DogAi {
     private static void initIdleActivity(Brain<Dog> brain) {
         brain.addActivity(Activity.IDLE, 0,
                 ImmutableList.of(
-                        new RunIf<>(WolflikeAi::canFollowOwner, new FollowOwner(WolflikeAi.SPEED_MODIFIER_WALKING, START_FOLLOW_DISTANCE, STOP_FOLLOW_DISTANCE), true),
+                        new RunIf<>(WolflikeAi::canFollowOwner, new FollowOwner(WolflikeAi.SPEED_MODIFIER_WALKING, START_FOLLOW_DISTANCE, WolflikeAi.STOP_FOLLOW_DISTANCE), true),
                         new RunIf<>(WolflikeAi::canMakeLove, new AnimalMakeLove(COTWEntityTypes.DOG.get(), WolflikeAi.SPEED_MODIFIER_BREEDING), true),
                         new RunIf<>(WolflikeAi::canFollowNonOwner, new FollowTemptation(WolflikeAi::getSpeedModifierTempted), true),
                         new RunIf<>(WolflikeAi::canFollowNonOwner, new BabyFollowAdult<>(WolflikeAi.ADULT_FOLLOW_RANGE, WolflikeAi.SPEED_MODIFIER_FOLLOWING_ADULT)),
                         new RunIf<>(DogAi::canBeg, new Beg<>(DogAi::isInteresting, Dog::setIsInterested, WolflikeAi.MAX_LOOK_DIST), true),
                         new StartAttacking<>(WolflikeAi::canAttack, WolflikeAi::findNearestValidAttackTarget),
-                        new StartHunting<>(DogAi::canHunt),
+                        new StartHunting<>(DogAi::canHunt, WolflikeAi.TIME_BETWEEN_HUNTS),
                         createIdleLookBehaviors(),
                         new RunIf<>(WolflikeAi::canWander, createIdleMovementBehaviors(), true)
                 ));
@@ -492,7 +491,7 @@ public class DogAi {
      */
     protected static void pickUpItem(Dog dog, ItemEntity itemEntity) {
         dog.take(itemEntity, 1);
-        ItemStack singleton = COTWUtil.removeOneItemFromItemEntity(itemEntity);
+        ItemStack singleton = MiscUtil.removeOneItemFromItemEntity(itemEntity);
         holdInMouth(dog, singleton);
     }
 

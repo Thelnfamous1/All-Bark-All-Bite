@@ -46,25 +46,30 @@ public class DigAtLocation<E extends LivingEntity> extends Behavior<E> {
 
    @Override
    protected void start(ServerLevel level, E mob, long gameTime) {
-      Brain<?> brain = mob.getBrain();
-      brain.getMemory(COTWMemoryModuleTypes.DIG_LOCATION.get()).ifPresent((bp) -> brain.setMemory(MemoryModuleType.LOOK_TARGET, new BlockPosTracker(bp)));
+      this.lookAtDigLocation(mob);
       mob.setPose(Pose.DIGGING);
       this.digUpAtTime = gameTime + this.digDuration;
    }
 
+   private void lookAtDigLocation(E mob) {
+      Brain<?> brain = mob.getBrain();
+      brain.getMemory(COTWMemoryModuleTypes.DIG_LOCATION.get()).ifPresent((bp) -> brain.setMemory(MemoryModuleType.LOOK_TARGET, new BlockPosTracker(bp)));
+   }
+
    @Override
    protected void tick(ServerLevel level, E mob, long gameTime) {
+      this.lookAtDigLocation(mob);
       Brain<?> brain = mob.getBrain();
-      if(gameTime % 4L == 0L)
-         brain.getMemory(COTWMemoryModuleTypes.DIG_LOCATION.get())
-              .ifPresent((bp) -> {
-                 SoundType soundType = level.getBlockState(bp.below()).getSoundType(level, bp, mob);
-                 mob.playSound(soundType.getHitSound());
-              });
+      if(gameTime % 4L == 0L) brain.getMemory(COTWMemoryModuleTypes.DIG_LOCATION.get()).ifPresent((bp) -> this.playDiggingSound(level, mob, bp));
       if(gameTime >= this.digUpAtTime){
          this.onDigCompleted.accept(mob);
          brain.eraseMemory(COTWMemoryModuleTypes.DIG_LOCATION.get());
       }
+   }
+
+   private void playDiggingSound(ServerLevel level, E mob, BlockPos bp) {
+      SoundType soundType = level.getBlockState(bp.below()).getSoundType(level, bp, mob);
+      mob.playSound(soundType.getHitSound());
    }
 
    @Override

@@ -1,6 +1,6 @@
 package com.infamous.call_of_the_wild.common.entity.dog;
 
-import com.infamous.call_of_the_wild.common.behavior.hunter.StartHunting;
+import com.infamous.call_of_the_wild.common.registry.COTWMemoryModuleTypes;
 import com.infamous.call_of_the_wild.common.util.AiUtil;
 import com.infamous.call_of_the_wild.common.util.GenericAi;
 import com.infamous.call_of_the_wild.common.util.HunterAi;
@@ -28,6 +28,8 @@ public class WolflikeAi {
     static final UniformInt ANGER_DURATION = TimeUtil.rangeOfSeconds(20, 39); // same as Wolf's persistent anger time
     static final UniformInt AVOID_DURATION = TimeUtil.rangeOfSeconds(5, 7);
     static final UniformInt RETREAT_DURATION = TimeUtil.rangeOfSeconds(5, 20);
+    static final UniformInt TIME_BETWEEN_HOWLS = TimeUtil.rangeOfSeconds(30, 120);
+    static final UniformInt TIME_BETWEEN_HUNTS = TimeUtil.rangeOfSeconds(30, 120);
     static final float JUMP_CHANCE_IN_WATER = 0.8F;
     static final float SPEED_MODIFIER_BREEDING = 1.0F;
     static final float SPEED_MODIFIER_CHASING = 1.0F; // Dog will sprint with 30% extra speed, meaning final speed is effectively ~1.3F
@@ -43,10 +45,13 @@ public class WolflikeAi {
     static final byte SUCCESSFUL_TAME_ID = 7;
     static final byte FAILED_TAME_ID = 6;
     private static final int LLAMA_MAX_STRENGTH = 5;
+    static final int STOP_FOLLOW_DISTANCE = 2;
 
     public static void initMemories(LivingEntity livingEntity, RandomSource randomSource) {
-        int huntCooldownInTicks = StartHunting.TIME_BETWEEN_HUNTS.sample(randomSource);
+        int huntCooldownInTicks = TIME_BETWEEN_HUNTS.sample(randomSource);
         HunterAi.setHuntedRecently(livingEntity, huntCooldownInTicks);
+        int howlCooldownInTicks = TIME_BETWEEN_HOWLS.sample(randomSource);
+        setHowledRecently(livingEntity, howlCooldownInTicks);
     }
 
     static boolean shouldPanic(LivingEntity livingEntity) {
@@ -128,5 +133,9 @@ public class WolflikeAi {
     @SuppressWarnings("unused")
     static int getMaxPackSize(LivingEntity livingEntity) {
         return 8;
+    }
+
+    public static void setHowledRecently(LivingEntity mob, int howlCooldownInTicks) {
+        mob.getBrain().setMemoryWithExpiry(COTWMemoryModuleTypes.HOWLED_RECENTLY.get(), true, howlCooldownInTicks);
     }
 }

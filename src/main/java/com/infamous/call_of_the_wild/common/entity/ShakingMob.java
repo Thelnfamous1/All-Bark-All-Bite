@@ -1,5 +1,6 @@
 package com.infamous.call_of_the_wild.common.entity;
 
+import com.infamous.call_of_the_wild.common.util.MiscUtil;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.AnimationState;
@@ -45,27 +46,19 @@ public interface ShakingMob {
                 }
             }
             else if (this.getShakeAnims().right > SECONDS_AFTER_START_TO_SPLASH) {
-                float y = (float) self.getY();
                 int numParticles = (int)(Mth.sin((this.getShakeAnims().right - SECONDS_AFTER_START_TO_SPLASH) * (float)Math.PI) * 7.0F);
                 Vec3 deltaMovement = self.getDeltaMovement();
-
-                for(int itr = 0; itr < numParticles; ++itr) {
-                    float xOffset = (self.getRandom().nextFloat() * 2.0F - 1.0F) * self.getBbWidth() * 0.5F;
-                    float yOffset = (self.getRandom().nextFloat() * 2.0F - 1.0F) * self.getBbWidth() * 0.5F;
-                    self.level.addParticle(
-                            ParticleTypes.SPLASH,
-                            self.getX() + (double)xOffset, y + 0.8F, self.getZ() + (double)yOffset,
-                            deltaMovement.x, deltaMovement.y, deltaMovement.z);
-                }
+                MiscUtil.addParticlesAroundSelf(self, ParticleTypes.SPLASH, numParticles, deltaMovement.x, deltaMovement.y, deltaMovement.z, 0.5D, 0.8D);
             }
         }
     }
 
     default void aiStepShaking(){
-        if (!this.cast().level.isClientSide && this.isWet() && !this.isShaking() && !this.cast().isPathFinding() && this.cast().isOnGround()) {
+        PathfinderMob self = this.cast();
+        if (!self.level.isClientSide && this.isWet() && !this.isShaking() && !self.isPathFinding() && self.isOnGround()) {
             this.setIsShaking(true);
             this.setShakeAnims(0.0F, 0.0F);
-            this.cast().level.broadcastEntityEvent(this.cast(), START_SHAKING_ID);
+            self.level.broadcastEntityEvent(self, START_SHAKING_ID);
         }
     }
 
