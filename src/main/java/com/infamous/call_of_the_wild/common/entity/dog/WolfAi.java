@@ -30,7 +30,7 @@ import java.util.Optional;
 public class WolfAi {
 
     public static final Collection<? extends MemoryModuleType<?>> MEMORY_TYPES = ImmutableList.of(
-            COTWMemoryModuleTypes.ALERTABLE.get(),
+            COTWMemoryModuleTypes.IS_ALERT.get(),
             MemoryModuleType.ANGRY_AT,
             MemoryModuleType.ATTACK_COOLING_DOWN,
             MemoryModuleType.ATTACK_TARGET,
@@ -50,10 +50,11 @@ public class WolfAi {
             MemoryModuleType.LONG_JUMP_MID_JUMP,
             COTWMemoryModuleTypes.LONG_JUMP_TARGET.get(),
             MemoryModuleType.LOOK_TARGET,
-            COTWMemoryModuleTypes.NEARBY_ADULTS.get(),
-            COTWMemoryModuleTypes.NEARBY_BABIES.get(),
-            COTWMemoryModuleTypes.NEARBY_KIN.get(),
+            COTWMemoryModuleTypes.NEAREST_ADULTS.get(),
+            COTWMemoryModuleTypes.NEAREST_BABIES.get(),
+            COTWMemoryModuleTypes.NEAREST_ALLIES.get(),
             MemoryModuleType.NEAREST_ATTACKABLE,
+            COTWMemoryModuleTypes.NEAREST_HUNTABLE.get(),
             MemoryModuleType.NEAREST_LIVING_ENTITIES,
             MemoryModuleType.NEAREST_PLAYERS,
             MemoryModuleType.NEAREST_PLAYER_HOLDING_WANTED_ITEM,
@@ -62,7 +63,7 @@ public class WolfAi {
             MemoryModuleType.NEAREST_VISIBLE_ATTACKABLE_PLAYER,
             COTWMemoryModuleTypes.NEAREST_VISIBLE_BABIES.get(),
             COTWMemoryModuleTypes.NEAREST_VISIBLE_HUNTABLE.get(),
-            COTWMemoryModuleTypes.NEAREST_VISIBLE_KIN.get(),
+            COTWMemoryModuleTypes.NEAREST_VISIBLE_ALLIES.get(),
             MemoryModuleType.NEAREST_VISIBLE_LIVING_ENTITIES,
             MemoryModuleType.NEAREST_VISIBLE_PLAYER,
             COTWMemoryModuleTypes.PACK_LEADER.get(),

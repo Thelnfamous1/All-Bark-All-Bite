@@ -2,12 +2,12 @@ package com.infamous.call_of_the_wild.common.util;
 
 import com.google.common.collect.Lists;
 import com.infamous.call_of_the_wild.common.registry.COTWMemoryModuleTypes;
-import net.minecraft.core.BlockPos;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.EntityDimensions;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.Mob;
 import net.minecraft.world.entity.Pose;
+import net.minecraft.world.entity.ai.behavior.PositionTracker;
 import net.minecraft.world.entity.ai.memory.MemoryModuleType;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
@@ -104,11 +104,11 @@ public class LongJumpAi {
        return true;
     }
 
-   public static Optional<BlockPos> getLongJumpTarget(LivingEntity mob) {
+   public static Optional<PositionTracker> getLongJumpTarget(LivingEntity mob) {
       return mob.getBrain().getMemory(COTWMemoryModuleTypes.LONG_JUMP_TARGET.get());
    }
 
-    public static void setLongJumpTarget(LivingEntity mob, BlockPos target) {
+    public static void setLongJumpTarget(LivingEntity mob, PositionTracker target) {
         mob.getBrain().setMemory(COTWMemoryModuleTypes.LONG_JUMP_TARGET.get(), target);
     }
 

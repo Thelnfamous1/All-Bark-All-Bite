@@ -1,12 +1,6 @@
 package com.infamous.call_of_the_wild.common.behavior.long_jump;
 
 import com.google.common.collect.ImmutableMap;
-
-import java.util.Optional;
-import java.util.function.Function;
-import java.util.function.Predicate;
-import javax.annotation.Nullable;
-
 import com.infamous.call_of_the_wild.common.registry.COTWMemoryModuleTypes;
 import com.infamous.call_of_the_wild.common.util.LongJumpAi;
 import net.minecraft.core.BlockPos;
@@ -17,7 +11,7 @@ import net.minecraft.util.valueproviders.UniformInt;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.Mob;
 import net.minecraft.world.entity.ai.behavior.Behavior;
-import net.minecraft.world.entity.ai.behavior.BlockPosTracker;
+import net.minecraft.world.entity.ai.behavior.PositionTracker;
 import net.minecraft.world.entity.ai.memory.MemoryModuleType;
 import net.minecraft.world.entity.ai.memory.MemoryStatus;
 import net.minecraft.world.entity.ai.navigation.PathNavigation;
@@ -26,6 +20,11 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.pathfinder.Path;
 import net.minecraft.world.level.pathfinder.WalkNodeEvaluator;
 import net.minecraft.world.phys.Vec3;
+
+import javax.annotation.Nullable;
+import java.util.Optional;
+import java.util.function.Function;
+import java.util.function.Predicate;
 
 @SuppressWarnings("NullableProblems")
 public class LongJumpToTarget<E extends Mob> extends Behavior<E> {
@@ -79,11 +78,11 @@ public class LongJumpToTarget<E extends Mob> extends Behavior<E> {
    private boolean hasValidJumpTarget(LivingEntity mob) {
       BlockPos initialPosition = mob.blockPosition();
       return this.getLongJumpTarget(mob)
-              .filter(bp -> !bp.equals(initialPosition))
+              .filter(target -> !target.currentBlockPosition().equals(initialPosition))
               .isPresent();
    }
 
-   private Optional<BlockPos> getLongJumpTarget(LivingEntity mob) {
+   private Optional<PositionTracker> getLongJumpTarget(LivingEntity mob) {
       return LongJumpAi.getLongJumpTarget(mob);
    }
 
@@ -119,21 +118,21 @@ public class LongJumpToTarget<E extends Mob> extends Behavior<E> {
    }
 
    protected void pickCandidate(ServerLevel level, E mob, long gameTime) {
-      Optional<BlockPos> maybeJumpTarget = this.getLongJumpTarget(mob);
-      maybeJumpTarget.ifPresent(jumpTarget -> {
-         if (!this.isAcceptableLandingPosition(level, mob, jumpTarget)) {
+      Optional<PositionTracker> longJumpTarget = this.getLongJumpTarget(mob);
+      longJumpTarget.ifPresent(target -> {
+         BlockPos targetBlockPosition = target.currentBlockPosition();
+         if (!this.isAcceptableLandingPosition(level, mob, targetBlockPosition)) {
             return;
          }
 
-         Vec3 jumpTargetCenter = Vec3.atCenterOf(jumpTarget);
-         Vec3 optimalJumpVector = LongJumpAi.calculateOptimalJumpVector(mob, jumpTargetCenter, this.maxJumpVelocity, LongJumpAi.ALLOWED_ANGLES);
+         Vec3 optimalJumpVector = LongJumpAi.calculateOptimalJumpVector(mob, target.currentPosition(), this.maxJumpVelocity, LongJumpAi.ALLOWED_ANGLES);
          if (optimalJumpVector == null) {
             return;
          }
 
-         mob.getBrain().setMemory(MemoryModuleType.LOOK_TARGET, new BlockPosTracker(jumpTarget));
+         mob.getBrain().setMemory(MemoryModuleType.LOOK_TARGET, target);
          PathNavigation navigation = mob.getNavigation();
-         Path path = navigation.createPath(jumpTarget, 0, MIN_PATHFIND_DISTANCE_TO_VALID_JUMP);
+         Path path = navigation.createPath(targetBlockPosition, 0, MIN_PATHFIND_DISTANCE_TO_VALID_JUMP);
          //noinspection StatementWithEmptyBody
          if (path != null && path.canReach()) {
             //return;

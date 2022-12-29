@@ -26,7 +26,7 @@ import java.util.function.Predicate;
 @SuppressWarnings({"NullableProblems", "unused"})
 public class Howl<E extends LivingEntity> extends Behavior<E> {
     private final Predicate<E> wantsToHowl;
-    private final BiPredicate<E, LivingEntity> canAlert;
+    private final BiPredicate<E, LivingEntity> wantsToListen;
     private final Consumer<E> onHowlStarted;
     private final int radiusXZ;
     private final int radiusY;
@@ -44,12 +44,12 @@ public class Howl<E extends LivingEntity> extends Behavior<E> {
 
     public Howl(Predicate<E> wantsToHowl, BiPredicate<E, LivingEntity> canAlert, Consumer<E> onHowlStarted, int radiusXZ, int radiusY, Function<LivingEntity, Float> alertableSpeedModifier, int closeEnough, UniformInt howlCooldown) {
         super(ImmutableMap.of(
-                COTWMemoryModuleTypes.NEARBY_ADULTS.get(), MemoryStatus.VALUE_ABSENT,
-                COTWMemoryModuleTypes.NEARBY_KIN.get(), MemoryStatus.REGISTERED,
+                COTWMemoryModuleTypes.NEAREST_ADULTS.get(), MemoryStatus.VALUE_ABSENT,
+                COTWMemoryModuleTypes.NEAREST_ALLIES.get(), MemoryStatus.REGISTERED,
                 COTWMemoryModuleTypes.HOWLED_RECENTLY.get(), MemoryStatus.VALUE_ABSENT
         ));
         this.wantsToHowl = wantsToHowl;
-        this.canAlert = canAlert;
+        this.wantsToListen = canAlert;
         this.onHowlStarted = onHowlStarted;
         this.radiusXZ = radiusXZ;
         this.radiusY = radiusY;
@@ -66,28 +66,32 @@ public class Howl<E extends LivingEntity> extends Behavior<E> {
     @Override
     protected void start(ServerLevel level, E mob, long gameTime) {
         AABB searchBox = mob.getBoundingBox().inflate(this.radiusXZ, this.radiusY, this.radiusXZ);
-        List<LivingEntity> alertables = level.getEntitiesOfClass(LivingEntity.class, searchBox, (le) -> this.isAlertable(mob, le));
-        alertables.forEach(le -> {
+        List<LivingEntity> listeners = level.getEntitiesOfClass(LivingEntity.class, searchBox, (le) -> this.wantsToListen(mob, le));
+        listeners.forEach(le -> {
             BehaviorUtils.setWalkAndLookTargetMemories(le, mob, this.alertableSpeedModifier.apply(le), this.closeEnough);
-            this.visualizeAlert(level, mob.position(), new EntityPositionSource(le, le.getEyeHeight()));
+            this.scheduleSignal(level, mob.position(), new EntityPositionSource(le, le.getEyeHeight()));
         });
         this.onHowlStarted.accept(mob);
         int howlCooldownInTicks = this.howlCooldown.sample(mob.getRandom());
         SharedWolfAi.setHowledRecently(mob, howlCooldownInTicks);
-        GenericAi.getNearbyKin(mob).forEach(le -> SharedWolfAi.setHowledRecently(le, howlCooldownInTicks));
+        GenericAi.getNearbyAllies(mob).forEach(le -> SharedWolfAi.setHowledRecently(le, howlCooldownInTicks));
     }
 
-    private boolean isAlertable(E mob, LivingEntity other) {
+    private boolean wantsToListen(E mob, LivingEntity other) {
         return other != mob
                 && other.isAlive()
-                && this.canAlert.test(mob, other);
+                && this.wantsToListen.test(mob, other);
     }
 
-    private void visualizeAlert(ServerLevel level, Vec3 eventSource, PositionSource listenerSource) {
+    @SuppressWarnings("OptionalGetWithoutIsPresent")
+    private void scheduleSignal(ServerLevel level, Vec3 eventSource, PositionSource listenerSource) {
+        Vec3 distanceVec = listenerSource.getPosition(level).get().subtract(eventSource);
+        int particleCount = Mth.floor(distanceVec.length()) + 7;
+
         listenerSource.getPosition(level).ifPresent(position -> {
             float receivingDistance = (float)eventSource.distanceTo(position);
             int travelTimeInTicks = Mth.floor(receivingDistance);
-            level.sendParticles(new VibrationParticleOption(listenerSource, travelTimeInTicks), eventSource.x, eventSource.y, eventSource.z, 1, 0.0D, 0.0D, 0.0D, 0.0D);
+            level.sendParticles(new VibrationParticleOption(listenerSource, travelTimeInTicks), eventSource.x, eventSource.y, eventSource.z, particleCount, 0.0D, 0.0D, 0.0D, 0.0D);
         });
     }
 }

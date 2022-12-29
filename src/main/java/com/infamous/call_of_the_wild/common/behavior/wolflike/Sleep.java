@@ -21,7 +21,7 @@ public class Sleep<E extends LivingEntity> extends Behavior<E> {
     protected Sleep(int cooldownAfterBeingWoken) {
         super(ImmutableMap.of(
                 COTWMemoryModuleTypes.HAS_SHELTER.get(), MemoryStatus.VALUE_PRESENT,
-                COTWMemoryModuleTypes.ALERTABLE.get(), MemoryStatus.VALUE_ABSENT,
+                COTWMemoryModuleTypes.IS_ALERT.get(), MemoryStatus.VALUE_ABSENT,
                 MemoryModuleType.LAST_SLEPT, MemoryStatus.REGISTERED,
                 MemoryModuleType.WALK_TARGET, MemoryStatus.REGISTERED,
                 MemoryModuleType.CANT_REACH_WALK_TARGET_SINCE, MemoryStatus.REGISTERED,
@@ -53,7 +53,7 @@ public class Sleep<E extends LivingEntity> extends Behavior<E> {
         }
         return level.isDay() 
                 && mob.getBrain().hasMemoryValue(COTWMemoryModuleTypes.HAS_SHELTER.get()) 
-                && !mob.getBrain().hasMemoryValue(COTWMemoryModuleTypes.ALERTABLE.get()) 
+                && !mob.getBrain().hasMemoryValue(COTWMemoryModuleTypes.IS_ALERT.get())
                 && !mob.isInPowderSnow;
     }
 

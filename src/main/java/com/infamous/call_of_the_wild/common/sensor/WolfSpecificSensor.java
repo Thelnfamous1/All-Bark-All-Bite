@@ -26,10 +26,10 @@ import java.util.Set;
 
 @SuppressWarnings("NullableProblems")
 public class WolfSpecificSensor extends Sensor<Wolf> {
-    public static final double MAX_XZ_DIST = 12.0D;
+    public static final double MAX_ALERTABLE_XZ = 12.0D;
 
-    public static final double MAX_Y_DIST = 6.0D;
-    private final TargetingConditions alertableTargeting = TargetingConditions.forCombat().range(MAX_XZ_DIST).ignoreLineOfSight();
+    public static final double MAX_ALERTABLE_Y = 6.0D;
+    private static final TargetingConditions ALERTABLE_CONDITIONS = TargetingConditions.forCombat().range(MAX_ALERTABLE_XZ).ignoreLineOfSight();
 
     @Override
     public Set<MemoryModuleType<?>> requires() {
@@ -39,8 +39,10 @@ public class WolfSpecificSensor extends Sensor<Wolf> {
                 COTWMemoryModuleTypes.NEAREST_VISIBLE_HUNTABLE.get(),
                 MemoryModuleType.NEAREST_ATTACKABLE,
                 MemoryModuleType.NEAREST_PLAYER_HOLDING_WANTED_ITEM,
-                COTWMemoryModuleTypes.HAS_SHELTER.get(),
-                COTWMemoryModuleTypes.ALERTABLE.get());
+                MemoryModuleType.NEAREST_LIVING_ENTITIES,
+                COTWMemoryModuleTypes.NEAREST_HUNTABLE.get(),
+                COTWMemoryModuleTypes.IS_ALERT.get(),
+                COTWMemoryModuleTypes.HAS_SHELTER.get());
     }
 
     @Override
@@ -48,7 +50,7 @@ public class WolfSpecificSensor extends Sensor<Wolf> {
         Brain<?> brain = wolf.getBrain();
 
         Optional<LivingEntity> nearestDisliked = Optional.empty();
-        Optional<LivingEntity> nearestHuntable = Optional.empty();
+        Optional<LivingEntity> nearestVisibleHuntable = Optional.empty();
         Optional<LivingEntity> nearestAttackable = Optional.empty();
         Optional<Player> nearestPlayerHoldingWantedItem = Optional.empty();
 
@@ -57,11 +59,13 @@ public class WolfSpecificSensor extends Sensor<Wolf> {
         for (LivingEntity livingEntity : nvle.findAll((le) -> true)) {
             if(nearestDisliked.isEmpty() && WolfAi.isDisliked(wolf, livingEntity)){
                 nearestDisliked = Optional.of(livingEntity);
-            } else if(nearestHuntable.isEmpty() && isHuntable(wolf, livingEntity)){
-                nearestHuntable = Optional.of(livingEntity);
-            } else if(nearestAttackable.isEmpty() && isAttackable(wolf, livingEntity)){
+            } else if(nearestVisibleHuntable.isEmpty() && isHuntable(wolf, livingEntity, true)){
+                nearestVisibleHuntable = Optional.of(livingEntity);
+            } else if(nearestAttackable.isEmpty() && isAttackable(wolf, livingEntity, true)){
                 nearestAttackable = Optional.of(livingEntity);
-            } else if (livingEntity instanceof Player player) {
+            }
+
+            if (livingEntity instanceof Player player) {
                 if (nearestPlayerHoldingWantedItem.isEmpty()
                         && !WolfGoalPackages.wantsToAvoidPlayer(wolf, player)
                         && player.isHolding(is -> WolfGoalPackages.isInteresting(wolf, is))) {
@@ -71,36 +75,55 @@ public class WolfSpecificSensor extends Sensor<Wolf> {
         }
 
         brain.setMemory(COTWMemoryModuleTypes.NEAREST_VISIBLE_DISLIKED.get(), nearestDisliked);
-        brain.setMemory(COTWMemoryModuleTypes.NEAREST_VISIBLE_HUNTABLE.get(), nearestHuntable);
-        brain.setMemory(MemoryModuleType.NEAREST_ATTACKABLE, nearestAttackable);
+        brain.setMemory(COTWMemoryModuleTypes.NEAREST_VISIBLE_HUNTABLE.get(), nearestVisibleHuntable);
         brain.setMemory(MemoryModuleType.NEAREST_PLAYER_HOLDING_WANTED_ITEM, nearestPlayerHoldingWantedItem);
 
+        //
 
-        List<LivingEntity> nearestMobs = wolf.getBrain().getMemory(MemoryModuleType.NEAREST_LIVING_ENTITIES).orElse(ImmutableList.of());
-        TargetingConditions copy = this.alertableTargeting.copy().selector(le -> SharedWolfAi.canBeAlertedBy(wolf, le, l -> isHuntable(wolf, l)));
-        brain.eraseMemory(COTWMemoryModuleTypes.ALERTABLE.get());
-        for(LivingEntity nearbyMob : nearestMobs){
-            if(nearbyMob.closerThan(wolf, MAX_XZ_DIST, MAX_Y_DIST) && copy.test(wolf, nearbyMob)){
-                brain.setMemory(COTWMemoryModuleTypes.ALERTABLE.get(), Unit.INSTANCE);
-                break;
+        Optional<LivingEntity> nearestHuntable = Optional.empty();
+        Optional<Unit> alertable = Optional.empty();
+        TargetingConditions alertableConditions = this.getAltertableConditions(wolf);
+
+        List<LivingEntity> livingEntities = wolf.getBrain().getMemory(MemoryModuleType.NEAREST_LIVING_ENTITIES).orElse(ImmutableList.of());
+
+        for(LivingEntity livingEntity : livingEntities){
+            if(nearestAttackable.isEmpty() && isAttackable(wolf, livingEntity, false)){
+                nearestAttackable = Optional.of(livingEntity);
+            }
+            if(nearestHuntable.isEmpty() && isHuntable(wolf, livingEntity, false)){
+                nearestHuntable = Optional.of(livingEntity);
+            }
+
+            if(alertable.isEmpty() && livingEntity.closerThan(wolf, MAX_ALERTABLE_XZ, MAX_ALERTABLE_Y) && alertableConditions.test(wolf, livingEntity)){
+                alertable = Optional.of(Unit.INSTANCE);
             }
         }
 
-        brain.eraseMemory(COTWMemoryModuleTypes.HAS_SHELTER.get());
-        if(hasShelter(level, wolf)) brain.setMemory(COTWMemoryModuleTypes.HAS_SHELTER.get(), Unit.INSTANCE);
+        brain.setMemory(MemoryModuleType.NEAREST_ATTACKABLE, nearestAttackable);
+        brain.setMemory(COTWMemoryModuleTypes.NEAREST_HUNTABLE.get(), nearestHuntable);
+        brain.setMemory(COTWMemoryModuleTypes.IS_ALERT.get(), alertable);
+
+        //
+
+        Optional<Unit> hasShelter = this.hasShelter(level, wolf) ? Optional.of(Unit.INSTANCE) : Optional.empty();
+        brain.setMemory(COTWMemoryModuleTypes.HAS_SHELTER.get(), hasShelter);
     }
 
-    private static boolean isAttackable(Wolf wolf, LivingEntity livingEntity) {
-        return AiUtil.isAttackable(wolf, livingEntity, COTWTags.WOLF_ALWAYS_HOSTILES);
+    private TargetingConditions getAltertableConditions(Wolf wolf) {
+        return ALERTABLE_CONDITIONS.copy().selector(le -> SharedWolfAi.canBeAlertedBy(wolf, le, l -> isHuntable(wolf, l, false)));
     }
 
-    private static boolean isHuntable(Wolf wolf, LivingEntity livingEntity) {
-        return SharedWolfAi.isHuntable(wolf, livingEntity, COTWTags.WOLF_HUNT_TARGETS);
+    private static boolean isAttackable(Wolf wolf, LivingEntity livingEntity, boolean requireLineOfSight) {
+        return AiUtil.isHostile(wolf, livingEntity, COTWTags.WOLF_ALWAYS_HOSTILES, requireLineOfSight);
     }
 
-    protected boolean hasShelter(ServerLevel level, Wolf wolflike) {
-        BlockPos topOfBodyPos = new BlockPos(wolflike.getX(), wolflike.getBoundingBox().maxY, wolflike.getZ());
-        return !level.canSeeSky(topOfBodyPos) && wolflike.getWalkTargetValue(topOfBodyPos) >= 0.0F;
+    private static boolean isHuntable(Wolf wolf, LivingEntity livingEntity, boolean requireLineOfSight) {
+        return SharedWolfAi.isHuntable(wolf, livingEntity, COTWTags.WOLF_HUNT_TARGETS, requireLineOfSight);
+    }
+
+    private boolean hasShelter(ServerLevel level, Wolf wolf) {
+        BlockPos topOfBodyPos = new BlockPos(wolf.getX(), wolf.getBoundingBox().maxY, wolf.getZ());
+        return !level.canSeeSky(topOfBodyPos) && wolf.getWalkTargetValue(topOfBodyPos) >= 0.0F;
     }
 
 }

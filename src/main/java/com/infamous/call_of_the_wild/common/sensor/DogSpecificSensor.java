@@ -49,10 +49,10 @@ public class DogSpecificSensor extends Sensor<Dog> {
                 nearestDisliked = Optional.of(livingEntity);
             } else if(nearestHuntable.isEmpty()
                     && !tame
-                    && SharedWolfAi.isHuntable(dog, livingEntity, COTWTags.DOG_HUNT_TARGETS)){
+                    && SharedWolfAi.isHuntable(dog, livingEntity, COTWTags.DOG_HUNT_TARGETS, true)){
                 nearestHuntable = Optional.of(livingEntity);
             } else if(nearestAttackable.isEmpty()
-                    && AiUtil.isAttackable(dog, livingEntity, COTWTags.DOG_ALWAYS_HOSTILES)){
+                    && AiUtil.isHostile(dog, livingEntity, COTWTags.DOG_ALWAYS_HOSTILES, true)){
                 nearestAttackable = Optional.of(livingEntity);
             } else if (livingEntity instanceof Player player) {
                 if (nearestPlayerHoldingLovedItem.isEmpty()

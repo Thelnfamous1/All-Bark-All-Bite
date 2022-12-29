@@ -35,6 +35,7 @@ import net.minecraft.world.level.Level;
 import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.event.entity.EntityEvent;
 import net.minecraftforge.event.entity.EntityJoinLevelEvent;
+import net.minecraftforge.event.entity.living.LivingChangeTargetEvent;
 import net.minecraftforge.event.entity.living.LivingEvent;
 import net.minecraftforge.event.entity.living.LivingFallEvent;
 import net.minecraftforge.event.entity.player.SleepingLocationCheckEvent;
@@ -201,6 +202,15 @@ public class ForgeEventHandler {
                 && livingEntity instanceof Wolf
                 && livingEntity.getType() == EntityType.WOLF){
             event.setDistance(event.getDistance() - 5);
+        }
+    }
+
+    @SubscribeEvent
+    static void onLivingChangeTarget(LivingChangeTargetEvent event){
+        if(event.getTargetType() == LivingChangeTargetEvent.LivingTargetType.BEHAVIOR_TARGET
+                && event.getEntity() instanceof NeutralMob neutralMob
+                && event.getEntity().getType() == EntityType.WOLF){
+            neutralMob.setTarget(event.getNewTarget());
         }
     }
 

@@ -5,6 +5,7 @@ import com.mojang.serialization.Codec;
 import net.minecraft.core.BlockPos;
 import net.minecraft.util.Unit;
 import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.ai.behavior.PositionTracker;
 import net.minecraft.world.entity.ai.memory.MemoryModuleType;
 import net.minecraftforge.registries.DeferredRegister;
 import net.minecraftforge.registries.ForgeRegistries;
@@ -17,7 +18,7 @@ public class COTWMemoryModuleTypes {
 
     public static final DeferredRegister<MemoryModuleType<?>> MEMORY_MODULE_TYPES = DeferredRegister.create(ForgeRegistries.MEMORY_MODULE_TYPES, CallOfTheWild.MODID);
 
-    public static final RegistryObject<MemoryModuleType<List<LivingEntity>>> NEARBY_ADULTS = MEMORY_MODULE_TYPES.register("nearby_adults",
+    public static final RegistryObject<MemoryModuleType<List<LivingEntity>>> NEAREST_ADULTS = MEMORY_MODULE_TYPES.register("nearest_adults",
             () -> new MemoryModuleType<>(Optional.empty()));
 
     public static final RegistryObject<MemoryModuleType<List<LivingEntity>>> NEAREST_VISIBLE_ADULTS = MEMORY_MODULE_TYPES.register("nearest_visible_adults",
@@ -76,23 +77,23 @@ public class COTWMemoryModuleTypes {
             "pack_size",
             () -> new MemoryModuleType<>(Optional.empty()));
 
-    public static final RegistryObject<MemoryModuleType<List<LivingEntity>>> NEARBY_KIN = MEMORY_MODULE_TYPES.register("nearby_kin",
+    public static final RegistryObject<MemoryModuleType<List<LivingEntity>>> NEAREST_ALLIES = MEMORY_MODULE_TYPES.register("nearest_allies",
             () -> new MemoryModuleType<>(Optional.empty()));
 
-    public static final RegistryObject<MemoryModuleType<List<LivingEntity>>> NEAREST_VISIBLE_KIN = MEMORY_MODULE_TYPES.register("nearest_visible_kin",
+    public static final RegistryObject<MemoryModuleType<List<LivingEntity>>> NEAREST_VISIBLE_ALLIES = MEMORY_MODULE_TYPES.register("nearest_visible_allies",
             () -> new MemoryModuleType<>(Optional.empty()));
 
-    public static final RegistryObject<MemoryModuleType<List<LivingEntity>>> NEARBY_BABIES = MEMORY_MODULE_TYPES.register("nearby_babies",
+    public static final RegistryObject<MemoryModuleType<List<LivingEntity>>> NEAREST_BABIES = MEMORY_MODULE_TYPES.register("nearest_babies",
             () -> new MemoryModuleType<>(Optional.empty()));
 
     public static final RegistryObject<MemoryModuleType<List<LivingEntity>>> NEAREST_VISIBLE_BABIES = MEMORY_MODULE_TYPES.register("nearest_visible_babies",
             () -> new MemoryModuleType<>(Optional.empty()));
 
-    public static final RegistryObject<MemoryModuleType<BlockPos>> LONG_JUMP_TARGET = MEMORY_MODULE_TYPES.register("long_jump_target",
+    public static final RegistryObject<MemoryModuleType<PositionTracker>> LONG_JUMP_TARGET = MEMORY_MODULE_TYPES.register("long_jump_target",
             () -> new MemoryModuleType<>(Optional.empty()));
 
-    public static RegistryObject<MemoryModuleType<Unit>> ALERTABLE = MEMORY_MODULE_TYPES.register(
-            "alertable",
+    public static RegistryObject<MemoryModuleType<Unit>> IS_ALERT = MEMORY_MODULE_TYPES.register(
+            "is_alert",
             () -> new MemoryModuleType<>(Optional.of(Codec.unit(Unit.INSTANCE))));
 
     public static RegistryObject<MemoryModuleType<Unit>> HAS_SHELTER = MEMORY_MODULE_TYPES.register(
@@ -106,4 +107,7 @@ public class COTWMemoryModuleTypes {
     public static RegistryObject<MemoryModuleType<Unit>> POUNCE_DELAY = MEMORY_MODULE_TYPES.register(
             "pounce_delay",
             () -> new MemoryModuleType<>(Optional.of(Codec.unit(Unit.INSTANCE))));
+
+    public static final RegistryObject<MemoryModuleType<LivingEntity>> NEAREST_HUNTABLE = MEMORY_MODULE_TYPES.register("nearest_huntable",
+            () -> new MemoryModuleType<>(Optional.empty()));
 }

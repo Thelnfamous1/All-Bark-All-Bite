@@ -1,5 +1,6 @@
 package com.infamous.call_of_the_wild.common.util;
 
+import net.minecraft.util.valueproviders.UniformInt;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.NeutralMob;
@@ -19,15 +20,16 @@ public class AngerAi {
         return BehaviorUtils.getLivingEntityFromUUIDMemory(livingEntity, MemoryModuleType.ANGRY_AT);
     }
 
-    public static void maybeRetaliate(LivingEntity victim, List<? extends LivingEntity> allies, LivingEntity attacker, int angerTimeInTicks, double targetDistDiff) {
+    public static void maybeRetaliate(LivingEntity victim, List<? extends LivingEntity> toAlert, LivingEntity attacker, UniformInt angerTime, double tooFar) {
         if (Sensor.isEntityAttackableIgnoringLineOfSight(victim, attacker)) {
-            if (!BehaviorUtils.isOtherTargetMuchFurtherAwayThanCurrentAttackTarget(victim, attacker, targetDistDiff)) {
+            if (!BehaviorUtils.isOtherTargetMuchFurtherAwayThanCurrentAttackTarget(victim, attacker, tooFar)) {
+                int angerTimeInTicks = angerTime.sample(victim.getRandom());
                 if (attacker.getType() == EntityType.PLAYER && victim.level.getGameRules().getBoolean(GameRules.RULE_UNIVERSAL_ANGER)) {
                     setAngerTargetToNearestTargetablePlayerIfFound(victim, attacker, angerTimeInTicks);
-                    broadcastUniversalAnger(allies, angerTimeInTicks);
+                    broadcastUniversalAnger(toAlert, angerTime);
                 } else {
                     setAngerTarget(victim, attacker, angerTimeInTicks);
-                    broadcastAngerTarget(allies, attacker, angerTimeInTicks);
+                    broadcastAngerTarget(toAlert, attacker, angerTime);
                 }
             }
         }
@@ -58,12 +60,12 @@ public class AngerAi {
         }
     }
 
-    private static void broadcastUniversalAnger(List<? extends LivingEntity> allies, int angerTimeInTicks) {
-        allies.forEach((adult) -> GenericAi.getNearestVisibleTargetablePlayer(adult).ifPresent((p) -> setAngerTarget(adult, p, angerTimeInTicks)));
+    private static void broadcastUniversalAnger(List<? extends LivingEntity> alertables, UniformInt angerTime) {
+        alertables.forEach((adult) -> GenericAi.getNearestVisibleTargetablePlayer(adult).ifPresent((p) -> setAngerTarget(adult, p, angerTime.sample(p.getRandom()))));
     }
 
-    public static void broadcastAngerTarget(List<? extends LivingEntity> allies, LivingEntity target, int angerTimeInTicks) {
-        allies.forEach((d) -> setAngerTargetIfCloserThanCurrent(d, target, angerTimeInTicks));
+    public static void broadcastAngerTarget(List<? extends LivingEntity> alertables, LivingEntity target, UniformInt angerTime) {
+        alertables.forEach((alertable) -> setAngerTargetIfCloserThanCurrent(alertable, target, angerTime.sample(alertable.getRandom())));
     }
 
     public static void setAngerTargetIfCloserThanCurrent(LivingEntity mob, LivingEntity target, int angerTimeInTicks) {

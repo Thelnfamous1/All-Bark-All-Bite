@@ -106,10 +106,10 @@ public class DogGoalPackages {
         if (dog.isBaby()) {
             GenericAi.setAvoidTarget(dog, attacker, SharedWolfAi.RETREAT_DURATION.sample(dog.level.random));
             if (Sensor.isEntityAttackableIgnoringLineOfSight(dog, attacker)) {
-                AngerAi.broadcastAngerTarget(GenericAi.getNearbyAdults(dog).stream().map(Dog.class::cast).filter(d -> SharedWolfAi.wantsToRetaliate(d, attacker)).toList(), attacker, SharedWolfAi.ANGER_DURATION.sample(dog.getRandom()));
+                AngerAi.broadcastAngerTarget(GenericAi.getNearbyAdults(dog).stream().map(Dog.class::cast).filter(d -> SharedWolfAi.wantsToRetaliate(d, attacker)).toList(), attacker, SharedWolfAi.ANGER_DURATION);
             }
         } else if(!dog.getBrain().isActive(Activity.AVOID)){
-            AngerAi.maybeRetaliate(dog, GenericAi.getNearbyAdults(dog).stream().map(Dog.class::cast).filter(d -> SharedWolfAi.wantsToRetaliate(d, attacker)).toList(), attacker, SharedWolfAi.ANGER_DURATION.sample(dog.getRandom()), 4.0D);
+            AngerAi.maybeRetaliate(dog, GenericAi.getNearbyAdults(dog).stream().map(Dog.class::cast).filter(d -> SharedWolfAi.wantsToRetaliate(d, attacker)).toList(), attacker, SharedWolfAi.ANGER_DURATION, SharedWolfAi.TOO_FAR_TO_SWITCH_TARGETS);
         }
     }
 
@@ -133,7 +133,7 @@ public class DogGoalPackages {
                 ImmutableList.of(
                         new StopAttackingIfTargetInvalid<>(),
                         new RunIf<>(SharedWolfAi::canStartAttacking, new SetWalkTargetFromAttackTargetIfTargetOutOfReach(SharedWolfAi.SPEED_MODIFIER_CHASING)),
-                        new RunIf<>(SharedWolfAi::canStartAttacking, new LeapAtTarget(SharedWolfAi.LEAP_YD, 2, 4), true),
+                        new RunIf<>(SharedWolfAi::canStartAttacking, new LeapAtTarget(SharedWolfAi.LEAP_YD, SharedWolfAi.TOO_CLOSE_TO_LEAP, SharedWolfAi.POUNCE_DISTANCE), true),
                         new RunIf<>(SharedWolfAi::canStartAttacking, new MeleeAttack(SharedWolfAi.ATTACK_COOLDOWN_TICKS)),
                         new RememberIfHuntTargetWasKilled<>(DogGoalPackages::isHuntTarget, SharedWolfAi.TIME_BETWEEN_HUNTS),
                         new EraseMemoryIf<>(BehaviorUtils::isBreeding, MemoryModuleType.ATTACK_TARGET)));
@@ -286,7 +286,7 @@ public class DogGoalPackages {
                         new RunIf<>(SharedWolfAi::canFollowNonOwner, new BabyFollowAdult<>(SharedWolfAi.ADULT_FOLLOW_RANGE, SharedWolfAi.SPEED_MODIFIER_FOLLOWING_ADULT)),
                         new RunIf<>(DogGoalPackages::canBeg, new Beg<>(DogGoalPackages::isInteresting, Dog::setIsInterested, SharedWolfAi.MAX_LOOK_DIST), true),
                         new StartAttacking<>(SharedWolfAi::canStartAttacking, SharedWolfAi::findNearestValidAttackTarget),
-                        new StartHunting<>(DogGoalPackages::canHunt, SharedWolfAi::startHunting),
+                        new StartHunting<>(DogGoalPackages::canHunt, SharedWolfAi::startHunting, SharedWolfAi.TIME_BETWEEN_HUNTS),
                         createIdleLookBehaviors(),
                         new RunIf<>(SharedWolfAi::canWander, createIdleMovementBehaviors(), true))
         );

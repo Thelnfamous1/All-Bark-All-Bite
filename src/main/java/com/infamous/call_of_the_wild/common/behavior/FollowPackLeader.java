@@ -31,7 +31,7 @@ public class FollowPackLeader<E extends LivingEntity> extends Behavior<E> {
                 COTWMemoryModuleTypes.PACK_LEADER.get(), MemoryStatus.REGISTERED,
                 COTWMemoryModuleTypes.PACK_SIZE.get(), MemoryStatus.REGISTERED,
                 COTWMemoryModuleTypes.NEAREST_VISIBLE_ADULTS.get(), MemoryStatus.VALUE_PRESENT,
-                COTWMemoryModuleTypes.NEAREST_VISIBLE_KIN.get(), MemoryStatus.REGISTERED,
+                COTWMemoryModuleTypes.NEAREST_VISIBLE_ALLIES.get(), MemoryStatus.REGISTERED,
                 MemoryModuleType.WALK_TARGET, MemoryStatus.VALUE_ABSENT,
                 MemoryModuleType.LOOK_TARGET, MemoryStatus.REGISTERED
         ));
@@ -62,7 +62,7 @@ public class FollowPackLeader<E extends LivingEntity> extends Behavior<E> {
             }
 
             // Tell nearby kin to follow leader or self if possible
-            this.addFollowers(level, leader, GenericAi.getNearbyVisibleKin(mob).stream(), this.maxPackSize.apply(leader));
+            this.addFollowers(level, leader, GenericAi.getNearbyVisibleAllies(mob).stream(), this.maxPackSize.apply(leader));
 
             return PackAi.isFollower(mob);
         }

@@ -2,16 +2,18 @@ package com.infamous.call_of_the_wild.common.behavior.hunter;
 
 import com.google.common.collect.ImmutableMap;
 import com.infamous.call_of_the_wild.common.registry.COTWMemoryModuleTypes;
+import com.infamous.call_of_the_wild.common.util.AiUtil;
+import com.infamous.call_of_the_wild.common.util.GenericAi;
 import com.infamous.call_of_the_wild.common.util.HunterAi;
 import com.infamous.call_of_the_wild.common.util.LongJumpAi;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.util.Mth;
 import net.minecraft.util.Unit;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.PathfinderMob;
 import net.minecraft.world.entity.Pose;
 import net.minecraft.world.entity.ai.Brain;
 import net.minecraft.world.entity.ai.behavior.Behavior;
-import net.minecraft.world.entity.ai.behavior.BehaviorUtils;
 import net.minecraft.world.entity.ai.behavior.EntityTracker;
 import net.minecraft.world.entity.ai.memory.MemoryModuleType;
 import net.minecraft.world.entity.ai.memory.MemoryStatus;
@@ -26,13 +28,15 @@ import java.util.function.Function;
 public class StalkPrey<E extends PathfinderMob> extends Behavior<E> {
     public static final int POUNCE_DELAY_TICKS = 15;
     private final BiPredicate<E, LivingEntity> wantsToStalk;
-    private final float speedModifier;
+    private final float stalkSpeedModifier;
+    private final float catchUpSpeedModifier;
     private final int closeEnough;
+    private final int tooFar;
     private final Function<E, Boolean> isInterested;
     private final BiConsumer<E, Boolean> toggleInterest;
     private final double maxJumpVelocity;
 
-    public StalkPrey(BiPredicate<E, LivingEntity> wantsToStalk, float speedModifier, int closeEnough, Function<E, Boolean> isInterested, BiConsumer<E, Boolean> toggleInterest, double maxJumpVelocity) {
+    public StalkPrey(BiPredicate<E, LivingEntity> wantsToStalk, float stalkSpeedModifier, float catchUpSpeedModifier, int closeEnough, int tooFar, Function<E, Boolean> isInterested, BiConsumer<E, Boolean> toggleInterest, double maxJumpVelocity) {
         super(ImmutableMap.of(
                 COTWMemoryModuleTypes.STALK_TARGET.get(), MemoryStatus.VALUE_PRESENT,
                 COTWMemoryModuleTypes.POUNCE_DELAY.get(), MemoryStatus.REGISTERED,
@@ -41,8 +45,10 @@ public class StalkPrey<E extends PathfinderMob> extends Behavior<E> {
 
         ));
         this.wantsToStalk = wantsToStalk;
-        this.speedModifier = speedModifier;
+        this.stalkSpeedModifier = stalkSpeedModifier;
+        this.catchUpSpeedModifier = catchUpSpeedModifier;
         this.closeEnough = closeEnough;
+        this.tooFar = tooFar;
         this.isInterested = isInterested;
         this.toggleInterest = toggleInterest;
         this.maxJumpVelocity = maxJumpVelocity;
@@ -53,8 +59,8 @@ public class StalkPrey<E extends PathfinderMob> extends Behavior<E> {
     protected void start(ServerLevel level, E mob, long gameTime) {
         LivingEntity target = this.getStalkTarget(mob).get();
         if(this.canStalk(mob, target)){
-            BehaviorUtils.lookAtEntity(mob, target);
-            if (mob.closerThan(target, this.closeEnough)) {
+            this.lookAtTarget(mob, target);
+            if (mob.distanceToSqr(target) <= Mth.square(this.closeEnough)) {
                 this.setIsPreparingToPounce(mob, true);
                 this.clearWalkTarget(mob);
             } else {
@@ -64,11 +70,15 @@ public class StalkPrey<E extends PathfinderMob> extends Behavior<E> {
             if (LongJumpAi.calculateOptimalJumpVector(mob, target.position(), this.maxJumpVelocity, LongJumpAi.ALLOWED_ANGLES) != null) {
                 this.setIsPreparingToPounce(mob, true);
                 this.clearWalkTarget(mob);
-                BehaviorUtils.lookAtEntity(mob, target);
+                this.lookAtTarget(mob, target);
             } else {
                 this.setIsPreparingToPounce(mob, false);
             }
         }
+    }
+
+    private void lookAtTarget(E mob, LivingEntity target) {
+        AiUtil.alwaysLookAtEntity(mob, target, true);
     }
 
     private void setIsPreparingToPounce(E mob, boolean isPreparing) {
@@ -96,25 +106,29 @@ public class StalkPrey<E extends PathfinderMob> extends Behavior<E> {
         } else {
             return target.isAlive()
                     && this.wantsToStalk.test(mob, target)
-                    && !mob.closerThan(target, this.closeEnough)
-                    && this.isNotStalking(mob);
+                    && mob.distanceToSqr(target) > Mth.square(this.closeEnough)
+                    && this.isPreparingToPounce(mob);
                     //&& !AiUtil.isJumping(mob);
         }
     }
 
-    private boolean isNotStalking(E mob) {
+    private boolean isPreparingToPounce(E mob) {
         return !mob.hasPose(Pose.CROUCHING) && !this.isInterested.apply(mob);
     }
 
-    private void setWalkAndLookTarget(LivingEntity mob, LivingEntity target) {
+    private void setWalkAndLookTarget(E mob, LivingEntity target) {
         Brain<?> brain = mob.getBrain();
-        brain.setMemory(MemoryModuleType.LOOK_TARGET, new EntityTracker(target, true));
-        WalkTarget walkTarget = new WalkTarget(new EntityTracker(target, false), this.speedModifier, this.closeEnough);
+        this.lookAtTarget(mob, target);
+        boolean tooFar = !mob.closerThan(target, this.tooFar);
+        WalkTarget walkTarget = new WalkTarget(
+                new EntityTracker(target, false),
+                tooFar ? this.catchUpSpeedModifier : this.stalkSpeedModifier,
+                tooFar ? this.tooFar : this.closeEnough);
         brain.setMemory(MemoryModuleType.WALK_TARGET, walkTarget);
     }
 
-    private void clearWalkTarget(LivingEntity mob) {
-        mob.getBrain().eraseMemory(MemoryModuleType.WALK_TARGET);
+    private void clearWalkTarget(E mob) {
+        GenericAi.stopWalking(mob);
     }
 
 }

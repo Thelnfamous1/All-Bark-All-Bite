@@ -2,6 +2,7 @@ package com.infamous.call_of_the_wild.common.entity.dog;
 
 import com.infamous.call_of_the_wild.common.registry.COTWMemoryModuleTypes;
 import com.infamous.call_of_the_wild.common.util.AiUtil;
+import com.infamous.call_of_the_wild.common.util.AngerAi;
 import com.infamous.call_of_the_wild.common.util.GenericAi;
 import com.infamous.call_of_the_wild.common.util.HunterAi;
 import net.minecraft.server.level.ServerLevel;
@@ -25,10 +26,12 @@ import java.util.Optional;
 import java.util.function.Predicate;
 
 public class SharedWolfAi {
+    public static final int TOO_CLOSE_TO_LEAP = 2;
+    public static final int POUNCE_DISTANCE = 4;
     static final float LEAP_YD = 0.4F;
     static final int INTERACTION_RANGE = 8;
     static final UniformInt ADULT_FOLLOW_RANGE = UniformInt.of(5, 16);
-    static final UniformInt ANGER_DURATION = TimeUtil.rangeOfSeconds(20, 39); // same as Wolf's persistent anger time
+    public static final UniformInt ANGER_DURATION = TimeUtil.rangeOfSeconds(20, 39); // same as Wolf's persistent anger time
     static final UniformInt AVOID_DURATION = TimeUtil.rangeOfSeconds(5, 7);
     static final UniformInt RETREAT_DURATION = TimeUtil.rangeOfSeconds(5, 20);
     static final UniformInt TIME_BETWEEN_HOWLS = TimeUtil.rangeOfSeconds(30, 120);
@@ -49,7 +52,7 @@ public class SharedWolfAi {
     static final byte FAILED_TAME_ID = 6;
     private static final int LLAMA_MAX_STRENGTH = 5;
     static final int STOP_FOLLOW_DISTANCE = 2;
-    private static final int HUNTING_ANGER_TIME_IN_TICKS = 600;
+    public static final int TOO_FAR_TO_SWITCH_TARGETS = 4;
 
     public static void initMemories(LivingEntity livingEntity, RandomSource randomSource) {
         int huntCooldownInTicks = TIME_BETWEEN_HUNTS.sample(randomSource);
@@ -130,8 +133,8 @@ public class SharedWolfAi {
      * Called by {@link com.infamous.call_of_the_wild.common.sensor.WolfSpecificSensor#doTick(ServerLevel, Wolf)}
      * and {@link com.infamous.call_of_the_wild.common.sensor.DogSpecificSensor#doTick(ServerLevel, Dog)}
      */
-    public static boolean isHuntable(TamableAnimal tamableAnimal, LivingEntity livingEntity, TagKey<EntityType<?>> huntTargets) {
-        return AiUtil.isHuntable(tamableAnimal, livingEntity, huntTargets) || AiUtil.isHuntableBabyTurtle(tamableAnimal, livingEntity);
+    public static boolean isHuntable(TamableAnimal tamableAnimal, LivingEntity livingEntity, TagKey<EntityType<?>> huntTargets, boolean requireLineOfSight) {
+        return AiUtil.isHuntable(tamableAnimal, livingEntity, huntTargets, requireLineOfSight) || AiUtil.isHuntableBabyTurtle(tamableAnimal, livingEntity);
     }
 
     @SuppressWarnings("unused")
@@ -167,7 +170,11 @@ public class SharedWolfAi {
         return !tamableAnimal.isSleeping() && !tamableAnimal.isInSittingPose();
     }
 
-    public static void startHunting(TamableAnimal tamableAnimal) {
-        HunterAi.startHuntingUsingAngerTarget(tamableAnimal, HUNTING_ANGER_TIME_IN_TICKS, TIME_BETWEEN_HUNTS.sample(tamableAnimal.level.random));
+    public static void startHunting(TamableAnimal tamableAnimal, LivingEntity target) {
+        // hunt cooldown is already set for the mob at this point
+        int angerTimeInTicks = ANGER_DURATION.sample(tamableAnimal.level.random);
+        AngerAi.setAngerTarget(tamableAnimal, target, angerTimeInTicks);
+        AngerAi.broadcastAngerTarget(GenericAi.getNearbyAdults(tamableAnimal), target, ANGER_DURATION);
+        HunterAi.broadcastHuntedRecently(TIME_BETWEEN_HUNTS, GenericAi.getNearbyVisibleAdults(tamableAnimal));
     }
 }

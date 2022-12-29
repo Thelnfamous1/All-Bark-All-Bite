@@ -6,11 +6,11 @@ import net.minecraft.world.entity.ai.behavior.PositionTracker;
 import net.minecraft.world.phys.Vec3;
 
 @SuppressWarnings("NullableProblems")
-public class SimplePositionTracker implements PositionTracker {
+public class PositionTrackerImpl implements PositionTracker {
     private final BlockPos blockPos;
     private final Vec3 position;
 
-    public SimplePositionTracker(Vec3 position) {
+    public PositionTrackerImpl(Vec3 position) {
         this.blockPos = new BlockPos(position).immutable();
         this.position = position;
     }
@@ -30,7 +30,8 @@ public class SimplePositionTracker implements PositionTracker {
         return true;
     }
 
+    @Override
     public String toString() {
-        return "SimplePositionTracker{position=" + this.position + ", blockPos=" + this.blockPos + "}";
+        return "PositionTrackerImpl{position=" + this.position + ", blockPos=" + this.blockPos + "}";
     }
 }

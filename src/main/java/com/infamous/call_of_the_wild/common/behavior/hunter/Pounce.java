@@ -1,15 +1,14 @@
 package com.infamous.call_of_the_wild.common.behavior.hunter;
 
 import com.google.common.collect.ImmutableMap;
+import com.infamous.call_of_the_wild.common.entity.dog.SharedWolfAi;
 import com.infamous.call_of_the_wild.common.registry.COTWMemoryModuleTypes;
-import com.infamous.call_of_the_wild.common.util.HunterAi;
-import com.infamous.call_of_the_wild.common.util.LongJumpAi;
+import com.infamous.call_of_the_wild.common.util.*;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.PathfinderMob;
 import net.minecraft.world.entity.Pose;
 import net.minecraft.world.entity.ai.behavior.Behavior;
-import net.minecraft.world.entity.ai.behavior.BehaviorUtils;
 import net.minecraft.world.entity.ai.memory.MemoryModuleType;
 import net.minecraft.world.entity.ai.memory.MemoryStatus;
 import net.minecraft.world.phys.Vec3;
@@ -53,7 +52,7 @@ public class Pounce<E extends PathfinderMob> extends Behavior<E> {
                 boolean canPounce = optimalJumpVector != null;
                 if (!canPounce) {
                     //mob.getNavigation().createPath(target, 0);
-                    this.stopStalking(mob);
+                    this.setNotReadyToPounce(mob);
                 }
 
                 return canPounce;
@@ -65,7 +64,7 @@ public class Pounce<E extends PathfinderMob> extends Behavior<E> {
         return mob.hasPose(Pose.CROUCHING);
     }
 
-    private void stopStalking(E mob) {
+    private void setNotReadyToPounce(E mob) {
         this.toggleInterest.accept(mob, false);
         if(mob.hasPose(Pose.CROUCHING)){
             mob.setPose(Pose.STANDING);
@@ -80,14 +79,14 @@ public class Pounce<E extends PathfinderMob> extends Behavior<E> {
     @Override
     protected void start(ServerLevel level, E mob, long gameTime) {
         //mob.setJumping(true);
-        this.stopStalking(mob);
+        this.setNotReadyToPounce(mob);
         LivingEntity target = this.getStalkTarget(mob).get();
-        LongJumpAi.setLongJumpTarget(mob, target.blockPosition());
 
-        BehaviorUtils.lookAtEntity(mob, target);
-        mob.getBrain().eraseMemory(MemoryModuleType.WALK_TARGET);
+        AngerAi.setAngerTarget(mob, target, SharedWolfAi.ANGER_DURATION.sample(mob.getRandom()));
 
-        mob.getBrain().setMemory(MemoryModuleType.ATTACK_TARGET, target);
         mob.getBrain().eraseMemory(COTWMemoryModuleTypes.STALK_TARGET.get());
+        LongJumpAi.setLongJumpTarget(mob, new AlwaysVisibleEntityTracker(target, false));
+        AiUtil.alwaysLookAtEntity(mob, target, true);
+        mob.getBrain().eraseMemory(MemoryModuleType.WALK_TARGET);
     }
 }

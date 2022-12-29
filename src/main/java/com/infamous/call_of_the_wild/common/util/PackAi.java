@@ -75,7 +75,7 @@ public class PackAi {
      */
     public static void updatePack(LivingEntity mob, int intervalTicks) {
         if (hasFollowers(mob) && mob.level.random.nextInt(intervalTicks) == 1) {
-            List<LivingEntity> nearbyKin = GenericAi.getNearbyKin(mob);
+            List<LivingEntity> nearbyKin = GenericAi.getNearbyAllies(mob);
             if (nearbyKin.size() <= 1) {
                 setPackSize(mob, 1);
             }

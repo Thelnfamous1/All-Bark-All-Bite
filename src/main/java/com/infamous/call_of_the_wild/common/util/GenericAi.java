@@ -16,19 +16,19 @@ import java.util.Optional;
 public class GenericAi {
 
     public static List<LivingEntity> getNearbyAdults(LivingEntity ageableMob) {
-        return ageableMob.getBrain().getMemory(COTWMemoryModuleTypes.NEARBY_ADULTS.get()).orElse(ImmutableList.of());
+        return ageableMob.getBrain().getMemory(COTWMemoryModuleTypes.NEAREST_ADULTS.get()).orElse(ImmutableList.of());
     }
 
     public static List<LivingEntity> getNearbyVisibleAdults(LivingEntity ageableMob) {
         return ageableMob.getBrain().getMemory(COTWMemoryModuleTypes.NEAREST_VISIBLE_ADULTS.get()).orElse(ImmutableList.of());
     }
 
-    public static List<LivingEntity> getNearbyKin(LivingEntity ageableMob) {
-        return ageableMob.getBrain().getMemory(COTWMemoryModuleTypes.NEARBY_KIN.get()).orElse(ImmutableList.of());
+    public static List<LivingEntity> getNearbyAllies(LivingEntity ageableMob) {
+        return ageableMob.getBrain().getMemory(COTWMemoryModuleTypes.NEAREST_ALLIES.get()).orElse(ImmutableList.of());
     }
 
-    public static List<LivingEntity> getNearbyVisibleKin(LivingEntity ageableMob) {
-        return ageableMob.getBrain().getMemory(COTWMemoryModuleTypes.NEAREST_VISIBLE_KIN.get()).orElse(ImmutableList.of());
+    public static List<LivingEntity> getNearbyVisibleAllies(LivingEntity ageableMob) {
+        return ageableMob.getBrain().getMemory(COTWMemoryModuleTypes.NEAREST_VISIBLE_ALLIES.get()).orElse(ImmutableList.of());
     }
 
     public static Optional<Player> getNearestVisibleTargetablePlayer(LivingEntity livingEntity) {
@@ -58,10 +58,10 @@ public class GenericAi {
     }
 
     @SuppressWarnings("OptionalGetWithoutIsPresent")
-    public static boolean isNearTarget(LivingEntity livingEntity, int desiredDistanceFromTarget, MemoryModuleType<LivingEntity> avoidTarget) {
+    public static boolean isNearTarget(LivingEntity livingEntity, int closeEnough, MemoryModuleType<LivingEntity> targetMemory) {
         Brain<?> brain = livingEntity.getBrain();
-        return brain.hasMemoryValue(avoidTarget)
-                && brain.getMemory(avoidTarget).get().closerThan(livingEntity, desiredDistanceFromTarget);
+        return brain.hasMemoryValue(targetMemory)
+                && brain.getMemory(targetMemory).get().closerThan(livingEntity, closeEnough);
     }
 
     public static Vec3 getRandomNearbyPos(PathfinderMob pathfinderMob, int maxXZDistance, int maxYDistance) {

@@ -29,12 +29,12 @@ import org.jetbrains.annotations.NotNull;
 import java.util.function.Predicate;
 
 public class WolfGoalPackages {
-    public static final int POUNCE_DISTANCE = 4;
+    public static final int CATCH_UP_DISTANCE = 8;
+    private static final int HOWL_VOLUME = 4;
     public static final float MAX_JUMP_VELOCITY = 1.5F;
     public static final float SPEED_MODIFIER_STALKING = 0.6F;
     private static final Predicate<Entity> NOT_DISCRETE_NOT_CREATIVE_OR_SPECTATOR = (e) -> !e.isDiscrete() && EntitySelector.NO_CREATIVE_OR_SPECTATOR.test(e);
     static final UniformInt TIME_BETWEEN_LONG_JUMPS = TimeUtil.rangeOfSeconds(0, 1);
-    private static final int HOWL_VOLUME = 4;
 
     static ImmutableList<? extends Pair<Integer, ? extends Behavior<? super Wolf>>> getCorePackage() {
         return BrainUtil.createPriorityPairs(0,
@@ -82,10 +82,10 @@ public class WolfGoalPackages {
         if (wolf.isBaby()) {
             GenericAi.setAvoidTarget(wolf, attacker, SharedWolfAi.RETREAT_DURATION.sample(wolf.level.random));
             if (Sensor.isEntityAttackableIgnoringLineOfSight(wolf, attacker)) {
-                AngerAi.broadcastAngerTarget(GenericAi.getNearbyAdults(wolf).stream().map(Wolf.class::cast).filter(w -> SharedWolfAi.wantsToRetaliate(w, attacker)).toList(), attacker, SharedWolfAi.ANGER_DURATION.sample(wolf.getRandom()));
+                AngerAi.broadcastAngerTarget(GenericAi.getNearbyAdults(wolf).stream().map(Wolf.class::cast).filter(w -> SharedWolfAi.wantsToRetaliate(w, attacker)).toList(), attacker, SharedWolfAi.ANGER_DURATION);
             }
         } else if(!wolf.getBrain().isActive(Activity.AVOID)){
-            AngerAi.maybeRetaliate(wolf, GenericAi.getNearbyAdults(wolf).stream().map(Wolf.class::cast).filter(w -> SharedWolfAi.wantsToRetaliate(w, attacker)).toList(), attacker, SharedWolfAi.ANGER_DURATION.sample(wolf.getRandom()), 4.0D);
+            AngerAi.maybeRetaliate(wolf, GenericAi.getNearbyAdults(wolf).stream().map(Wolf.class::cast).filter(w -> SharedWolfAi.wantsToRetaliate(w, attacker)).toList(), attacker, SharedWolfAi.ANGER_DURATION, SharedWolfAi.TOO_FAR_TO_SWITCH_TARGETS);
         }
     }
 
@@ -95,7 +95,7 @@ public class WolfGoalPackages {
                 ImmutableList.of(
                         new StopAttackingIfTargetInvalid<>(),
                         new SetWalkTargetFromAttackTargetIfTargetOutOfReach(SharedWolfAi.SPEED_MODIFIER_CHASING),
-                        new LeapAtTarget(SharedWolfAi.LEAP_YD, 2, POUNCE_DISTANCE),
+                        new LeapAtTarget(SharedWolfAi.LEAP_YD, SharedWolfAi.TOO_CLOSE_TO_LEAP, SharedWolfAi.POUNCE_DISTANCE),
                         new MeleeAttack(SharedWolfAi.ATTACK_COOLDOWN_TICKS),
                         new RememberIfHuntTargetWasKilled<>(WolfGoalPackages::isHuntTarget, SharedWolfAi.TIME_BETWEEN_HUNTS),
                         new EraseMemoryIf<>(BehaviorUtils::isBreeding, MemoryModuleType.ATTACK_TARGET)));
@@ -167,7 +167,7 @@ public class WolfGoalPackages {
         return BrainUtil.createPriorityPairs(0,
                 ImmutableList.of(
                         new StopStalkingIfTargetInvalid<>(WolfGoalPackages::onStalkTargetErased),
-                        new StalkPrey<>(WolfGoalPackages::wantsToStalk, SPEED_MODIFIER_STALKING, POUNCE_DISTANCE, Wolf::isInterested, Wolf::setIsInterested, MAX_JUMP_VELOCITY),
+                        new StalkPrey<>(WolfGoalPackages::wantsToStalk, SPEED_MODIFIER_STALKING, SharedWolfAi.SPEED_MODIFIER_WALKING, SharedWolfAi.POUNCE_DISTANCE, CATCH_UP_DISTANCE, Wolf::isInterested, Wolf::setIsInterested, MAX_JUMP_VELOCITY),
                         new Pounce<>(Wolf::setIsInterested, MAX_JUMP_VELOCITY)
                 )
         );
@@ -195,9 +195,9 @@ public class WolfGoalPackages {
                 new BabyFollowAdult<>(SharedWolfAi.ADULT_FOLLOW_RANGE, SharedWolfAi.SPEED_MODIFIER_FOLLOWING_ADULT),
                 new Beg<>(WolfGoalPackages::isInteresting, Wolf::setIsInterested, SharedWolfAi.MAX_LOOK_DIST),
                 new StartAttacking<>(SharedWolfAi::canStartAttacking, SharedWolfAi::findNearestValidAttackTarget),
-                new StartStalking<>(WolfGoalPackages::wantsToStalk, POUNCE_DISTANCE, Wolf::isInterested),
-                new StartHunting<>(WolfGoalPackages::canHunt, SharedWolfAi::startHunting),
-                new Howl<>(WolfGoalPackages::wantsToHowl, WolfGoalPackages::canAlert, WolfGoalPackages::onHowlStarted, WolfGoalPackages::getAlertableSpeedModifier, SharedWolfAi.STOP_FOLLOW_DISTANCE, SharedWolfAi.TIME_BETWEEN_HOWLS),
+                new StartStalking<>(WolfGoalPackages::wantsToStalk, SharedWolfAi.POUNCE_DISTANCE, Wolf::isInterested, SharedWolfAi.TIME_BETWEEN_HUNTS),
+                new StartHunting<>(WolfGoalPackages::canHunt, SharedWolfAi::startHunting, SharedWolfAi.TIME_BETWEEN_HUNTS),
+                new Howl<>(WolfGoalPackages::wantsToHowl, WolfGoalPackages::wantsToListen, WolfGoalPackages::onHowlStarted, WolfGoalPackages::getAlertableSpeedModifier, SharedWolfAi.STOP_FOLLOW_DISTANCE, SharedWolfAi.TIME_BETWEEN_HOWLS),
                 createIdleLookBehaviors(),
                 createIdleMovementBehaviors()));
     }
@@ -206,10 +206,11 @@ public class WolfGoalPackages {
         return !wolf.getBrain().hasMemoryValue(COTWMemoryModuleTypes.STALK_TARGET.get());
     }
 
-    private static boolean canAlert(Wolf wolf, LivingEntity other){
+    private static boolean wantsToListen(Wolf wolf, LivingEntity other){
         if(wolf.getType() == other.getType()){
             return !AiUtil.hasAnyMemory(other,
                     MemoryModuleType.ATTACK_TARGET,
+                    COTWMemoryModuleTypes.STALK_TARGET.get(),
                     MemoryModuleType.AVOID_TARGET,
                     MemoryModuleType.IS_PANICKING,
                     MemoryModuleType.TEMPTING_PLAYER)

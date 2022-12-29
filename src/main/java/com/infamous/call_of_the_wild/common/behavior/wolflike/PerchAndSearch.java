@@ -4,7 +4,7 @@ import com.google.common.collect.ImmutableMap;
 import com.infamous.call_of_the_wild.common.registry.COTWMemoryModuleTypes;
 import com.infamous.call_of_the_wild.common.util.AiUtil;
 import com.infamous.call_of_the_wild.common.util.GenericAi;
-import com.infamous.call_of_the_wild.common.util.SimplePositionTracker;
+import com.infamous.call_of_the_wild.common.util.PositionTrackerImpl;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.entity.PathfinderMob;
@@ -28,7 +28,7 @@ public class PerchAndSearch<E extends PathfinderMob> extends Behavior<E> {
         super(ImmutableMap.of(
                 MemoryModuleType.ANGRY_AT, MemoryStatus.VALUE_ABSENT,
                 MemoryModuleType.ATTACK_TARGET, MemoryStatus.VALUE_ABSENT,
-                COTWMemoryModuleTypes.ALERTABLE.get(), MemoryStatus.VALUE_ABSENT,
+                COTWMemoryModuleTypes.IS_ALERT.get(), MemoryStatus.VALUE_ABSENT,
                 COTWMemoryModuleTypes.LONG_JUMP_TARGET.get(), MemoryStatus.VALUE_ABSENT,
                 MemoryModuleType.WALK_TARGET, MemoryStatus.REGISTERED,
                 MemoryModuleType.LOOK_TARGET, MemoryStatus.REGISTERED
@@ -61,7 +61,7 @@ public class PerchAndSearch<E extends PathfinderMob> extends Behavior<E> {
         double relZ = Math.sin(randomLookAngle);
         this.lookTime = AiUtil.reducedTickDelay(80 + random.nextInt(20));
         Vec3 lookAtPos = new Vec3(mob.getX() + relX, mob.getEyeY(), mob.getZ() + relZ);
-        mob.getBrain().setMemory(MemoryModuleType.LOOK_TARGET, new SimplePositionTracker(lookAtPos));
+        mob.getBrain().setMemory(MemoryModuleType.LOOK_TARGET, new PositionTrackerImpl(lookAtPos));
     }
 
     @Override

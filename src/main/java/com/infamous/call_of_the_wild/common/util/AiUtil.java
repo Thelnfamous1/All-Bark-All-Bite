@@ -7,6 +7,7 @@ import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.Mob;
+import net.minecraft.world.entity.OwnableEntity;
 import net.minecraft.world.entity.ai.Brain;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.ai.memory.MemoryModuleType;
@@ -50,8 +51,10 @@ public class AiUtil {
         }
     }
 
-    public static boolean isAttackable(Mob mob, LivingEntity target, TagKey<EntityType<?>> alwaysHostiles){
-        return isClose(mob, target) && isHostileTarget(target, alwaysHostiles) && Sensor.isEntityAttackable(mob, target);
+    public static boolean isHostile(Mob mob, LivingEntity target, TagKey<EntityType<?>> alwaysHostiles, boolean requireLineOfSight){
+        return isClose(mob, target)
+                && target.getType().is(alwaysHostiles)
+                && isAttackable(mob, target, requireLineOfSight);
     }
 
     public static boolean isClose(Mob mob, LivingEntity target) {
@@ -59,12 +62,14 @@ public class AiUtil {
         return target.distanceToSqr(mob) <= followRange * followRange;
     }
 
-    public static boolean isHostileTarget(LivingEntity target, TagKey<EntityType<?>> alwaysHostiles) {
-        return target.getType().is(alwaysHostiles);
+    public static boolean isHuntable(Mob mob, LivingEntity target, TagKey<EntityType<?>> huntTargets, boolean requireLineOfSight){
+        return isClose(mob, target)
+                && isHuntTarget(mob, target, huntTargets)
+                && isAttackable(mob, target, requireLineOfSight);
     }
 
-    public static boolean isHuntable(Mob mob, LivingEntity target, TagKey<EntityType<?>> huntTargets){
-        return isClose(mob, target) && isHuntTarget(mob, target, huntTargets) && Sensor.isEntityAttackable(mob, target);
+    private static boolean isAttackable(Mob mob, LivingEntity target, boolean requireLineOfSight){
+        return requireLineOfSight ? Sensor.isEntityAttackable(mob, target) : Sensor.isEntityAttackableIgnoringLineOfSight(mob, target);
     }
 
     public static boolean isHuntTarget(LivingEntity mob, LivingEntity target, TagKey<EntityType<?>> huntTargets) {
@@ -81,13 +86,19 @@ public class AiUtil {
     }
 
     public static boolean canBeConsideredAnAlly(LivingEntity mob, LivingEntity other) {
-        return mob.isAlliedTo(other) ||
-                (mob.getType() == other.getType() || mob.getMobType() == other.getMobType())
-                        && mob.getTeam() == null && other.getTeam() == null;
+        return (mob instanceof OwnableEntity ownable && other instanceof OwnableEntity ownableOther)
+                    && ownable.getOwner() == ownableOther.getOwner()
+                || mob.isAlliedTo(other)
+                || (mob.getType() == other.getType() || mob.getMobType() == other.getMobType())
+                    && mob.getTeam() == null && other.getTeam() == null;
     }
 
     @SuppressWarnings("unused")
     public static boolean isJumping(LivingEntity livingEntity) {
         return ReflectionUtil.getField(LIVING_ENTITY_JUMPING, LivingEntity.class, livingEntity);
+    }
+
+    public static void alwaysLookAtEntity(LivingEntity mob, LivingEntity target, boolean trackEyeHeight) {
+        mob.getBrain().setMemory(MemoryModuleType.LOOK_TARGET, new AlwaysVisibleEntityTracker(target, trackEyeHeight));
     }
 }
