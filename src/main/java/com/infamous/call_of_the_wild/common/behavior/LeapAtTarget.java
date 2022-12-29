@@ -9,19 +9,21 @@ import net.minecraft.world.entity.Mob;
 import net.minecraft.world.entity.ai.behavior.Behavior;
 import net.minecraft.world.entity.ai.memory.MemoryModuleType;
 import net.minecraft.world.entity.ai.memory.MemoryStatus;
+import net.minecraft.world.phys.Vec3;
 
 import java.util.Optional;
 
 @SuppressWarnings("NullableProblems")
-public class JumpAtTarget extends Behavior<Mob> {
-    public static final double MIN_LEAP_DISTANCE_SQR = 4.0D; // 2 * 2
-    public static final double MAX_LEAP_DISTANCE_SQR = 16.0D; // 4 * 4
-    private static final long LEAP_INTERVAL = 100L;
+public class LeapAtTarget extends Behavior<Mob> {
+    private final float yD;
+    private final int tooClose;
+    private final int tooFar;
 
-    private long lastLeapTimestamp;
-
-    public JumpAtTarget() {
+    public LeapAtTarget(float yD, int tooClose, int tooFar) {
         super(ImmutableMap.of(MemoryModuleType.ATTACK_TARGET, MemoryStatus.VALUE_PRESENT));
+        this.yD = yD;
+        this.tooClose = tooClose;
+        this.tooFar = tooFar;
     }
 
     @Override
@@ -29,11 +31,10 @@ public class JumpAtTarget extends Behavior<Mob> {
         if (mob.isVehicle()) {
             return false;
         } else {
-            Optional<LivingEntity> optionalTarget = GenericAi.getAttackTarget(mob);
-            if(optionalTarget.isPresent()){
-                double distanceToTargetSqr = mob.distanceToSqr(optionalTarget.get());
-                if (!(distanceToTargetSqr < MIN_LEAP_DISTANCE_SQR) && !(distanceToTargetSqr > MAX_LEAP_DISTANCE_SQR)) {
-                    if (this.canJump(mob, level.getGameTime())) {
+            Optional<LivingEntity> attackTarget = GenericAi.getAttackTarget(mob);
+            if(attackTarget.isPresent()){
+                if (!mob.closerThan(attackTarget.get(), this.tooClose) && mob.closerThan(attackTarget.get(), this.tooFar)) {
+                    if (this.isFloating(mob)) {
                         return false;
                     } else {
                         return mob.getRandom().nextInt(AiUtil.reducedTickDelay(5)) == 0;
@@ -47,18 +48,26 @@ public class JumpAtTarget extends Behavior<Mob> {
         }
     }
 
-    private boolean canJump(Mob mob, long gameTime) {
-        return !mob.isOnGround() && gameTime >= this.lastLeapTimestamp + LEAP_INTERVAL;
+    private boolean isFloating(Mob mob) {
+        return !mob.isOnGround();
     }
 
     @Override
     public void start(ServerLevel level, Mob mob, long gameTime) {
-        mob.getJumpControl().jump();
-        this.lastLeapTimestamp = gameTime;
+        Optional<LivingEntity> attackTarget = GenericAi.getAttackTarget(mob);
+        attackTarget.ifPresent(target -> {
+            Vec3 deltaMovement = mob.getDeltaMovement();
+            Vec3 xzD = new Vec3(target.getX() - mob.getX(), 0.0D, target.getZ() - mob.getZ());
+            if (xzD.lengthSqr() > 1.0E-7D) {
+                xzD = xzD.normalize().scale(0.4D).add(deltaMovement.scale(0.2D));
+            }
+
+            mob.setDeltaMovement(xzD.x, this.yD, xzD.z);
+        });
     }
 
     @Override
     public boolean canStillUse(ServerLevel level, Mob mob, long gameTime) {
-        return this.canJump(mob, gameTime);
+        return this.isFloating(mob);
     }
 }

@@ -18,7 +18,9 @@ public class RememberIfHuntTargetWasKilled<E extends LivingEntity> extends Behav
    private final UniformInt huntCooldown;
 
    public RememberIfHuntTargetWasKilled(BiPredicate<E, LivingEntity> huntTargetPredicate, UniformInt huntCooldown) {
-      super(ImmutableMap.of(MemoryModuleType.ATTACK_TARGET, MemoryStatus.VALUE_PRESENT, MemoryModuleType.HUNTED_RECENTLY, MemoryStatus.REGISTERED));
+      super(ImmutableMap.of(
+              MemoryModuleType.ATTACK_TARGET, MemoryStatus.VALUE_PRESENT,
+              MemoryModuleType.HUNTED_RECENTLY, MemoryStatus.REGISTERED));
       this.huntTargetPredicate = huntTargetPredicate;
       this.huntCooldown = huntCooldown;
    }

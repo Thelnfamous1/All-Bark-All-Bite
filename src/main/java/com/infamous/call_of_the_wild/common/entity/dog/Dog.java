@@ -501,7 +501,7 @@ public class Dog extends TamableAnimal implements InterestedMob, ShakingMob, Var
         RandomSource random = serverLevelAccessor.getRandom();
         EntityVariant randomVariant = MiscUtil.getRandomObject(values, random);
         this.setVariant(randomVariant);
-        WolflikeAi.initMemories(this, random);
+        SharedWolfAi.initMemories(this, random);
         return spawnGroupData;
     }
 
@@ -571,13 +571,6 @@ public class Dog extends TamableAnimal implements InterestedMob, ShakingMob, Var
         return SoundEvents.FOX_EAT;
     }
 
-    @Override
-    public boolean doHurtTarget(Entity target) {
-        boolean hurtTarget = super.doHurtTarget(target);
-        if(hurtTarget) this.playSoundEvent(SoundEvents.FOX_BITE);
-        return hurtTarget;
-    }
-
     protected void holdInMouth(ItemStack stack) {
         this.setItemSlotAndDropWhenKilled(EquipmentSlot.MAINHAND, stack);
     }
@@ -603,6 +596,11 @@ public class Dog extends TamableAnimal implements InterestedMob, ShakingMob, Var
     protected void sendDebugPackets() {
         super.sendDebugPackets();
         DebugPackets.sendEntityBrain(this);
+        /*
+        if(this.level instanceof  ServerLevel serverLevel){
+            DebugUtil.sendEntityBrain(this, serverLevel);
+        }
+         */
     }
 
     // VariantMob

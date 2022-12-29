@@ -1,6 +1,8 @@
 package com.infamous.call_of_the_wild.common.util;
 
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
+import com.mojang.datafixers.util.Pair;
 import com.mojang.serialization.Dynamic;
 import net.minecraft.nbt.NbtOps;
 import net.minecraft.nbt.Tag;
@@ -70,5 +72,16 @@ public class BrainUtil {
 
     public static <E extends LivingEntity> ShufflingList<Behavior<? super E>> getGateBehaviors(GateBehavior<E> gateBehavior){
         return ReflectionUtil.getField(GATE_BEHAVIOR_BEHAVIORS, GateBehavior.class, gateBehavior);
+    }
+
+    public static <E extends LivingEntity> ImmutableList<? extends Pair<Integer, ? extends Behavior<? super E>>> createPriorityPairs(int priorityStart, ImmutableList<? extends Behavior<? super E>> behaviors) {
+        int i = priorityStart;
+        ImmutableList.Builder<Pair<Integer, ? extends Behavior<? super E>>> builder = ImmutableList.builder();
+
+        for(Behavior<? super E> behavior : behaviors) {
+            builder.add(Pair.of(i++, behavior));
+        }
+
+        return builder.build();
     }
 }

@@ -30,7 +30,7 @@ public class FollowPackLeader<E extends LivingEntity> extends Behavior<E> {
         super(ImmutableMap.of(
                 COTWMemoryModuleTypes.PACK_LEADER.get(), MemoryStatus.REGISTERED,
                 COTWMemoryModuleTypes.PACK_SIZE.get(), MemoryStatus.REGISTERED,
-                COTWMemoryModuleTypes.NEAREST_VISIBLE_ADULTS.get(), MemoryStatus.REGISTERED,
+                COTWMemoryModuleTypes.NEAREST_VISIBLE_ADULTS.get(), MemoryStatus.VALUE_PRESENT,
                 COTWMemoryModuleTypes.NEAREST_VISIBLE_KIN.get(), MemoryStatus.REGISTERED,
                 MemoryModuleType.WALK_TARGET, MemoryStatus.VALUE_ABSENT,
                 MemoryModuleType.LOOK_TARGET, MemoryStatus.REGISTERED
@@ -56,7 +56,10 @@ public class FollowPackLeader<E extends LivingEntity> extends Behavior<E> {
                     .filter(le -> PackAi.canFollow(mob, le, this.maxPackSize.apply(le)))
                     .findAny()
                     .orElse(mob);
-            MiscUtil.sendParticlesAroundSelf(level, leader, ParticleTypes.ANGRY_VILLAGER, leader.getEyeHeight(),  10, 0.2D);
+
+            if(leader != mob){
+                MiscUtil.sendParticlesAroundSelf(level, leader, ParticleTypes.SMOKE, leader.getEyeHeight(),  10, 0.2D);
+            }
 
             // Tell nearby kin to follow leader or self if possible
             this.addFollowers(level, leader, GenericAi.getNearbyVisibleKin(mob).stream(), this.maxPackSize.apply(leader));

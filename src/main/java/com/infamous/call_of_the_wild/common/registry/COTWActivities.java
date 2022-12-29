@@ -12,4 +12,7 @@ public class COTWActivities {
 
     private static final String FETCH_NAME = "fetch";
     public static RegistryObject<Activity> FETCH = ACTIVITIES.register(FETCH_NAME, () -> new Activity(FETCH_NAME));
+
+    private static final String STALK_NAME = "stalk";
+    public static RegistryObject<Activity> STALK = ACTIVITIES.register(STALK_NAME, () -> new Activity(STALK_NAME));
 }

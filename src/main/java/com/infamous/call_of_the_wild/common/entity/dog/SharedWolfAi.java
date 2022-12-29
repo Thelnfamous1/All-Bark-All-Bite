@@ -18,18 +18,21 @@ import net.minecraft.world.entity.ai.memory.MemoryModuleType;
 import net.minecraft.world.entity.ai.sensing.Sensor;
 import net.minecraft.world.entity.animal.Wolf;
 import net.minecraft.world.entity.animal.horse.Llama;
+import net.minecraft.world.entity.monster.Monster;
 import net.minecraft.world.entity.player.Player;
 
 import java.util.Optional;
+import java.util.function.Predicate;
 
-public class WolflikeAi {
+public class SharedWolfAi {
+    static final float LEAP_YD = 0.4F;
     static final int INTERACTION_RANGE = 8;
     static final UniformInt ADULT_FOLLOW_RANGE = UniformInt.of(5, 16);
     static final UniformInt ANGER_DURATION = TimeUtil.rangeOfSeconds(20, 39); // same as Wolf's persistent anger time
     static final UniformInt AVOID_DURATION = TimeUtil.rangeOfSeconds(5, 7);
     static final UniformInt RETREAT_DURATION = TimeUtil.rangeOfSeconds(5, 20);
     static final UniformInt TIME_BETWEEN_HOWLS = TimeUtil.rangeOfSeconds(30, 120);
-    static final UniformInt TIME_BETWEEN_HUNTS = TimeUtil.rangeOfSeconds(30, 120);
+    static final UniformInt TIME_BETWEEN_HUNTS = TimeUtil.rangeOfSeconds(5, 7); // 30-120
     static final float JUMP_CHANCE_IN_WATER = 0.8F;
     static final float SPEED_MODIFIER_BREEDING = 1.0F;
     static final float SPEED_MODIFIER_CHASING = 1.0F; // Dog will sprint with 30% extra speed, meaning final speed is effectively ~1.3F
@@ -46,6 +49,7 @@ public class WolflikeAi {
     static final byte FAILED_TAME_ID = 6;
     private static final int LLAMA_MAX_STRENGTH = 5;
     static final int STOP_FOLLOW_DISTANCE = 2;
+    private static final int HUNTING_ANGER_TIME_IN_TICKS = 600;
 
     public static void initMemories(LivingEntity livingEntity, RandomSource randomSource) {
         int huntCooldownInTicks = TIME_BETWEEN_HUNTS.sample(randomSource);
@@ -62,8 +66,8 @@ public class WolflikeAi {
         return GenericAi.isNearDisliked(livingEntity, DESIRED_DISTANCE_FROM_DISLIKED);
     }
 
-    static boolean canAttack(TamableAnimal tamableAnimal) {
-        return !tamableAnimal.isOrderedToSit() && !BehaviorUtils.isBreeding(tamableAnimal);
+    static boolean canStartAttacking(TamableAnimal tamableAnimal) {
+        return canMove(tamableAnimal) && !BehaviorUtils.isBreeding(tamableAnimal);
     }
 
     static boolean canAvoid(TamableAnimal tamableAnimal){
@@ -75,7 +79,7 @@ public class WolflikeAi {
     }
 
     static boolean canMakeLove(TamableAnimal tamableAnimal){
-        return !tamableAnimal.isOrderedToSit();
+        return canMove(tamableAnimal);
     }
 
     static boolean canFollowNonOwner(TamableAnimal tamableAnimal) {
@@ -88,7 +92,7 @@ public class WolflikeAi {
     }
 
     static boolean canWander(TamableAnimal tamableAnimal){
-        return !tamableAnimal.isOrderedToSit();
+        return canMove(tamableAnimal);
     }
 
     static Optional<? extends LivingEntity> findNearestValidAttackTarget(LivingEntity livingEntity) {
@@ -137,5 +141,33 @@ public class WolflikeAi {
 
     public static void setHowledRecently(LivingEntity mob, int howlCooldownInTicks) {
         mob.getBrain().setMemoryWithExpiry(COTWMemoryModuleTypes.HOWLED_RECENTLY.get(), true, howlCooldownInTicks);
+    }
+
+    public static boolean canBeAlertedBy(TamableAnimal tamableAnimal, LivingEntity target, Predicate<LivingEntity> isPrey){
+        if (target.getType() == tamableAnimal.getType()) {
+            return false;
+        } else if (!(isPrey.test(target)) && !(target instanceof Monster)) {
+            if (target instanceof TamableAnimal otherTamable) {
+                return !otherTamable.isTame();
+            } else if (!(target instanceof Player player) || !player.isSpectator() && !player.isCreative()) {
+                if (tamableAnimal.isOwnedBy(target)) {
+                    return false;
+                } else {
+                    return !target.isSleeping() && !target.isDiscrete();
+                }
+            } else {
+                return false;
+            }
+        } else {
+            return true;
+        }
+    }
+
+    public static boolean canMove(TamableAnimal tamableAnimal) {
+        return !tamableAnimal.isSleeping() && !tamableAnimal.isInSittingPose();
+    }
+
+    public static void startHunting(TamableAnimal tamableAnimal) {
+        HunterAi.startHuntingUsingAngerTarget(tamableAnimal, HUNTING_ANGER_TIME_IN_TICKS, TIME_BETWEEN_HUNTS.sample(tamableAnimal.level.random));
     }
 }

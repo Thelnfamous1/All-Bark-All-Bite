@@ -2,6 +2,7 @@ package com.infamous.call_of_the_wild.common.util;
 
 import com.google.common.collect.ImmutableList;
 import com.infamous.call_of_the_wild.common.registry.COTWMemoryModuleTypes;
+import net.minecraft.core.BlockPos;
 import net.minecraft.world.entity.*;
 import net.minecraft.world.entity.ai.Brain;
 import net.minecraft.world.entity.ai.memory.MemoryModuleType;
@@ -74,5 +75,17 @@ public class GenericAi {
 
     public static boolean doesntSeeAnyPlayerHoldingWantedItem(LivingEntity livingEntity) {
         return !seesPlayerHoldingWantedItem(livingEntity);
+    }
+
+    public static void startSleeping(LivingEntity livingEntity, BlockPos bedPosition) {
+        livingEntity.startSleeping(bedPosition);
+        livingEntity.getBrain().setMemory(MemoryModuleType.LAST_SLEPT, livingEntity.level.getGameTime());
+        livingEntity.getBrain().eraseMemory(MemoryModuleType.WALK_TARGET);
+        livingEntity.getBrain().eraseMemory(MemoryModuleType.CANT_REACH_WALK_TARGET_SINCE);
+    }
+
+    public static void stopSleeping(LivingEntity livingEntity) {
+        livingEntity.stopSleeping();
+        livingEntity.getBrain().setMemory(MemoryModuleType.LAST_WOKEN, livingEntity.level.getGameTime());
     }
 }

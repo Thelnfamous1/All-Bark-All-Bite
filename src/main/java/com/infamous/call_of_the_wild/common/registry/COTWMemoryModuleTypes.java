@@ -3,6 +3,7 @@ package com.infamous.call_of_the_wild.common.registry;
 import com.infamous.call_of_the_wild.CallOfTheWild;
 import com.mojang.serialization.Codec;
 import net.minecraft.core.BlockPos;
+import net.minecraft.util.Unit;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.memory.MemoryModuleType;
 import net.minecraftforge.registries.DeferredRegister;
@@ -86,4 +87,23 @@ public class COTWMemoryModuleTypes {
 
     public static final RegistryObject<MemoryModuleType<List<LivingEntity>>> NEAREST_VISIBLE_BABIES = MEMORY_MODULE_TYPES.register("nearest_visible_babies",
             () -> new MemoryModuleType<>(Optional.empty()));
+
+    public static final RegistryObject<MemoryModuleType<BlockPos>> LONG_JUMP_TARGET = MEMORY_MODULE_TYPES.register("long_jump_target",
+            () -> new MemoryModuleType<>(Optional.empty()));
+
+    public static RegistryObject<MemoryModuleType<Unit>> ALERTABLE = MEMORY_MODULE_TYPES.register(
+            "alertable",
+            () -> new MemoryModuleType<>(Optional.of(Codec.unit(Unit.INSTANCE))));
+
+    public static RegistryObject<MemoryModuleType<Unit>> HAS_SHELTER = MEMORY_MODULE_TYPES.register(
+            "has_shelter",
+            () -> new MemoryModuleType<>(Optional.of(Codec.unit(Unit.INSTANCE))));
+
+    public static RegistryObject<MemoryModuleType<LivingEntity>> STALK_TARGET = MEMORY_MODULE_TYPES.register(
+            "stalk_target",
+            () -> new MemoryModuleType<>(Optional.empty()));
+
+    public static RegistryObject<MemoryModuleType<Unit>> POUNCE_DELAY = MEMORY_MODULE_TYPES.register(
+            "pounce_delay",
+            () -> new MemoryModuleType<>(Optional.of(Codec.unit(Unit.INSTANCE))));
 }

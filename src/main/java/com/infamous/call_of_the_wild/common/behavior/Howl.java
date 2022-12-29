@@ -1,7 +1,7 @@
 package com.infamous.call_of_the_wild.common.behavior;
 
 import com.google.common.collect.ImmutableMap;
-import com.infamous.call_of_the_wild.common.entity.dog.WolflikeAi;
+import com.infamous.call_of_the_wild.common.entity.dog.SharedWolfAi;
 import com.infamous.call_of_the_wild.common.registry.COTWMemoryModuleTypes;
 import com.infamous.call_of_the_wild.common.util.GenericAi;
 import net.minecraft.core.particles.VibrationParticleOption;
@@ -73,8 +73,8 @@ public class Howl<E extends LivingEntity> extends Behavior<E> {
         });
         this.onHowlStarted.accept(mob);
         int howlCooldownInTicks = this.howlCooldown.sample(mob.getRandom());
-        WolflikeAi.setHowledRecently(mob, howlCooldownInTicks);
-        GenericAi.getNearbyKin(mob).forEach(le -> WolflikeAi.setHowledRecently(le, howlCooldownInTicks));
+        SharedWolfAi.setHowledRecently(mob, howlCooldownInTicks);
+        GenericAi.getNearbyKin(mob).forEach(le -> SharedWolfAi.setHowledRecently(le, howlCooldownInTicks));
     }
 
     private boolean isAlertable(E mob, LivingEntity other) {

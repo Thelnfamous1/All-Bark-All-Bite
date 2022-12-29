@@ -87,6 +87,18 @@ public interface ShakingMob {
         return Math.min(0.5F + Mth.lerp(partialTicks, this.getShakeAnims().left, this.getShakeAnims().right) / MAX_SHAKE_TIME_IN_SECONDS * 0.5F, 1.0F);
     }
 
+    @SuppressWarnings("unused")
+    default float getBodyRollAngle(float partialTicks, float additional) {
+        float bodyRoll = (Mth.lerp(partialTicks, this.getShakeAnims().left, this.getShakeAnims().right) + additional) / 1.8F;
+        if (bodyRoll < 0.0F) {
+            bodyRoll = 0.0F;
+        } else if (bodyRoll > 1.0F) {
+            bodyRoll = 1.0F;
+        }
+
+        return Mth.sin(bodyRoll * (float)Math.PI) * Mth.sin(bodyRoll * (float)Math.PI * 11.0F) * 0.15F * (float)Math.PI;
+    }
+
     boolean isWet();
 
     void setIsWet(boolean isWet);

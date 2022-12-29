@@ -17,6 +17,8 @@ import net.minecraft.world.level.Level;
 
 public class AiUtil {
 
+    private static final String LIVING_ENTITY_JUMPING = "f_20899_";
+
     public static int reducedTickDelay(int ticks) {
         return Mth.positiveCeilDiv(ticks, 2);
     }
@@ -84,4 +86,8 @@ public class AiUtil {
                         && mob.getTeam() == null && other.getTeam() == null;
     }
 
+    @SuppressWarnings("unused")
+    public static boolean isJumping(LivingEntity livingEntity) {
+        return ReflectionUtil.getField(LIVING_ENTITY_JUMPING, LivingEntity.class, livingEntity);
+    }
 }

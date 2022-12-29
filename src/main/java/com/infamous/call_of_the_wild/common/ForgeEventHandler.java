@@ -6,18 +6,15 @@ import com.infamous.call_of_the_wild.CallOfTheWild;
 import com.infamous.call_of_the_wild.common.entity.DogSpawner;
 import com.infamous.call_of_the_wild.common.entity.dog.Dog;
 import com.infamous.call_of_the_wild.common.entity.dog.WolfAi;
-import com.infamous.call_of_the_wild.common.entity.dog.WolflikeAi;
 import com.infamous.call_of_the_wild.common.registry.COTWEntityTypes;
 import com.infamous.call_of_the_wild.common.util.BrainUtil;
+import com.infamous.call_of_the_wild.common.util.DebugUtil;
 import com.infamous.call_of_the_wild.common.util.ReflectionUtil;
 import net.minecraft.nbt.NbtOps;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
-import net.minecraft.world.entity.Entity;
-import net.minecraft.world.entity.EntityDimensions;
-import net.minecraft.world.entity.EntityType;
-import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.*;
 import net.minecraft.world.entity.ai.Brain;
 import net.minecraft.world.entity.ai.behavior.Behavior;
 import net.minecraft.world.entity.ai.behavior.InteractWith;
@@ -39,6 +36,9 @@ import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.event.entity.EntityEvent;
 import net.minecraftforge.event.entity.EntityJoinLevelEvent;
 import net.minecraftforge.event.entity.living.LivingEvent;
+import net.minecraftforge.event.entity.living.LivingFallEvent;
+import net.minecraftforge.event.entity.player.SleepingLocationCheckEvent;
+import net.minecraftforge.eventbus.api.Event;
 import net.minecraftforge.eventbus.api.EventPriority;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
@@ -88,7 +88,9 @@ public class ForgeEventHandler {
             Brain<Wolf> replacement = WolfAi.makeBrain(BrainUtil.makeBrain(WolfAi.MEMORY_TYPES, WolfAi.SENSOR_TYPES, BrainUtil.makeDynamic(nbtOps)));
             boolean loadedFromDisk = event.loadedFromDisk();
             BrainUtil.replaceBrain(wolf, serverLevel, replacement, loadedFromDisk);
-            if(!loadedFromDisk) WolflikeAi.initMemories(wolf, wolf.getRandom());
+            if(!loadedFromDisk) {
+                WolfAi.initMemories(wolf, wolf.getRandom());
+            }
         }
     }
 
@@ -165,7 +167,11 @@ public class ForgeEventHandler {
     static void onEntitySize(EntityEvent.Size event){
         if(event.getEntity().getType() == EntityType.WOLF){
             EntityDimensions newSize = event.getNewSize();
-            event.setNewSize(newSize.scale(WolfAi.WOLF_SIZE_SCALE), true);
+            EntityDimensions resize = newSize.scale(WolfAi.WOLF_SIZE_SCALE);
+            if(event.getEntity().hasPose(Pose.LONG_JUMPING)){
+                resize = resize.scale(WolfAi.WOLF_SIZE_LONG_JUMPING_SCALE);
+            }
+            event.setNewSize(resize, true);
         }
     }
 
@@ -177,6 +183,24 @@ public class ForgeEventHandler {
                 && livingEntity.getType() == EntityType.WOLF
                 && wolf.level instanceof ServerLevel level){
             WolfAi.updateAi(level, wolf);
+            DebugUtil.sendEntityBrain(wolf, level);
+        }
+    }
+
+    @SubscribeEvent
+    static void onSleepPosCheck(SleepingLocationCheckEvent event){
+        if(event.getEntity().getType() == EntityType.WOLF){
+            event.setResult(Event.Result.ALLOW);
+        }
+    }
+
+    @SubscribeEvent
+    static void onLivingFall(LivingFallEvent event){
+        LivingEntity livingEntity = event.getEntity();
+        if(!event.isCanceled()
+                && livingEntity instanceof Wolf
+                && livingEntity.getType() == EntityType.WOLF){
+            event.setDistance(event.getDistance() - 5);
         }
     }
 
