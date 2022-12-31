@@ -1,4 +1,4 @@
-package com.infamous.call_of_the_wild.common.behavior.wolflike;
+package com.infamous.call_of_the_wild.common.behavior;
 
 import com.google.common.collect.ImmutableMap;
 import com.infamous.call_of_the_wild.common.registry.COTWMemoryModuleTypes;
@@ -24,13 +24,10 @@ public class PerchAndSearch<E extends PathfinderMob> extends Behavior<E> {
     private int lookTime;
     private int looksRemaining;
 
-    protected PerchAndSearch(Predicate<E> isSitting, BiConsumer<E, Boolean> toggleSitting) {
+    public PerchAndSearch(Predicate<E> isSitting, BiConsumer<E, Boolean> toggleSitting) {
         super(ImmutableMap.of(
-                MemoryModuleType.ANGRY_AT, MemoryStatus.VALUE_ABSENT,
-                MemoryModuleType.ATTACK_TARGET, MemoryStatus.VALUE_ABSENT,
                 COTWMemoryModuleTypes.IS_ALERT.get(), MemoryStatus.VALUE_ABSENT,
-                COTWMemoryModuleTypes.LONG_JUMP_TARGET.get(), MemoryStatus.VALUE_ABSENT,
-                MemoryModuleType.WALK_TARGET, MemoryStatus.REGISTERED,
+                MemoryModuleType.WALK_TARGET, MemoryStatus.VALUE_ABSENT,
                 MemoryModuleType.LOOK_TARGET, MemoryStatus.REGISTERED
         ));
         this.isSitting = isSitting;
@@ -39,8 +36,7 @@ public class PerchAndSearch<E extends PathfinderMob> extends Behavior<E> {
 
     @Override
     protected boolean checkExtraStartConditions(ServerLevel level, E mob) {
-        return mob.getRandom().nextFloat() < 0.02F
-                && !mob.isSleeping()
+        return !mob.isSleeping()
                 && mob.getNavigation().isDone()
                 && !mob.hasPose(Pose.CROUCHING)
                 && !this.isSitting.test(mob);
@@ -71,6 +67,11 @@ public class PerchAndSearch<E extends PathfinderMob> extends Behavior<E> {
             --this.looksRemaining;
             this.resetLook(mob);
         }
+    }
+
+    @Override
+    protected boolean timedOut(long gameTime) {
+        return false;
     }
 
     @Override

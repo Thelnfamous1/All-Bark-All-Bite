@@ -3,7 +3,6 @@ package com.infamous.call_of_the_wild.common.behavior;
 import com.google.common.collect.ImmutableMap;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
-import net.minecraft.util.RandomSource;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.PathfinderMob;
 import net.minecraft.world.entity.ai.behavior.Behavior;
@@ -12,7 +11,7 @@ import net.minecraft.world.entity.ai.memory.MemoryStatus;
 import net.minecraft.world.entity.ai.memory.WalkTarget;
 import net.minecraft.world.phys.Vec3;
 
-import javax.annotation.Nullable;
+import java.util.Optional;
 
 @SuppressWarnings("NullableProblems")
 public class FleeSun<E extends PathfinderMob> extends Behavior<E> {
@@ -27,6 +26,7 @@ public class FleeSun<E extends PathfinderMob> extends Behavior<E> {
         this.speedModifier = speedModifier;
     }
 
+    @Override
     public boolean checkExtraStartConditions(ServerLevel level, E mob) {
         if (!level.isDay()) {
             return false;
@@ -40,35 +40,26 @@ public class FleeSun<E extends PathfinderMob> extends Behavior<E> {
     }
 
     protected boolean setWantedPos(ServerLevel level, E mob) {
-        Vec3 hidePos = this.getHidePos(level, mob);
-        if (hidePos == null) {
+        Optional<Vec3> hidePos = this.getHidePos(level, mob);
+        if (hidePos.isEmpty()) {
             return false;
         } else {
-            this.wantedPos = hidePos;
+            this.wantedPos = hidePos.get();
             return true;
         }
     }
 
-    public boolean canStillUse(ServerLevel level, E mob, long gameTime) {
-        return !mob.getNavigation().isDone();
+    protected Optional<Vec3> getHidePos(ServerLevel level, E mob) {
+        return BlockPos.findClosestMatch(
+                mob.blockPosition(),
+                10,
+                3,
+                bp -> !level.canSeeSky(bp) && mob.getWalkTargetValue(bp) < 0.0F)
+                .map(Vec3::atBottomCenterOf);
     }
 
+    @Override
     public void start(ServerLevel level, E mob, long gameTime) {
         mob.getBrain().setMemory(MemoryModuleType.WALK_TARGET, new WalkTarget(this.wantedPos, this.speedModifier, 2));
-    }
-
-    @Nullable
-    protected Vec3 getHidePos(ServerLevel level, E mob) {
-        RandomSource random = mob.getRandom();
-        BlockPos blockPos = mob.blockPosition();
-
-        for(int i = 0; i < 10; ++i) {
-            BlockPos maybeHidePos = blockPos.offset(random.nextInt(20) - 10, random.nextInt(6) - 3, random.nextInt(20) - 10);
-            if (!level.canSeeSky(maybeHidePos) && mob.getWalkTargetValue(maybeHidePos) < 0.0F) {
-                return Vec3.atBottomCenterOf(maybeHidePos);
-            }
-        }
-
-        return null;
     }
 }

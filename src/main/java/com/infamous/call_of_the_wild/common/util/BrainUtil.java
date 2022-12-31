@@ -9,11 +9,10 @@ import net.minecraft.nbt.Tag;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.Brain;
-import net.minecraft.world.entity.ai.behavior.Behavior;
-import net.minecraft.world.entity.ai.behavior.GateBehavior;
-import net.minecraft.world.entity.ai.behavior.ShufflingList;
+import net.minecraft.world.entity.ai.behavior.*;
 import net.minecraft.world.entity.ai.memory.ExpirableValue;
 import net.minecraft.world.entity.ai.memory.MemoryModuleType;
+import net.minecraft.world.entity.ai.memory.MemoryStatus;
 import net.minecraft.world.entity.ai.sensing.Sensor;
 import net.minecraft.world.entity.ai.sensing.SensorType;
 import net.minecraft.world.entity.schedule.Activity;
@@ -83,5 +82,14 @@ public class BrainUtil {
         }
 
         return builder.build();
+    }
+
+    public static <E extends LivingEntity> GateBehavior<E> gateBehaviors(Map<MemoryModuleType<?>, MemoryStatus> entryCondition, Set<MemoryModuleType<?>> exitErasedMemories, GateBehavior.OrderPolicy orderPolicy, GateBehavior.RunningPolicy runningPolicy, ImmutableList<Pair<Behavior<? super E>, Integer>> behaviors){
+        return new GateBehavior<>(
+                entryCondition,
+                exitErasedMemories,
+                orderPolicy,
+                runningPolicy,
+                behaviors);
     }
 }

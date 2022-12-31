@@ -4,6 +4,7 @@ import com.infamous.call_of_the_wild.CallOfTheWild;
 import com.mojang.blaze3d.vertex.PoseStack;
 import net.minecraft.client.Camera;
 import net.minecraft.client.Minecraft;
+import net.minecraft.world.item.Items;
 import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.client.event.RenderLevelStageEvent;
@@ -16,7 +17,7 @@ public class ForgeClientEventHandler {
     @SuppressWarnings("ConstantConditions")
     @SubscribeEvent
     static void onRenderHighlight(RenderLevelStageEvent event){
-        if(event.getStage() == RenderLevelStageEvent.Stage.AFTER_PARTICLES){
+        if(Minecraft.getInstance().player.isHolding(Items.COMPASS) && event.getStage() == RenderLevelStageEvent.Stage.AFTER_PARTICLES){
             Camera camera = event.getCamera();
             Vec3 cameraPos = camera.getPosition();
             PoseStack poseStack = event.getPoseStack();

@@ -28,6 +28,6 @@ public class ModEventHandler {
 
     @SubscribeEvent
     static void onEntityAttributeModification(EntityAttributeModificationEvent event){
-        event.add(EntityType.WOLF, Attributes.FOLLOW_RANGE, 32.0D);
+        event.add(EntityType.WOLF, Attributes.FOLLOW_RANGE, 64.0D);
     }
 }

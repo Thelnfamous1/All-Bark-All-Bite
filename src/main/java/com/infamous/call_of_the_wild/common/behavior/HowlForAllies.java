@@ -24,7 +24,7 @@ import java.util.function.Function;
 import java.util.function.Predicate;
 
 @SuppressWarnings({"NullableProblems", "unused"})
-public class Howl<E extends LivingEntity> extends Behavior<E> {
+public class HowlForAllies<E extends LivingEntity> extends Behavior<E> {
     private final Predicate<E> wantsToHowl;
     private final BiPredicate<E, LivingEntity> wantsToListen;
     private final Consumer<E> onHowlStarted;
@@ -34,15 +34,15 @@ public class Howl<E extends LivingEntity> extends Behavior<E> {
     private final int closeEnough;
     private final UniformInt howlCooldown;
 
-    public Howl(BiPredicate<E, LivingEntity> canAlert, Consumer<E> onHowlStarted, Function<LivingEntity, Float> alertableSpeedModifier, int closeEnough, UniformInt howlCooldown) {
-        this(le -> true, canAlert, onHowlStarted, 32, 16, alertableSpeedModifier, closeEnough, howlCooldown);
+    public HowlForAllies(BiPredicate<E, LivingEntity> canAlert, Consumer<E> onHowlStarted, Function<LivingEntity, Float> alertableSpeedModifier, int closeEnough, UniformInt howlCooldown) {
+        this(le -> true, canAlert, onHowlStarted, 64, 16, alertableSpeedModifier, closeEnough, howlCooldown);
     }
 
-    public Howl(Predicate<E> wantsToHowl, BiPredicate<E, LivingEntity> canAlert, Consumer<E> onHowlStarted, Function<LivingEntity, Float> alertableSpeedModifier, int closeEnough, UniformInt howlCooldown) {
-        this(wantsToHowl, canAlert, onHowlStarted, 32, 16, alertableSpeedModifier, closeEnough, howlCooldown);
+    public HowlForAllies(Predicate<E> wantsToHowl, BiPredicate<E, LivingEntity> canAlert, Consumer<E> onHowlStarted, Function<LivingEntity, Float> alertableSpeedModifier, int closeEnough, UniformInt howlCooldown) {
+        this(wantsToHowl, canAlert, onHowlStarted, 64, 16, alertableSpeedModifier, closeEnough, howlCooldown);
     }
 
-    public Howl(Predicate<E> wantsToHowl, BiPredicate<E, LivingEntity> canAlert, Consumer<E> onHowlStarted, int radiusXZ, int radiusY, Function<LivingEntity, Float> alertableSpeedModifier, int closeEnough, UniformInt howlCooldown) {
+    public HowlForAllies(Predicate<E> wantsToHowl, BiPredicate<E, LivingEntity> canAlert, Consumer<E> onHowlStarted, int radiusXZ, int radiusY, Function<LivingEntity, Float> alertableSpeedModifier, int closeEnough, UniformInt howlCooldown) {
         super(ImmutableMap.of(
                 COTWMemoryModuleTypes.NEAREST_ADULTS.get(), MemoryStatus.VALUE_ABSENT,
                 COTWMemoryModuleTypes.NEAREST_ALLIES.get(), MemoryStatus.REGISTERED,
@@ -85,13 +85,12 @@ public class Howl<E extends LivingEntity> extends Behavior<E> {
 
     @SuppressWarnings("OptionalGetWithoutIsPresent")
     private void scheduleSignal(ServerLevel level, Vec3 eventSource, PositionSource listenerSource) {
-        Vec3 distanceVec = listenerSource.getPosition(level).get().subtract(eventSource);
+        Vec3 listenerPos = listenerSource.getPosition(level).get();
+        Vec3 distanceVec = listenerPos.subtract(eventSource);
         int particleCount = Mth.floor(distanceVec.length()) + 7;
 
-        listenerSource.getPosition(level).ifPresent(position -> {
-            float receivingDistance = (float)eventSource.distanceTo(position);
-            int travelTimeInTicks = Mth.floor(receivingDistance);
-            level.sendParticles(new VibrationParticleOption(listenerSource, travelTimeInTicks), eventSource.x, eventSource.y, eventSource.z, particleCount, 0.0D, 0.0D, 0.0D, 0.0D);
-        });
+        float receivingDistance = (float)eventSource.distanceTo(listenerPos);
+        int travelTimeInTicks = Mth.floor(receivingDistance);
+        level.sendParticles(new VibrationParticleOption(listenerSource, travelTimeInTicks), eventSource.x, eventSource.y, eventSource.z, particleCount, 0.0D, 0.0D, 0.0D, 0.0D);
     }
 }

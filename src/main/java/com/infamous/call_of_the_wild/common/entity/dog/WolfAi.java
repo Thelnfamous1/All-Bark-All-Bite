@@ -45,7 +45,10 @@ public class WolfAi {
             MemoryModuleType.HURT_BY_ENTITY,
             MemoryModuleType.INTERACTION_TARGET,
             MemoryModuleType.IS_PANICKING,
+            COTWMemoryModuleTypes.IS_SLEEPING.get(),
             MemoryModuleType.IS_TEMPTED,
+            MemoryModuleType.LAST_SLEPT,
+            MemoryModuleType.LAST_WOKEN,
             MemoryModuleType.LONG_JUMP_COOLDOWN_TICKS,
             MemoryModuleType.LONG_JUMP_MID_JUMP,
             COTWMemoryModuleTypes.LONG_JUMP_TARGET.get(),
@@ -98,6 +101,7 @@ public class WolfAi {
         initRetreatActivity(brain);
         initLongJumpActivity(brain);
         initStalkActivity(brain);
+        initRestActivity(brain);
         initIdleActivity(brain);
         brain.setCoreActivities(ImmutableSet.of(Activity.CORE));
         brain.setDefaultActivity(Activity.IDLE);
@@ -147,6 +151,14 @@ public class WolfAi {
         );
     }
 
+    private static void initRestActivity(Brain<Wolf> brain) {
+        brain.addActivityAndRemoveMemoryWhenStopped(Activity.REST,
+                0,
+                ImmutableList.of(),
+                COTWMemoryModuleTypes.IS_SLEEPING.get()
+        );
+    }
+
     private static void initIdleActivity(Brain<Wolf> brain) {
         brain.addActivityWithConditions(Activity.IDLE,
                 WolfGoalPackages.getIdlePackage(),
@@ -174,7 +186,7 @@ public class WolfAi {
     public static void updateActivity(Wolf wolf) {
         Brain<?> brain = wolf.getBrain();
         Activity previous = brain.getActiveNonCoreActivity().orElse(null);
-        brain.setActiveActivityToFirstValid(ImmutableList.of(Activity.FIGHT, Activity.AVOID, COTWActivities.STALK.get(), Activity.IDLE, Activity.LONG_JUMP));
+        brain.setActiveActivityToFirstValid(ImmutableList.of(Activity.FIGHT, Activity.AVOID, COTWActivities.STALK.get(), Activity.REST, Activity.IDLE, Activity.LONG_JUMP));
         Activity current = brain.getActiveNonCoreActivity().orElse(null);
 
         if (previous != current) {
@@ -185,6 +197,31 @@ public class WolfAi {
         wolf.setSprinting(canSprint(wolf));
 
         PackAi.updatePack(wolf, FollowPackLeader.INTERVAL_TICKS);
+
+        /*
+        Optional<LivingEntity> target = HunterAi.getStalkTarget(wolf);
+        if (target.isEmpty() || !target.get().isAlive()) {
+            if(wolf.hasPose(Pose.CROUCHING)){
+                wolf.setPose(Pose.STANDING);
+                wolf.setIsInterested(false);
+            }
+        }
+         */
+        boolean inWater = wolf.isInWater();
+        if (inWater || wolf.getTarget() != null || wolf.level.isThundering()) {
+            GenericAi.wakeUp(wolf);
+        }
+
+        if (inWater || wolf.isSleeping()) {
+            wolf.setOrderedToSit(false);
+            wolf.setInSittingPose(false);
+        }
+
+        if(wolf.isSleeping()){
+            wolf.setJumping(false);
+            wolf.xxa = 0.0F;
+            wolf.zza = 0.0F;
+        }
     }
 
     private static boolean canSprint(Wolf wolf) {
@@ -211,6 +248,8 @@ public class WolfAi {
             return SoundEvents.WOLF_GROWL;
         } else if (activity == Activity.AVOID && GenericAi.isNearAvoidTarget(wolf, SharedWolfAi.DESIRED_DISTANCE_FROM_DISLIKED)) {
             return SoundEvents.WOLF_HURT;
+        } else if (activity == Activity.REST) {
+            return SoundEvents.FOX_SLEEP;
         } else if (wolf.getRandom().nextInt(3) == 0) {
             return wolf.isTame() && wolf.getHealth() < wolf.getMaxHealth() * 0.5F ? SoundEvents.WOLF_WHINE : SoundEvents.WOLF_PANT;
         } else {

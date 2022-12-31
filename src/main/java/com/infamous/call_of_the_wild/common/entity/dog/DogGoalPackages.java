@@ -3,8 +3,8 @@ package com.infamous.call_of_the_wild.common.entity.dog;
 import com.google.common.collect.ImmutableList;
 import com.infamous.call_of_the_wild.common.COTWTags;
 import com.infamous.call_of_the_wild.common.behavior.Beg;
+import com.infamous.call_of_the_wild.common.behavior.HurtByTrigger;
 import com.infamous.call_of_the_wild.common.behavior.LeapAtTarget;
-import com.infamous.call_of_the_wild.common.behavior.Retaliate;
 import com.infamous.call_of_the_wild.common.behavior.dig.DigAtLocation;
 import com.infamous.call_of_the_wild.common.behavior.hunter.RememberIfHuntTargetWasKilled;
 import com.infamous.call_of_the_wild.common.behavior.hunter.StartHunting;
@@ -15,7 +15,10 @@ import com.infamous.call_of_the_wild.common.behavior.pet.OwnerHurtTarget;
 import com.infamous.call_of_the_wild.common.behavior.pet.SitWhenOrderedTo;
 import com.infamous.call_of_the_wild.common.registry.COTWEntityTypes;
 import com.infamous.call_of_the_wild.common.registry.COTWMemoryModuleTypes;
-import com.infamous.call_of_the_wild.common.util.*;
+import com.infamous.call_of_the_wild.common.util.AiUtil;
+import com.infamous.call_of_the_wild.common.util.BrainUtil;
+import com.infamous.call_of_the_wild.common.util.GenericAi;
+import com.infamous.call_of_the_wild.common.util.HunterAi;
 import com.infamous.call_of_the_wild.data.COTWBuiltInLootTables;
 import com.mojang.datafixers.util.Pair;
 import net.minecraft.core.BlockPos;
@@ -25,9 +28,7 @@ import net.minecraft.world.entity.*;
 import net.minecraft.world.entity.ai.Brain;
 import net.minecraft.world.entity.ai.behavior.*;
 import net.minecraft.world.entity.ai.memory.MemoryModuleType;
-import net.minecraft.world.entity.ai.sensing.Sensor;
 import net.minecraft.world.entity.item.ItemEntity;
-import net.minecraft.world.entity.schedule.Activity;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.storage.loot.LootContext;
 import net.minecraft.world.level.storage.loot.LootTable;
@@ -66,7 +67,7 @@ public class DogGoalPackages {
                         new RunIf<>(DogGoalPackages::canFetch, new StartItemActivityWithItemIfSeen<>(DogGoalPackages::canFetch, COTWMemoryModuleTypes.FETCHING_ITEM.get(), COTWMemoryModuleTypes.FETCHING_DISABLED.get(), COTWMemoryModuleTypes.DISABLE_WALK_TO_FETCH_ITEM.get())),
                         new CountDownCooldownTicks(MemoryModuleType.TEMPTATION_COOLDOWN_TICKS),
                         new CountDownCooldownTicks(MemoryModuleType.ITEM_PICKUP_COOLDOWN_TICKS),
-                        new Retaliate<>(DogGoalPackages::wasHurtBy),
+                        new HurtByTrigger<>(DogGoalPackages::wasHurtBy),
                         new StopBeingAngryIfTargetDead<>()));
     }
 
@@ -98,19 +99,15 @@ public class DogGoalPackages {
             stopHoldingItemInMouth(dog);
         }
 
+        dog.setIsInterested(false);
+        SharedWolfAi.clearStates(dog);
+
         AiUtil.eraseAllMemories(dog,
                 MemoryModuleType.BREED_TARGET,
                 COTWMemoryModuleTypes.FETCHING_ITEM.get(),
                 COTWMemoryModuleTypes.DIG_LOCATION.get());
 
-        if (dog.isBaby()) {
-            GenericAi.setAvoidTarget(dog, attacker, SharedWolfAi.RETREAT_DURATION.sample(dog.level.random));
-            if (Sensor.isEntityAttackableIgnoringLineOfSight(dog, attacker)) {
-                AngerAi.broadcastAngerTarget(GenericAi.getNearbyAdults(dog).stream().map(Dog.class::cast).filter(d -> SharedWolfAi.wantsToRetaliate(d, attacker)).toList(), attacker, SharedWolfAi.ANGER_DURATION);
-            }
-        } else if(!dog.getBrain().isActive(Activity.AVOID)){
-            AngerAi.maybeRetaliate(dog, GenericAi.getNearbyAdults(dog).stream().map(Dog.class::cast).filter(d -> SharedWolfAi.wantsToRetaliate(d, attacker)).toList(), attacker, SharedWolfAi.ANGER_DURATION, SharedWolfAi.TOO_FAR_TO_SWITCH_TARGETS);
-        }
+        SharedWolfAi.tellAlliesIWasAttacked(dog, attacker);
     }
 
     static void onThrown(Dog dog){
@@ -167,10 +164,10 @@ public class DogGoalPackages {
         return new RunOne<>(
                 ImmutableList.of(
                         Pair.of(new RandomStroll(SharedWolfAi.SPEED_MODIFIER_WALKING), 2),
-                        Pair.of(InteractWith.of(COTWEntityTypes.DOG.get(), SharedWolfAi.INTERACTION_RANGE, MemoryModuleType.INTERACTION_TARGET, SharedWolfAi.SPEED_MODIFIER_WALKING, 2), 2),
-                        Pair.of(InteractWith.of(EntityType.PLAYER, SharedWolfAi.INTERACTION_RANGE, MemoryModuleType.INTERACTION_TARGET, SharedWolfAi.SPEED_MODIFIER_WALKING, 2), 2),
-                        Pair.of(InteractWith.of(EntityType.VILLAGER, SharedWolfAi.INTERACTION_RANGE, MemoryModuleType.INTERACTION_TARGET, SharedWolfAi.SPEED_MODIFIER_WALKING, 2), 2),
-                        Pair.of(new RunIf<>(GenericAi::doesntSeeAnyPlayerHoldingWantedItem, new SetWalkTargetFromLookTarget(SharedWolfAi.SPEED_MODIFIER_WALKING, 3)), 2),
+                        Pair.of(InteractWith.of(COTWEntityTypes.DOG.get(), SharedWolfAi.INTERACTION_RANGE, MemoryModuleType.INTERACTION_TARGET, SharedWolfAi.SPEED_MODIFIER_WALKING, SharedWolfAi.CLOSE_ENOUGH_TO_INTERACT), 2),
+                        Pair.of(InteractWith.of(EntityType.PLAYER, SharedWolfAi.INTERACTION_RANGE, MemoryModuleType.INTERACTION_TARGET, SharedWolfAi.SPEED_MODIFIER_WALKING, SharedWolfAi.CLOSE_ENOUGH_TO_INTERACT), 2),
+                        Pair.of(InteractWith.of(EntityType.VILLAGER, SharedWolfAi.INTERACTION_RANGE, MemoryModuleType.INTERACTION_TARGET, SharedWolfAi.SPEED_MODIFIER_WALKING, SharedWolfAi.CLOSE_ENOUGH_TO_INTERACT), 2),
+                        Pair.of(new RunIf<>(GenericAi::doesntSeeAnyPlayerHoldingWantedItem, new SetWalkTargetFromLookTarget(SharedWolfAi.SPEED_MODIFIER_WALKING, SharedWolfAi.CLOSE_ENOUGH_TO_LOOK_TARGET)), 2),
                         Pair.of(new DoNothing(30, 60), 1)));
     }
 
@@ -298,7 +295,7 @@ public class DogGoalPackages {
 
     private static boolean canHunt(Dog dog){
         return !dog.isTame()
-                && AiUtil.hasAnyMemory(dog, MemoryModuleType.ANGRY_AT)
+                && !AiUtil.hasAnyMemory(dog, MemoryModuleType.ANGRY_AT)
                 && !dog.isBaby()
                 && !HunterAi.hasAnyoneNearbyHuntedRecently(dog, GenericAi.getNearbyAdults(dog))
                 && SharedWolfAi.canStartAttacking(dog);

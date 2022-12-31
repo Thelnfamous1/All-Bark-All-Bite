@@ -2,11 +2,11 @@ package com.infamous.call_of_the_wild.common.util;
 
 import com.google.common.collect.ImmutableList;
 import com.infamous.call_of_the_wild.common.registry.COTWMemoryModuleTypes;
-import net.minecraft.core.BlockPos;
 import net.minecraft.world.entity.*;
 import net.minecraft.world.entity.ai.Brain;
 import net.minecraft.world.entity.ai.memory.MemoryModuleType;
 import net.minecraft.world.entity.ai.util.LandRandomPos;
+import net.minecraft.world.entity.animal.Fox;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.phys.Vec3;
 
@@ -77,15 +77,21 @@ public class GenericAi {
         return !seesPlayerHoldingWantedItem(livingEntity);
     }
 
-    public static void startSleeping(LivingEntity livingEntity, BlockPos bedPosition) {
-        livingEntity.startSleeping(bedPosition);
-        livingEntity.getBrain().setMemory(MemoryModuleType.LAST_SLEPT, livingEntity.level.getGameTime());
-        livingEntity.getBrain().eraseMemory(MemoryModuleType.WALK_TARGET);
-        livingEntity.getBrain().eraseMemory(MemoryModuleType.CANT_REACH_WALK_TARGET_SINCE);
+    public static void wakeUp(LivingEntity mob) {
+        if(mob instanceof Fox fox){
+            ReflectionUtil.callMethod("m_28626_", fox, false);
+        }
+        mob.stopSleeping();
+        mob.getBrain().setMemory(MemoryModuleType.LAST_WOKEN, mob.level.getGameTime());
     }
 
-    public static void stopSleeping(LivingEntity livingEntity) {
-        livingEntity.stopSleeping();
-        livingEntity.getBrain().setMemory(MemoryModuleType.LAST_WOKEN, livingEntity.level.getGameTime());
+    public static void goToSleep(LivingEntity mob) {
+        if(mob instanceof Fox fox){
+            ReflectionUtil.callMethod("m_28626_", fox, true);
+        }
+        mob.startSleeping(mob.blockPosition());
+        mob.getBrain().setMemory(MemoryModuleType.LAST_SLEPT, mob.level.getGameTime());
+        mob.getBrain().eraseMemory(MemoryModuleType.WALK_TARGET);
+        mob.getBrain().eraseMemory(MemoryModuleType.CANT_REACH_WALK_TARGET_SINCE);
     }
 }

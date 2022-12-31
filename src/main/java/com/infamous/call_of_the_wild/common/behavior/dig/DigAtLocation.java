@@ -18,7 +18,7 @@ import java.util.function.Consumer;
 
 @SuppressWarnings("NullableProblems")
 public class DigAtLocation<E extends LivingEntity> extends Behavior<E> {
-   private static final long CHECK_COOLDOWN = 10L;
+   private static final long CHECK_COOLDOWN = 40L;
    private static final double DISTANCE = 1.73D;
    private long lastCheckTimestamp;
    private final Consumer<E> onDigCompleted;
