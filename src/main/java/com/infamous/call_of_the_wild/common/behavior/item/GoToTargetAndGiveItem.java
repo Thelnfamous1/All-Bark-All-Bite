@@ -22,13 +22,15 @@ public class GoToTargetAndGiveItem<E extends LivingEntity> extends Behavior<E> {
    private final float speedModifier;
    private final int closeEnough;
    private final Consumer<E> onThrown;
+   private final int throwYOffset;
 
-   public GoToTargetAndGiveItem(Function<E, ItemStack> itemGetter, Function<E, Optional<PositionTracker>> targetPositionGetter, float speedModifier, int closeEnough, Consumer<E> onThrown) {
+   public GoToTargetAndGiveItem(Function<E, ItemStack> itemGetter, Function<E, Optional<PositionTracker>> targetPositionGetter, float speedModifier, int closeEnough, int throwYOffset, Consumer<E> onThrown) {
       super(Map.of(MemoryModuleType.LOOK_TARGET, MemoryStatus.REGISTERED, MemoryModuleType.WALK_TARGET, MemoryStatus.REGISTERED));
       this.itemGetter = itemGetter;
       this.targetPositionGetter = targetPositionGetter;
       this.speedModifier = speedModifier;
       this.closeEnough = closeEnough;
+      this.throwYOffset = throwYOffset;
       this.onThrown = onThrown;
    }
 
@@ -44,9 +46,9 @@ public class GoToTargetAndGiveItem<E extends LivingEntity> extends Behavior<E> {
 
    @Override
    protected void tick(ServerLevel level, E mob, long gameTime) {
-      Optional<PositionTracker> maybePositionTracker = this.targetPositionGetter.apply(mob);
-      if (maybePositionTracker.isPresent()) {
-         PositionTracker positionTracker = maybePositionTracker.get();
+      Optional<PositionTracker> targetPosition = this.targetPositionGetter.apply(mob);
+      if (targetPosition.isPresent()) {
+         PositionTracker positionTracker = targetPosition.get();
          double distanceToMob = positionTracker.currentPosition().distanceTo(mob.getEyePosition());
          if (distanceToMob < this.closeEnough) {
             ItemStack toThrow = this.itemGetter.apply(mob).split(1);
@@ -72,7 +74,7 @@ public class GoToTargetAndGiveItem<E extends LivingEntity> extends Behavior<E> {
       }
    }
 
-   private static Vec3 getThrowPosition(PositionTracker positionTracker) {
-      return positionTracker.currentPosition().add(0.0D, 1.0D, 0.0D);
+   private Vec3 getThrowPosition(PositionTracker positionTracker) {
+      return positionTracker.currentPosition().add(0.0D, this.throwYOffset, 0.0D);
    }
 }

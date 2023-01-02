@@ -1,6 +1,6 @@
 package com.infamous.call_of_the_wild.client;
 
-import com.infamous.call_of_the_wild.common.entity.dog.WolfAi;
+import com.infamous.call_of_the_wild.common.entity.dog.ai.WolfAi;
 import com.mojang.blaze3d.vertex.PoseStack;
 import net.minecraft.client.renderer.entity.EntityRendererProvider;
 import net.minecraft.client.renderer.entity.WolfRenderer;

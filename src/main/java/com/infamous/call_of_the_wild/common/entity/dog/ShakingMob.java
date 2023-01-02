@@ -1,4 +1,4 @@
-package com.infamous.call_of_the_wild.common.entity;
+package com.infamous.call_of_the_wild.common.entity.dog;
 
 import com.infamous.call_of_the_wild.common.util.MiscUtil;
 import net.minecraft.core.particles.ParticleTypes;

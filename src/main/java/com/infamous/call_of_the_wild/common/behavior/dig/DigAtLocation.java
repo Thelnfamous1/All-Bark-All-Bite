@@ -2,11 +2,12 @@ package com.infamous.call_of_the_wild.common.behavior.dig;
 
 import com.google.common.collect.ImmutableMap;
 import com.infamous.call_of_the_wild.common.registry.COTWMemoryModuleTypes;
+import com.infamous.call_of_the_wild.common.util.DigAi;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.GlobalPos;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.Pose;
-import net.minecraft.world.entity.ai.Brain;
 import net.minecraft.world.entity.ai.behavior.Behavior;
 import net.minecraft.world.entity.ai.behavior.BlockPosTracker;
 import net.minecraft.world.entity.ai.memory.MemoryModuleType;
@@ -19,7 +20,6 @@ import java.util.function.Consumer;
 @SuppressWarnings("NullableProblems")
 public class DigAtLocation<E extends LivingEntity> extends Behavior<E> {
    private static final long CHECK_COOLDOWN = 40L;
-   private static final double DISTANCE = 1.73D;
    private long lastCheckTimestamp;
    private final Consumer<E> onDigCompleted;
    private final long digDuration;
@@ -39,8 +39,8 @@ public class DigAtLocation<E extends LivingEntity> extends Behavior<E> {
          return false;
       } else {
          this.lastCheckTimestamp = level.getGameTime();
-         BlockPos blockPos = mob.getBrain().getMemory(COTWMemoryModuleTypes.DIG_LOCATION.get()).get();
-         return blockPos.closerToCenterThan(mob.position(), DISTANCE);
+         GlobalPos digLocation = DigAi.getDigLocation(mob).get();
+         return digLocation.dimension() == level.dimension() && digLocation.pos().closerToCenterThan(mob.position(), 1);
       }
    }
 
@@ -52,18 +52,16 @@ public class DigAtLocation<E extends LivingEntity> extends Behavior<E> {
    }
 
    private void lookAtDigLocation(E mob) {
-      Brain<?> brain = mob.getBrain();
-      brain.getMemory(COTWMemoryModuleTypes.DIG_LOCATION.get()).ifPresent((bp) -> brain.setMemory(MemoryModuleType.LOOK_TARGET, new BlockPosTracker(bp)));
+      DigAi.getDigLocation(mob).ifPresent((bp) -> mob.getBrain().setMemory(MemoryModuleType.LOOK_TARGET, new BlockPosTracker(bp.pos())));
    }
 
    @Override
    protected void tick(ServerLevel level, E mob, long gameTime) {
-      this.lookAtDigLocation(mob);
-      Brain<?> brain = mob.getBrain();
-      if(gameTime % 4L == 0L) brain.getMemory(COTWMemoryModuleTypes.DIG_LOCATION.get()).ifPresent((bp) -> this.playDiggingSound(level, mob, bp));
+      //this.lookAtDigLocation(mob);
+      if(gameTime % 4L == 0L) DigAi.getDigLocation(mob).ifPresent((bp) -> this.playDiggingSound(level, mob, bp.pos()));
       if(gameTime >= this.digUpAtTime){
          this.onDigCompleted.accept(mob);
-         brain.eraseMemory(COTWMemoryModuleTypes.DIG_LOCATION.get());
+         mob.getBrain().eraseMemory(COTWMemoryModuleTypes.DIG_LOCATION.get());
       }
    }
 
@@ -79,12 +77,12 @@ public class DigAtLocation<E extends LivingEntity> extends Behavior<E> {
 
    @Override
    protected boolean canStillUse(ServerLevel level, E mob, long gameTime) {
-      Optional<BlockPos> optional = mob.getBrain().getMemory(COTWMemoryModuleTypes.DIG_LOCATION.get());
+      Optional<GlobalPos> optional = DigAi.getDigLocation(mob);
       if (optional.isEmpty()) {
          return false;
       } else {
-         BlockPos blockPos = optional.get();
-         return blockPos.closerToCenterThan(mob.position(), DISTANCE);
+         GlobalPos globalpos = optional.get();
+         return globalpos.dimension() == level.dimension() && globalpos.pos().closerToCenterThan(mob.position(), 1);
       }
    }
 

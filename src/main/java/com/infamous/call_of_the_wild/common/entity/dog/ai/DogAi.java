@@ -1,4 +1,4 @@
-package com.infamous.call_of_the_wild.common.entity.dog;
+package com.infamous.call_of_the_wild.common.entity.dog.ai;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
@@ -101,11 +101,11 @@ public class DogAi {
 
         if(dog.isTame()){
             if (!(item instanceof DyeItem dyeItem)) {
-                if(DogGoalPackages.canBury(stack) && !DogGoalPackages.hasDigLocation(dog) && !hasDigCooldown(dog)){
+                if(DogGoalPackages.canBury(stack) && !AiUtil.hasAnyMemory(dog, COTWMemoryModuleTypes.DIG_LOCATION.get(), MemoryModuleType.DIG_COOLDOWN)){
                     Optional<BlockPos> digLocation = generateDigLocation(dog);
                     if(digLocation.isPresent()){
                         yieldAsPet(dog);
-                        setDigLocation(dog, digLocation.get());
+                        DigAi.setDigLocation(dog, digLocation.get());
                         ItemStack singleton = stack.split(1);
                         holdInMouth(dog, singleton);
                         return InteractionResult.CONSUME;
@@ -155,18 +155,6 @@ public class DogAi {
         return InteractionResult.PASS;
     }
 
-    private static boolean hasDigCooldown(Dog dog){
-        return dog.getBrain().hasMemoryValue(MemoryModuleType.DIG_COOLDOWN);
-    }
-
-    public static Optional<BlockPos> generateDigLocation(Dog dog){
-        Vec3 randomPos = LandRandomPos.getPos(dog, 10, 7);
-        if(randomPos == null) return Optional.empty();
-
-        BlockPos blockPos = new BlockPos(randomPos);
-        return Optional.of(blockPos).filter(bp -> dog.level.getBlockState(bp.below()).is(COTWTags.DOG_CAN_DIG));
-    }
-
     private static void yieldAsPet(Dog dog) {
         GenericAi.stopWalking(dog);
 
@@ -177,10 +165,6 @@ public class DogAi {
                 MemoryModuleType.AVOID_TARGET,
                 COTWMemoryModuleTypes.FETCHING_ITEM.get(),
                 COTWMemoryModuleTypes.DIG_LOCATION.get());
-    }
-
-    private static void setDigLocation(Dog dog, BlockPos blockPos){
-        dog.getBrain().setMemory(COTWMemoryModuleTypes.DIG_LOCATION.get(), blockPos);
     }
 
     private static void holdInMouth(Dog dog, ItemStack stack) {
@@ -254,4 +238,11 @@ public class DogAi {
         holdInMouth(dog, singleton);
     }
 
+    public static Optional<BlockPos> generateDigLocation(Dog dog){
+        Vec3 randomPos = LandRandomPos.getPos(dog, 10, 7);
+        if(randomPos == null) return Optional.empty();
+
+        BlockPos blockPos = new BlockPos(randomPos);
+        return Optional.of(blockPos).filter(bp -> dog.level.getBlockState(bp.below()).is(COTWTags.DOG_CAN_DIG));
+    }
 }

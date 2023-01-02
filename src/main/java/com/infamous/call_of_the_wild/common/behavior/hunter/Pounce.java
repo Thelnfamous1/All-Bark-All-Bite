@@ -1,7 +1,7 @@
 package com.infamous.call_of_the_wild.common.behavior.hunter;
 
 import com.google.common.collect.ImmutableMap;
-import com.infamous.call_of_the_wild.common.entity.dog.SharedWolfAi;
+import com.infamous.call_of_the_wild.common.entity.dog.ai.SharedWolfAi;
 import com.infamous.call_of_the_wild.common.registry.COTWMemoryModuleTypes;
 import com.infamous.call_of_the_wild.common.util.*;
 import net.minecraft.server.level.ServerLevel;

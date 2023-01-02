@@ -9,6 +9,7 @@ import net.minecraft.tags.TagKey;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.gameevent.GameEvent;
 
 public class COTWTags {
     public static final TagKey<Item> DOG_BURIES = ItemTags.create(new ResourceLocation(CallOfTheWild.MODID, "dog_buries"));
@@ -29,8 +30,15 @@ public class COTWTags {
     public static final TagKey<EntityType<?>> WOLF_ALWAYS_HOSTILES = createEntityTypeTag("wolf_always_hostiles");
     public static final TagKey<EntityType<?>> WOLF_DISLIKED = createEntityTypeTag("wolf_disliked");
 
+    public static final TagKey<GameEvent> WOLF_CAN_LISTEN = createGameEventTag("wolf_can_listen");
+
+    public static final TagKey<GameEvent> DOG_CAN_LISTEN = createGameEventTag("dog_can_listen");
+
     private static TagKey<EntityType<?>> createEntityTypeTag(String path) {
         return TagKey.create(Registry.ENTITY_TYPE_REGISTRY, new ResourceLocation(CallOfTheWild.MODID, path));
+    }
+    private static TagKey<GameEvent> createGameEventTag(String path) {
+        return TagKey.create(Registry.GAME_EVENT_REGISTRY, new ResourceLocation(CallOfTheWild.MODID, path));
     }
 
 }

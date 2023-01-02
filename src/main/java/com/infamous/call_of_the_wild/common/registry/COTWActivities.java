@@ -15,4 +15,7 @@ public class COTWActivities {
 
     private static final String STALK_NAME = "stalk";
     public static RegistryObject<Activity> STALK = ACTIVITIES.register(STALK_NAME, () -> new Activity(STALK_NAME));
+
+    private static final String HOWL_NAME = "howl";
+    public static RegistryObject<Activity> HOWL = ACTIVITIES.register(HOWL_NAME, () -> new Activity(HOWL_NAME));
 }

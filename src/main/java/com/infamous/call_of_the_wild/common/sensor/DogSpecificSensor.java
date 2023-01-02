@@ -2,9 +2,9 @@ package com.infamous.call_of_the_wild.common.sensor;
 
 import com.google.common.collect.ImmutableSet;
 import com.infamous.call_of_the_wild.common.COTWTags;
-import com.infamous.call_of_the_wild.common.entity.dog.Dog;
-import com.infamous.call_of_the_wild.common.entity.dog.DogGoalPackages;
-import com.infamous.call_of_the_wild.common.entity.dog.SharedWolfAi;
+import com.infamous.call_of_the_wild.common.entity.dog.ai.Dog;
+import com.infamous.call_of_the_wild.common.entity.dog.ai.DogGoalPackages;
+import com.infamous.call_of_the_wild.common.entity.dog.ai.SharedWolfAi;
 import com.infamous.call_of_the_wild.common.registry.COTWMemoryModuleTypes;
 import com.infamous.call_of_the_wild.common.util.AiUtil;
 import net.minecraft.server.level.ServerLevel;

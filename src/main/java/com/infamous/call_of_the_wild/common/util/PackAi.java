@@ -1,12 +1,14 @@
 package com.infamous.call_of_the_wild.common.util;
 
+import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Sets;
 import com.infamous.call_of_the_wild.common.registry.COTWMemoryModuleTypes;
 import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.Mob;
 import net.minecraft.world.entity.ai.behavior.BehaviorUtils;
-import net.minecraft.world.entity.animal.Wolf;
+import net.minecraftforge.event.ForgeEventFactory;
 
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 public class PackAi {
     public static boolean hasFollowers(LivingEntity mob) {
@@ -14,72 +16,79 @@ public class PackAi {
     }
 
     public static int getPackSize(LivingEntity mob) {
-        return mob.getBrain().getMemory(COTWMemoryModuleTypes.PACK_SIZE.get()).orElse(1);
+        return getFollowers(mob).orElse(ImmutableSet.of()).size();
+    }
+
+    public static Optional<Set<LivingEntity>> getFollowers(LivingEntity mob) {
+        if(!mob.getBrain().hasMemoryValue(COTWMemoryModuleTypes.FOLLOWERS.get())){
+            mob.getBrain().setMemory(COTWMemoryModuleTypes.FOLLOWERS.get(), Sets.newHashSet(mob));
+        }
+        return mob.getBrain().getMemory(COTWMemoryModuleTypes.FOLLOWERS.get());
+    }
+
+    public static Optional<UUID> getLeaderUUID(LivingEntity mob) {
+        return mob.getBrain().getMemory(COTWMemoryModuleTypes.LEADER.get());
     }
 
     public static Optional<LivingEntity> getLeader(LivingEntity mob) {
-        return mob.getBrain().getMemory(COTWMemoryModuleTypes.PACK_LEADER.get());
+        return BehaviorUtils.getLivingEntityFromUUIDMemory(mob, COTWMemoryModuleTypes.LEADER.get());
     }
 
-    public static void stopFollowing(LivingEntity mob) {
-        getLeader(mob).ifPresent(leader -> {
-            removeFollower(leader);
-            eraseLeader(mob);
-        });
+    public static void stopFollowing(LivingEntity mob, LivingEntity leader) {
+        removeFollower(leader, mob);
+        eraseLeader(mob);
     }
 
-    private static void setPackSize(LivingEntity mob, int packSize) {
-        mob.getBrain().setMemory(COTWMemoryModuleTypes.PACK_SIZE.get(), Math.max(packSize, 1));
+    private static void removeFollower(LivingEntity leader, LivingEntity mob) {
+        getFollowers(leader).ifPresent(followers -> followers.remove(mob));
     }
 
-    private static void removeFollower(LivingEntity mob) {
-        setPackSize(mob, getPackSize(mob) - 1);
-    }
-
-    private static void eraseLeader(LivingEntity mob) {
-        mob.getBrain().eraseMemory(COTWMemoryModuleTypes.PACK_LEADER.get());
+    public static void eraseLeader(LivingEntity mob) {
+        mob.getBrain().eraseMemory(COTWMemoryModuleTypes.LEADER.get());
     }
 
     public static boolean isFollower(LivingEntity mob) {
-        Optional<LivingEntity> leader = getLeader(mob);
-        return leader.isPresent() && leader.get().isAlive();
+        return getLeaderUUID(mob).isPresent();
     }
 
     public static void startFollowing(LivingEntity mob, LivingEntity leader) {
-        mob.getBrain().setMemory(COTWMemoryModuleTypes.PACK_LEADER.get(), leader);
-        setPackSize(leader, getPackSize(leader) + 1);
+        setLeader(mob, leader);
+        getFollowers(leader).ifPresent(followers -> followers.add(mob));
     }
 
-    public static boolean canFollow(LivingEntity mob, LivingEntity other, int otherMaxPackSize) {
-        return AiUtil.canBeConsideredAnAlly(mob, other) && isIndependent(other, otherMaxPackSize) && canBeFollowed(other, otherMaxPackSize);
+    private static void setLeader(LivingEntity mob, LivingEntity leader) {
+        mob.getBrain().setMemory(COTWMemoryModuleTypes.LEADER.get(), leader.getUUID());
     }
 
-    public static boolean isIndependent(LivingEntity mob, int maxPackSize) {
-        return canBeFollowed(mob, maxPackSize) || !isFollower(mob);
+    public static boolean canFollow(LivingEntity mob, LivingEntity other) {
+        return AiUtil.canBeConsideredAnAlly(mob, other) && canGroupWith(other) && isJoinableLeader(other);
     }
 
-    public static boolean canBeFollowed(LivingEntity mob, int maxPackSize) {
-        return hasFollowers(mob) && getPackSize(mob) < maxPackSize;
+    public static boolean canGroupWith(LivingEntity mob) {
+        return isJoinableLeader(mob) || !isFollower(mob);
     }
 
-    public static boolean canLead(LivingEntity leader, LivingEntity other, int otherMaxPackSize) {
-        return AiUtil.canBeConsideredAnAlly(leader, other) && isIndependent(other, otherMaxPackSize) && !isFollower(other);
+    public static boolean isJoinableLeader(LivingEntity mob) {
+        return hasFollowers(mob) && getPackSize(mob) < PackAi.getMaxPackSize(mob);
+    }
+
+    public static boolean canLead(LivingEntity leader, LivingEntity other) {
+        return AiUtil.canBeConsideredAnAlly(leader, other) && canGroupWith(other) && !isFollower(other);
     }
 
     public static void pathToLeader(LivingEntity mob, float speedModifier, int closeEnough) {
         getLeader(mob).ifPresent(leader -> BehaviorUtils.setWalkAndLookTargetMemories(mob, leader, speedModifier, closeEnough));
     }
 
-    /**
-     * Called by {@link com.infamous.call_of_the_wild.common.entity.dog.WolfAi#updateActivity(Wolf)}
-     */
-    public static void updatePack(LivingEntity mob, int intervalTicks) {
-        if (hasFollowers(mob) && mob.level.random.nextInt(intervalTicks) == 1) {
-            List<LivingEntity> nearbyKin = GenericAi.getNearbyAllies(mob);
-            if (nearbyKin.size() <= 1) {
-                setPackSize(mob, 1);
-            }
-        }
+    public static int getMaxPackSize(LivingEntity wolf) {
+        return wolf instanceof Mob mob ? ForgeEventFactory.getMaxSpawnPackSize(mob) : 1;
     }
 
+    public static boolean canAddToFollowers(LivingEntity leader, LivingEntity other) {
+        return isJoinableLeader(leader) && canLead(leader, other);
+    }
+
+    public static boolean isLoner(LivingEntity mob){
+        return !isFollower(mob) && !hasFollowers(mob);
+    }
 }

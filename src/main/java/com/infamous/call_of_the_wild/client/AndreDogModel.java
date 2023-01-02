@@ -3,7 +3,7 @@ package com.infamous.call_of_the_wild.client;// Made with Blockbench 4.3.1
 // Paste this class into your mod and generate all required imports
 
 
-import com.infamous.call_of_the_wild.common.entity.dog.Dog;
+import com.infamous.call_of_the_wild.common.entity.dog.ai.Dog;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import net.minecraft.client.model.HierarchicalModel;

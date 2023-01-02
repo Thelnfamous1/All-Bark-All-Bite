@@ -1,21 +1,25 @@
-package com.infamous.call_of_the_wild.common.entity.dog;
+package com.infamous.call_of_the_wild.common.entity.dog.ai;
 
+import com.infamous.call_of_the_wild.common.registry.COTWGameEvents;
 import com.infamous.call_of_the_wild.common.registry.COTWMemoryModuleTypes;
 import com.infamous.call_of_the_wild.common.util.AiUtil;
 import com.infamous.call_of_the_wild.common.util.AngerAi;
 import com.infamous.call_of_the_wild.common.util.GenericAi;
 import com.infamous.call_of_the_wild.common.util.HunterAi;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.GlobalPos;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.sounds.SoundEvents;
 import net.minecraft.tags.TagKey;
 import net.minecraft.util.RandomSource;
 import net.minecraft.util.TimeUtil;
 import net.minecraft.util.valueproviders.UniformInt;
-import net.minecraft.world.entity.EntityType;
-import net.minecraft.world.entity.LivingEntity;
-import net.minecraft.world.entity.Pose;
-import net.minecraft.world.entity.TamableAnimal;
+import net.minecraft.world.entity.*;
 import net.minecraft.world.entity.ai.Brain;
 import net.minecraft.world.entity.ai.behavior.BehaviorUtils;
+import net.minecraft.world.entity.ai.behavior.BlockPosTracker;
+import net.minecraft.world.entity.ai.behavior.EntityTracker;
+import net.minecraft.world.entity.ai.behavior.PositionTracker;
 import net.minecraft.world.entity.ai.memory.MemoryModuleType;
 import net.minecraft.world.entity.ai.sensing.Sensor;
 import net.minecraft.world.entity.animal.Wolf;
@@ -38,7 +42,7 @@ public class SharedWolfAi {
     public static final UniformInt ANGER_DURATION = TimeUtil.rangeOfSeconds(20, 39); // same as Wolf's persistent anger time
     static final UniformInt AVOID_DURATION = TimeUtil.rangeOfSeconds(5, 7);
     static final UniformInt RETREAT_DURATION = TimeUtil.rangeOfSeconds(5, 20);
-    static final UniformInt TIME_BETWEEN_HOWLS = TimeUtil.rangeOfSeconds(30, 120);
+    public static final UniformInt TIME_BETWEEN_HOWLS = TimeUtil.rangeOfSeconds(30, 120);
     static final UniformInt TIME_BETWEEN_HUNTS = TimeUtil.rangeOfSeconds(5, 7); // 30-120
     static final float JUMP_CHANCE_IN_WATER = 0.8F;
     static final float SPEED_MODIFIER_BREEDING = 1.0F;
@@ -55,8 +59,10 @@ public class SharedWolfAi {
     static final byte SUCCESSFUL_TAME_ID = 7;
     static final byte FAILED_TAME_ID = 6;
     private static final int LLAMA_MAX_STRENGTH = 5;
-    static final int STOP_FOLLOW_DISTANCE = 2;
+    static final int CLOSE_ENOUGH_TO_FOLLOW_TARGET = 2;
     public static final int TOO_FAR_TO_SWITCH_TARGETS = 4;
+    static final int TOO_FAR_FROM_FOLLOW_TARGET = 10;
+    private static final int HOWL_VOLUME = 4;
 
     public static void initMemories(TamableAnimal wolf, RandomSource randomSource) {
         int huntCooldownInTicks = TIME_BETWEEN_HUNTS.sample(randomSource);
@@ -143,11 +149,6 @@ public class SharedWolfAi {
         return AiUtil.isHuntable(wolf, livingEntity, huntTargets, requireLineOfSight) || AiUtil.isHuntableBabyTurtle(wolf, livingEntity);
     }
 
-    @SuppressWarnings("unused")
-    static int getMaxPackSize(LivingEntity wolf) {
-        return 8;
-    }
-
     public static void setHowledRecently(LivingEntity wolf, int howlCooldownInTicks) {
         wolf.getBrain().setMemoryWithExpiry(COTWMemoryModuleTypes.HOWLED_RECENTLY.get(), true, howlCooldownInTicks);
     }
@@ -226,5 +227,46 @@ public class SharedWolfAi {
                 && wolf.getBrain().hasMemoryValue(COTWMemoryModuleTypes.HAS_SHELTER.get())
                 && !wolf.getBrain().hasMemoryValue(COTWMemoryModuleTypes.IS_ALERT.get())
                 && !wolf.isInPowderSnow;
+    }
+
+    public static void followHowl(TamableAnimal wolf, BlockPos blockPos) {
+        GlobalPos howlPos = GlobalPos.of(wolf.getLevel().dimension(), blockPos);
+        wolf.getBrain().setMemory(MemoryModuleType.LOOK_TARGET, new BlockPosTracker(blockPos));
+        wolf.getBrain().setMemory(COTWMemoryModuleTypes.HOWL_LOCATION.get(), howlPos);
+        wolf.getBrain().eraseMemory(MemoryModuleType.WALK_TARGET);
+    }
+
+    public static Optional<PositionTracker> getHowlPosition(LivingEntity wolf) {
+        Brain<?> brain = wolf.getBrain();
+        Optional<GlobalPos> howlLocation = getHowlLocation(wolf);
+        if (howlLocation.isPresent()) {
+            GlobalPos globalPos = howlLocation.get();
+            if (wolf.getLevel().dimension() == globalPos.dimension()) {
+                return Optional.of(new BlockPosTracker(globalPos.pos()));
+            }
+            brain.eraseMemory(COTWMemoryModuleTypes.HOWL_LOCATION.get());
+        }
+        return Optional.empty();
+    }
+
+    public static Optional<PositionTracker> getOwnerPositionTracker(LivingEntity wolf) {
+        return getOwner((TamableAnimal) wolf).map((owner) -> new EntityTracker(owner, true));
+    }
+
+    public static Optional<LivingEntity> getOwner(TamableAnimal wolf) {
+        return Optional.ofNullable(wolf.getOwner()).filter(le -> !le.isSpectator());
+    }
+
+    public static Optional<GlobalPos> getHowlLocation(LivingEntity wolf) {
+        return wolf.getBrain().getMemory(COTWMemoryModuleTypes.HOWL_LOCATION.get());
+    }
+
+    public static void howl(LivingEntity wolf){
+        wolf.playSound(SoundEvents.WOLF_HOWL, HOWL_VOLUME, wolf.getVoicePitch());
+        wolf.gameEvent(COTWGameEvents.ENTITY_HOWL.get());
+    }
+
+    public static boolean hasHowledRecently(LivingEntity wolf) {
+        return wolf.getBrain().hasMemoryValue(COTWMemoryModuleTypes.HOWLED_RECENTLY.get());
     }
 }

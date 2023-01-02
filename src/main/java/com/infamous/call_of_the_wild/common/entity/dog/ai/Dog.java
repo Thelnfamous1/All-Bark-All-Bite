@@ -1,8 +1,12 @@
-package com.infamous.call_of_the_wild.common.entity.dog;
+package com.infamous.call_of_the_wild.common.entity.dog.ai;
 
 import com.google.common.collect.ImmutableList;
 import com.infamous.call_of_the_wild.common.COTWTags;
-import com.infamous.call_of_the_wild.common.entity.*;
+import com.infamous.call_of_the_wild.common.entity.EntityVariant;
+import com.infamous.call_of_the_wild.common.entity.VariantMob;
+import com.infamous.call_of_the_wild.common.entity.dog.CollaredMob;
+import com.infamous.call_of_the_wild.common.entity.dog.InterestedMob;
+import com.infamous.call_of_the_wild.common.entity.dog.ShakingMob;
 import com.infamous.call_of_the_wild.common.registry.*;
 import com.infamous.call_of_the_wild.common.util.AiUtil;
 import com.infamous.call_of_the_wild.common.util.MiscUtil;
@@ -46,7 +50,6 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.ServerLevelAccessor;
 import net.minecraft.world.level.block.RenderShape;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraft.world.level.gameevent.GameEvent;
 import net.minecraft.world.level.pathfinder.BlockPathTypes;
 import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.event.ForgeEventFactory;
@@ -113,7 +116,7 @@ public class Dog extends TamableAnimal implements InterestedMob, ShakingMob, Var
             // dependent on NEAREST_VISIBLE_LIVING_ENTITIES
             SensorType.NEAREST_LIVING_ENTITIES,
             SensorType.NEAREST_ADULT,
-            COTWSensorTypes.NEAREST_KIN.get(),
+            COTWSensorTypes.NEAREST_ALLIES.get(),
             COTWSensorTypes.DOG_SPECIFIC_SENSOR.get(),
 
             SensorType.NEAREST_ITEMS,
@@ -392,7 +395,7 @@ public class Dog extends TamableAnimal implements InterestedMob, ShakingMob, Var
             }
             if(this.isInjured()) this.heal(healAmount);
 
-            this.gameEvent(GameEvent.EAT, this);
+            this.ate();
         }
 
         super.usePlayerItem(player, hand, stack);

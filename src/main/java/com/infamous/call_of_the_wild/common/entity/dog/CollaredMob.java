@@ -1,4 +1,4 @@
-package com.infamous.call_of_the_wild.common.entity;
+package com.infamous.call_of_the_wild.common.entity.dog;
 
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.Tag;

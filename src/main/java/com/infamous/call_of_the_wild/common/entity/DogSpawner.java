@@ -1,13 +1,11 @@
 package com.infamous.call_of_the_wild.common.entity;
 
-import com.infamous.call_of_the_wild.common.entity.dog.Dog;
+import com.infamous.call_of_the_wild.common.entity.dog.ai.Dog;
 import com.infamous.call_of_the_wild.common.registry.COTWEntityTypes;
 import net.minecraft.core.BlockPos;
-import net.minecraft.nbt.CompoundTag;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.entity.MobSpawnType;
-import net.minecraft.world.entity.SpawnGroupData;
 import net.minecraft.world.entity.SpawnPlacements;
 import net.minecraft.world.entity.ai.village.poi.PoiManager;
 import net.minecraft.world.entity.ai.village.poi.PoiTypes;
@@ -25,6 +23,7 @@ public class DogSpawner implements CustomSpawner {
    private static final int TICK_DELAY = 1200;
    private int nextTick;
 
+   @SuppressWarnings("deprecation")
    public int tick(ServerLevel level, boolean spawnEnemies, boolean spawnFriendlies) {
       if (spawnFriendlies && level.getGameRules().getBoolean(GameRules.RULE_DOMOBSPAWNING)) {
          --this.nextTick;
@@ -69,6 +68,7 @@ public class DogSpawner implements CustomSpawner {
       return 0;
    }
 
+   @SuppressWarnings("unused")
    private int spawnInHut(ServerLevel level, BlockPos blockPos) {
       int horizontalBound = 16;
       List<Dog> nearbyDogs = level.getEntitiesOfClass(Dog.class, (new AABB(blockPos)).inflate(horizontalBound, 8.0D, horizontalBound));
@@ -82,7 +82,7 @@ public class DogSpawner implements CustomSpawner {
       } else {
          dog.moveTo(blockPos, 0.0F, 0.0F); // Fix MC-147659: Some witch huts spawn the incorrect cat
          if(ForgeHooks.canEntitySpawn(dog, level, blockPos.getX(), blockPos.getY(), blockPos.getZ(), null, MobSpawnType.NATURAL) == -1) return 0;
-         dog.finalizeSpawn(level, level.getCurrentDifficultyAt(blockPos), MobSpawnType.NATURAL, (SpawnGroupData)null, (CompoundTag)null);
+         dog.finalizeSpawn(level, level.getCurrentDifficultyAt(blockPos), MobSpawnType.NATURAL, null, null);
          level.addFreshEntityWithPassengers(dog);
          return 1;
       }

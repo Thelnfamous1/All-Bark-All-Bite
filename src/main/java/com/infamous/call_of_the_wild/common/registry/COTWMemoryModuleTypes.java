@@ -1,18 +1,26 @@
 package com.infamous.call_of_the_wild.common.registry;
 
 import com.infamous.call_of_the_wild.CallOfTheWild;
+import com.infamous.call_of_the_wild.common.entity.dog.ai.Dog;
+import com.infamous.call_of_the_wild.common.entity.dog.vibration.DogVibrationListenerConfig;
+import com.infamous.call_of_the_wild.common.entity.dog.vibration.WolfVibrationListenerConfig;
+import com.infamous.call_of_the_wild.common.sensor.vibration.EntityVibrationListener;
 import com.mojang.serialization.Codec;
-import net.minecraft.core.BlockPos;
+import net.minecraft.core.GlobalPos;
+import net.minecraft.core.UUIDUtil;
 import net.minecraft.util.Unit;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.behavior.PositionTracker;
 import net.minecraft.world.entity.ai.memory.MemoryModuleType;
+import net.minecraft.world.entity.animal.Wolf;
 import net.minecraftforge.registries.DeferredRegister;
 import net.minecraftforge.registries.ForgeRegistries;
 import net.minecraftforge.registries.RegistryObject;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
+import java.util.UUID;
 
 public class COTWMemoryModuleTypes {
 
@@ -38,9 +46,9 @@ public class COTWMemoryModuleTypes {
             "disable_walk_to_play_item",
             () -> new MemoryModuleType<>(Optional.empty()));
 
-    public static RegistryObject<MemoryModuleType<BlockPos>> DIG_LOCATION = MEMORY_MODULE_TYPES.register(
+    public static RegistryObject<MemoryModuleType<GlobalPos>> DIG_LOCATION = MEMORY_MODULE_TYPES.register(
             "dig_location",
-            () -> new MemoryModuleType<>(Optional.empty()));
+            () -> new MemoryModuleType<>(Optional.of(GlobalPos.CODEC)));
 
     public static final RegistryObject<MemoryModuleType<LivingEntity>> NEAREST_VISIBLE_HUNTABLE = MEMORY_MODULE_TYPES.register("nearest_visible_huntable",
             () -> new MemoryModuleType<>(Optional.empty()));
@@ -69,12 +77,12 @@ public class COTWMemoryModuleTypes {
             "howled_recently",
             () -> new MemoryModuleType<>(Optional.of(Codec.BOOL)));
 
-    public static RegistryObject<MemoryModuleType<LivingEntity>> PACK_LEADER = MEMORY_MODULE_TYPES.register(
-            "pack_leader",
-            () -> new MemoryModuleType<>(Optional.empty()));
+    public static RegistryObject<MemoryModuleType<UUID>> LEADER = MEMORY_MODULE_TYPES.register(
+            "leader",
+            () -> new MemoryModuleType<>(Optional.of(UUIDUtil.CODEC)));
 
-    public static RegistryObject<MemoryModuleType<Integer>> PACK_SIZE = MEMORY_MODULE_TYPES.register(
-            "pack_size",
+    public static RegistryObject<MemoryModuleType<Set<LivingEntity>>> FOLLOWERS = MEMORY_MODULE_TYPES.register(
+            "followers",
             () -> new MemoryModuleType<>(Optional.empty()));
 
     public static final RegistryObject<MemoryModuleType<List<LivingEntity>>> NEAREST_ALLIES = MEMORY_MODULE_TYPES.register("nearest_allies",
@@ -114,4 +122,16 @@ public class COTWMemoryModuleTypes {
     public static RegistryObject<MemoryModuleType<Unit>> IS_SLEEPING = MEMORY_MODULE_TYPES.register(
             "is_sleeping",
             () -> new MemoryModuleType<>(Optional.of(Codec.unit(Unit.INSTANCE))));
+
+    public static RegistryObject<MemoryModuleType<EntityVibrationListener<Wolf, WolfVibrationListenerConfig>>> WOLF_VIBRATION_LISTENER = MEMORY_MODULE_TYPES.register(
+            "wolf_vibration_listener",
+            () -> new MemoryModuleType<>(Optional.of(EntityVibrationListener.codec(WolfVibrationListenerConfig::new))));
+
+    public static RegistryObject<MemoryModuleType<EntityVibrationListener<Dog, DogVibrationListenerConfig>>> DOG_VIBRATION_LISTENER = MEMORY_MODULE_TYPES.register(
+            "dog_vibration_listener",
+            () -> new MemoryModuleType<>(Optional.of(EntityVibrationListener.codec(DogVibrationListenerConfig::new))));
+
+    public static RegistryObject<MemoryModuleType<GlobalPos>> HOWL_LOCATION = MEMORY_MODULE_TYPES.register(
+            "howl_location",
+            () -> new MemoryModuleType<>(Optional.of(GlobalPos.CODEC)));
 }

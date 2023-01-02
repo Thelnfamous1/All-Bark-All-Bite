@@ -1,7 +1,7 @@
 package com.infamous.call_of_the_wild.client;
 
 import com.infamous.call_of_the_wild.CallOfTheWild;
-import com.infamous.call_of_the_wild.common.entity.dog.Dog;
+import com.infamous.call_of_the_wild.common.entity.dog.ai.Dog;
 import com.mojang.blaze3d.vertex.PoseStack;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.entity.RenderLayerParent;
