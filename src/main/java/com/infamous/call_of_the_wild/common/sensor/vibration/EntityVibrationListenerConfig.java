@@ -15,20 +15,20 @@ public abstract class EntityVibrationListenerConfig<E extends LivingEntity> impl
     protected E entity;
 
     /**
-     * Must call this before allowing the EntityListenerConfig to receive any GameEvents!
+     * Must call this before allowing the EntityVibrationListenerConfig to receive any GameEvents!
      */
     public EntityVibrationListenerConfig<E> setEntity(E mob) {
         if(this.entity == null){
             this.entity = mob;
         } else{
-            throw new IllegalStateException("Cannot change the existing entity for EntityListenerConfig!");
+            throw new IllegalStateException("Cannot change the existing entity for EntityVibrationListenerConfig!");
         }
         return this;
     }
 
     private void validateEntity() {
         if (this.entity == null) {
-            throw new IllegalStateException("Cannot use EntityListenerConfig without setting the entity first!");
+            throw new IllegalStateException("Cannot use EntityVibrationListenerConfig without setting the entity first!");
         }
     }
 

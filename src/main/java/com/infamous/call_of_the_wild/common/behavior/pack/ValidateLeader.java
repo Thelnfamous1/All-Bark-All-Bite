@@ -3,7 +3,9 @@ package com.infamous.call_of_the_wild.common.behavior.pack;
 import com.google.common.collect.ImmutableMap;
 import com.infamous.call_of_the_wild.common.registry.COTWMemoryModuleTypes;
 import com.infamous.call_of_the_wild.common.util.AiUtil;
+import com.infamous.call_of_the_wild.common.util.MiscUtil;
 import com.infamous.call_of_the_wild.common.util.PackAi;
+import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.behavior.Behavior;
@@ -37,8 +39,9 @@ public class ValidateLeader extends Behavior<LivingEntity> {
         Optional<LivingEntity> packLeader = PackAi.getLeader(follower);
         if(packLeader.isPresent()){
             LivingEntity leader = packLeader.get();
-            if(PackAi.isFollower(leader) || !AiUtil.canBeConsideredAnAlly(follower, leader)){
+            if(!leader.isAlive() || PackAi.isFollower(leader) || !AiUtil.canBeConsideredAnAlly(follower, leader)){
                 PackAi.stopFollowing(follower, leader);
+                MiscUtil.sendParticlesAroundSelf(level, follower, ParticleTypes.SMOKE, follower.getEyeHeight(),  10, 0.2D);
             } else{
                 PackAi.getFollowers(leader).get().add(follower);
             }

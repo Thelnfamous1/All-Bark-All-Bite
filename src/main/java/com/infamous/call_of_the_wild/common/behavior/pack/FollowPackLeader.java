@@ -13,6 +13,8 @@ import net.minecraft.world.entity.ai.behavior.Behavior;
 import net.minecraft.world.entity.ai.memory.MemoryModuleType;
 import net.minecraft.world.entity.ai.memory.MemoryStatus;
 
+import java.util.List;
+import java.util.Optional;
 import java.util.stream.Stream;
 
 @SuppressWarnings("NullableProblems")
@@ -52,23 +54,28 @@ public class FollowPackLeader<E extends LivingEntity> extends Behavior<E> {
         }
     }
 
-    @SuppressWarnings("OptionalGetWithoutIsPresent")
     private boolean wantsToFollowLeader(E mob) {
-        LivingEntity leader = PackAi.getLeader(mob).get();
-        return mob.closerThan(leader, this.followRange.getMaxValue() + 1) && !mob.closerThan(leader, this.followRange.getMinValue());
+        Optional<LivingEntity> leader = PackAi.getLeader(mob);
+        return leader.isPresent() && mob.closerThan(leader.get(), this.followRange.getMaxValue() + 1) && !mob.closerThan(leader.get(), this.followRange.getMinValue());
     }
 
     private void joinOrCreatePack(ServerLevel level, E mob) {
         // Find a suitable leader, or promote self to leader
-        LivingEntity leader = GenericAi.getNearbyVisibleAdults(mob).stream()
+        List<LivingEntity> nearbyVisibleAdults = GenericAi.getNearbyVisibleAdults(mob);
+
+        LivingEntity leader = nearbyVisibleAdults.stream()
                 .filter(le -> PackAi.canFollow(mob, le))
                 .findAny()
                 .orElse(mob);
 
-        MiscUtil.sendParticlesAroundSelf(level, leader, ParticleTypes.FLAME, leader.getEyeHeight(),  10, 0.2D);
+        if(leader != mob){
+            MiscUtil.sendParticlesAroundSelf(level, leader, ParticleTypes.FLAME, leader.getEyeHeight(),  10, 0.2D);
+            PackAi.startFollowing(mob, leader);
+            MiscUtil.sendParticlesAroundSelf(level, mob, ParticleTypes.SOUL_FIRE_FLAME, mob.getEyeHeight(),  10, 0.2D);
+        }
 
         // Tell nearby allies to follow leader or self if possible
-        this.addFollowers(level, leader, GenericAi.getNearbyVisibleAllies(mob).stream());
+        this.addFollowers(level, leader, nearbyVisibleAdults.stream());
     }
 
     private void addFollowers(ServerLevel level, LivingEntity leader, Stream<LivingEntity> stream) {

@@ -92,4 +92,8 @@ public class BrainUtil {
                 runningPolicy,
                 behaviors);
     }
+
+    public static <E extends LivingEntity> Map<SensorType<? extends Sensor<? super E>>, Sensor<? super E>> getSensors(Brain<E> brain){
+        return ReflectionUtil.getField("f_21844_", Brain.class, brain);
+    }
 }
