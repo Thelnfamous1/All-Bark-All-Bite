@@ -38,7 +38,7 @@ public class SharedWolfAi {
     public static final int CLOSE_ENOUGH_TO_LOOK_TARGET = 3;
     static final float LEAP_YD = 0.4F;
     static final int INTERACTION_RANGE = 8;
-    static final UniformInt ADULT_FOLLOW_RANGE = UniformInt.of(5, 16);
+    public static final UniformInt ADULT_FOLLOW_RANGE = UniformInt.of(5, 16);
     public static final UniformInt ANGER_DURATION = TimeUtil.rangeOfSeconds(20, 39); // same as Wolf's persistent anger time
     static final UniformInt AVOID_DURATION = TimeUtil.rangeOfSeconds(5, 7);
     static final UniformInt RETREAT_DURATION = TimeUtil.rangeOfSeconds(5, 20);

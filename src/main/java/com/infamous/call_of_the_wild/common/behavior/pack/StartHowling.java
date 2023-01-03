@@ -33,21 +33,21 @@ public class StartHowling<E extends LivingEntity> extends Behavior<E> {
     protected boolean checkExtraStartConditions(ServerLevel level, E mob) {
         if(PackAi.isFollower(mob)){
             Optional<LivingEntity> leader = PackAi.getLeader(mob);
-            return leader.isPresent() && !this.followerInRange(leader.get(), mob);
+            return leader.isPresent() && this.followerTooFar(leader.get(), mob);
         } else if(PackAi.hasFollowers(mob)){
             Set<LivingEntity> followers = PackAi.getFollowers(mob).get();
             for(LivingEntity follower : followers){
                 if(follower == mob) continue; // ignore self
-                if(this.followerInRange(mob, follower)){
-                    return false;
+                if(this.followerTooFar(mob, follower)){
+                    return true;
                 }
             }
         }
         return true;
     }
 
-    private boolean followerInRange(LivingEntity leader, LivingEntity follower) {
-        return follower.closerThan(leader, this.tooFar);
+    private boolean followerTooFar(LivingEntity leader, LivingEntity follower) {
+        return !follower.closerThan(leader, this.tooFar);
     }
 
     @Override

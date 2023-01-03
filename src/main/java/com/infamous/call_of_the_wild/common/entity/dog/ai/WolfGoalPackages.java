@@ -217,10 +217,10 @@ public class WolfGoalPackages {
     }
 
     @NotNull
-    static ImmutableList<? extends Pair<Integer, ? extends Behavior<? super Wolf>>> getHowlPackage() {
+    static ImmutableList<? extends Pair<Integer, ? extends Behavior<? super Wolf>>> getMeetPackage() {
         return BrainUtil.createPriorityPairs(0,
                 ImmutableList.of(
-                        new StayCloseToTarget<>(SharedWolfAi::getHowlPosition, SharedWolfAi.CLOSE_ENOUGH_TO_FOLLOW_TARGET - 1, SharedWolfAi.CLOSE_ENOUGH_TO_FOLLOW_TARGET, SharedWolfAi.SPEED_MODIFIER_WALKING),
+                        new StayCloseToTarget<>(SharedWolfAi::getHowlPosition, SharedWolfAi.ADULT_FOLLOW_RANGE.getMinValue() - 1, SharedWolfAi.ADULT_FOLLOW_RANGE.getMaxValue(), SharedWolfAi.SPEED_MODIFIER_WALKING),
                         new EraseMemoryIf<>(WolfGoalPackages::wantsToStopFollowingHowl, COTWMemoryModuleTypes.HOWL_LOCATION.get()))
         );
     }
@@ -230,8 +230,8 @@ public class WolfGoalPackages {
         if (howlPosition.isEmpty()) {
             return true;
         } else {
-            PositionTracker positionTracker = howlPosition.get();
-            return wolf.position().closerThan(positionTracker.currentPosition(), SharedWolfAi.CLOSE_ENOUGH_TO_FOLLOW_TARGET);
+            PositionTracker tracker = howlPosition.get();
+            return wolf.position().closerThan(tracker.currentPosition(), SharedWolfAi.ADULT_FOLLOW_RANGE.getMaxValue());
         }
     }
 

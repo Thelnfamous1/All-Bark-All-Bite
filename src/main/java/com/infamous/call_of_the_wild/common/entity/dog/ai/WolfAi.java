@@ -105,7 +105,7 @@ public class WolfAi {
         initRetreatActivity(brain);
         initStalkActivity(brain);
         initLongJumpActivity(brain);
-        initHowlActivity(brain);
+        initMeetActivity(brain);
         initRestActivity(brain);
         initIdleActivity(brain);
         brain.setCoreActivities(ImmutableSet.of(Activity.CORE));
@@ -170,9 +170,9 @@ public class WolfAi {
         );
     }
 
-    private static void initHowlActivity(Brain<Wolf> brain) {
-        brain.addActivityAndRemoveMemoriesWhenStopped(COTWActivities.HOWL.get(),
-                WolfGoalPackages.getHowlPackage(),
+    private static void initMeetActivity(Brain<Wolf> brain) {
+        brain.addActivityAndRemoveMemoriesWhenStopped(Activity.MEET,
+                WolfGoalPackages.getMeetPackage(),
                 ImmutableSet.of(
                         Pair.of(COTWMemoryModuleTypes.HOWL_LOCATION.get(), MemoryStatus.VALUE_PRESENT),
                         Pair.of(MemoryModuleType.TEMPTING_PLAYER, MemoryStatus.VALUE_ABSENT),
@@ -208,7 +208,7 @@ public class WolfAi {
         Brain<?> brain = wolf.getBrain();
         Activity previous = brain.getActiveNonCoreActivity().orElse(null);
         brain.setActiveActivityToFirstValid(ImmutableList.of(
-                Activity.FIGHT, Activity.AVOID, COTWActivities.STALK.get(), Activity.LONG_JUMP, COTWActivities.HOWL.get(), Activity.REST, Activity.IDLE));
+                Activity.FIGHT, Activity.AVOID, COTWActivities.STALK.get(), Activity.LONG_JUMP, Activity.MEET, Activity.REST, Activity.IDLE));
         Activity current = brain.getActiveNonCoreActivity().orElse(null);
 
         if (previous != current) {

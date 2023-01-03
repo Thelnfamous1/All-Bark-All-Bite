@@ -60,22 +60,27 @@ public class FollowPackLeader<E extends LivingEntity> extends Behavior<E> {
     }
 
     private void joinOrCreatePack(ServerLevel level, E mob) {
-        // Find a suitable leader, or promote self to leader
         List<LivingEntity> nearbyVisibleAdults = GenericAi.getNearbyVisibleAdults(mob);
 
-        LivingEntity leader = nearbyVisibleAdults.stream()
+        // Find a suitable leader, or promote self to leader
+        LivingEntity leader = this.findLeader(level, mob, nearbyVisibleAdults.stream());
+
+        // Tell nearby allies to follow leader
+        this.addFollowers(level, leader, nearbyVisibleAdults.stream());
+    }
+
+    private LivingEntity findLeader(ServerLevel level, E mob, Stream<LivingEntity> stream) {
+        LivingEntity leader = stream
                 .filter(le -> PackAi.canFollow(mob, le))
                 .findAny()
                 .orElse(mob);
 
+        MiscUtil.sendParticlesAroundSelf(level, leader, ParticleTypes.FLAME, leader.getEyeHeight(),  10, 0.2D);
         if(leader != mob){
-            MiscUtil.sendParticlesAroundSelf(level, leader, ParticleTypes.FLAME, leader.getEyeHeight(),  10, 0.2D);
             PackAi.startFollowing(mob, leader);
             MiscUtil.sendParticlesAroundSelf(level, mob, ParticleTypes.SOUL_FIRE_FLAME, mob.getEyeHeight(),  10, 0.2D);
         }
-
-        // Tell nearby allies to follow leader or self if possible
-        this.addFollowers(level, leader, nearbyVisibleAdults.stream());
+        return leader;
     }
 
     private void addFollowers(ServerLevel level, LivingEntity leader, Stream<LivingEntity> stream) {

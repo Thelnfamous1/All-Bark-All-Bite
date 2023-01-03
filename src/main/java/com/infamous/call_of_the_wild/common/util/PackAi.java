@@ -61,11 +61,7 @@ public class PackAi {
     }
 
     public static boolean canFollow(LivingEntity mob, LivingEntity other) {
-        return AiUtil.canBeConsideredAnAlly(mob, other) && canGroupWith(other) && isJoinableLeader(other);
-    }
-
-    public static boolean canGroupWith(LivingEntity mob) {
-        return isJoinableLeader(mob) || !isFollower(mob);
+        return AiUtil.canBeConsideredAnAlly(mob, other) && (isJoinableLeader(other) || isLoner(other));
     }
 
     public static boolean isJoinableLeader(LivingEntity mob) {
@@ -73,7 +69,7 @@ public class PackAi {
     }
 
     public static boolean canLead(LivingEntity leader, LivingEntity other) {
-        return AiUtil.canBeConsideredAnAlly(leader, other) && canGroupWith(other) && !isFollower(other);
+        return AiUtil.canBeConsideredAnAlly(leader, other) && isLoner(other);
     }
 
     public static void pathToLeader(LivingEntity mob, float speedModifier, int closeEnough) {
