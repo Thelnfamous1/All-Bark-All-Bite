@@ -10,6 +10,9 @@ import net.minecraft.world.entity.Mob;
 import net.minecraft.world.entity.OwnableEntity;
 import net.minecraft.world.entity.ai.Brain;
 import net.minecraft.world.entity.ai.attributes.Attributes;
+import net.minecraft.world.entity.ai.behavior.BehaviorUtils;
+import net.minecraft.world.entity.ai.behavior.BlockPosTracker;
+import net.minecraft.world.entity.ai.behavior.EntityTracker;
 import net.minecraft.world.entity.ai.memory.MemoryModuleType;
 import net.minecraft.world.entity.ai.sensing.Sensor;
 import net.minecraft.world.entity.animal.Turtle;
@@ -98,7 +101,7 @@ public class AiUtil {
         return ReflectionUtil.getField(LIVING_ENTITY_JUMPING, LivingEntity.class, livingEntity);
     }
 
-    public static void alwaysLookAtEntity(LivingEntity mob, LivingEntity target, boolean trackEyeHeight) {
-        mob.getBrain().setMemory(MemoryModuleType.LOOK_TARGET, new AlwaysVisibleEntityTracker(target, trackEyeHeight));
+    public static void lookAtTargetIgnoreLineOfSight(LivingEntity mob, LivingEntity target) {
+        mob.getBrain().setMemory(MemoryModuleType.LOOK_TARGET, BehaviorUtils.canSee(mob, target) ? new EntityTracker(target, true) : new BlockPosTracker(target.blockPosition()));
     }
 }

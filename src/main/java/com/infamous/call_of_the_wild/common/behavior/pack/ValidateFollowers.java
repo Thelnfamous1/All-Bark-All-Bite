@@ -11,9 +11,12 @@ import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.behavior.Behavior;
 import net.minecraft.world.entity.ai.memory.MemoryStatus;
 
+import java.util.Set;
+
 @SuppressWarnings("NullableProblems")
 public class ValidateFollowers extends Behavior<LivingEntity> {
 
+    private static final int CLOSE_ENOUGH_TO_RECALL = 64;
     private long lastCheckTimestamp;
 
     public ValidateFollowers() {
@@ -23,8 +26,8 @@ public class ValidateFollowers extends Behavior<LivingEntity> {
     }
 
     @Override
-    protected boolean checkExtraStartConditions(ServerLevel level, LivingEntity mob) {
-        if(PackAi.hasFollowers(mob)){
+    protected boolean checkExtraStartConditions(ServerLevel level, LivingEntity leader) {
+        if(PackAi.hasFollowers(leader)){
             if (level.getGameTime() - this.lastCheckTimestamp < FollowPackLeader.INTERVAL_TICKS) {
                 return false;
             } else {
@@ -39,11 +42,13 @@ public class ValidateFollowers extends Behavior<LivingEntity> {
     @SuppressWarnings("OptionalGetWithoutIsPresent")
     @Override
     protected void start(ServerLevel level, LivingEntity leader, long gameTime) {
-        PackAi.getFollowers(leader).get().forEach(follower -> {
-            if(!follower.isAlive() || follower.level != leader.level || !AiUtil.canBeConsideredAnAlly(leader, follower)){
+        Set<LivingEntity> followers = PackAi.getFollowers(leader).get();
+        for(LivingEntity follower : followers){
+            if(follower == leader) continue; // ignore self
+            if(!follower.isAlive() || follower.level != leader.level || !AiUtil.canBeConsideredAnAlly(leader, follower) || !follower.closerThan(leader, CLOSE_ENOUGH_TO_RECALL)){
                 PackAi.stopFollowing(follower, leader);
                 MiscUtil.sendParticlesAroundSelf((ServerLevel) follower.level, follower, ParticleTypes.SMOKE, follower.getEyeHeight(),  10, 0.2D);
             }
-        });
+        }
     }
 }

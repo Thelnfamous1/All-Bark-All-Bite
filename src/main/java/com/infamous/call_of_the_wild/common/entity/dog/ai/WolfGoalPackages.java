@@ -212,7 +212,9 @@ public class WolfGoalPackages {
                 ImmutableList.of(
                         new LongJumpMidJump(TIME_BETWEEN_LONG_JUMPS, SoundEvents.WOLF_STEP),
                         new LongJumpToTarget<>(TIME_BETWEEN_LONG_JUMPS, MAX_JUMP_VELOCITY,
-                                wolf -> SoundEvents.WOLF_STEP))
+                                wolf -> SoundEvents.WOLF_STEP),
+                        new EraseMemoryIf<>(LongJumpAi::isOnJumpCooldown, COTWMemoryModuleTypes.LONG_JUMP_TARGET.get())
+                )
         );
     }
 

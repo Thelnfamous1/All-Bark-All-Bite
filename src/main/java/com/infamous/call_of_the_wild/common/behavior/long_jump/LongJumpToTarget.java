@@ -1,6 +1,7 @@
 package com.infamous.call_of_the_wild.common.behavior.long_jump;
 
 import com.google.common.collect.ImmutableMap;
+import com.infamous.call_of_the_wild.CallOfTheWild;
 import com.infamous.call_of_the_wild.common.registry.COTWMemoryModuleTypes;
 import com.infamous.call_of_the_wild.common.util.LongJumpAi;
 import net.minecraft.core.BlockPos;
@@ -103,18 +104,13 @@ public class LongJumpToTarget<E extends Mob> extends Behavior<E> {
             double jumpLength = this.chosenJump.length();
             double boostedJumpLength = jumpLength + mob.getJumpBoostPower();
             mob.setDeltaMovement(this.chosenJump.scale(boostedJumpLength / jumpLength));
-            this.setMidJumpAndClearJumpTarget(mob);
+            mob.getBrain().setMemory(MemoryModuleType.LONG_JUMP_MID_JUMP, true);
             level.playSound(null, mob, this.getJumpSound.apply(mob), SoundSource.NEUTRAL, 1.0F, 1.0F);
          }
-      } else {
+      } else if(!LongJumpAi.isMidJump(mob)){
          --this.findJumpTries;
          this.pickCandidate(level, mob, gameTime);
       }
-   }
-
-   private void setMidJumpAndClearJumpTarget(E mob) {
-      mob.getBrain().setMemory(MemoryModuleType.LONG_JUMP_MID_JUMP, true);
-      LongJumpAi.clearLongJumpTarget(mob);
    }
 
    protected void pickCandidate(ServerLevel level, E mob, long gameTime) {
@@ -133,8 +129,8 @@ public class LongJumpToTarget<E extends Mob> extends Behavior<E> {
          mob.getBrain().setMemory(MemoryModuleType.LOOK_TARGET, target);
          PathNavigation navigation = mob.getNavigation();
          Path path = navigation.createPath(targetBlockPosition, 0, MIN_PATHFIND_DISTANCE_TO_VALID_JUMP);
-         //noinspection StatementWithEmptyBody
          if (path != null && path.canReach()) {
+            CallOfTheWild.LOGGER.info("{} cannot path to jump target at {}!", mob, targetBlockPosition);
             //return;
          }
 

@@ -15,6 +15,7 @@ import java.util.Optional;
 
 @SuppressWarnings("NullableProblems")
 public class ValidateLeader extends Behavior<LivingEntity> {
+    private static final int CLOSE_ENOUGH_TO_BE_RECALLED = 64;
     private long lastCheckTimestamp;
 
     public ValidateLeader() {
@@ -25,6 +26,9 @@ public class ValidateLeader extends Behavior<LivingEntity> {
 
     @Override
     protected boolean checkExtraStartConditions(ServerLevel level, LivingEntity follower) {
+        if(follower.tickCount < FollowPackLeader.INTERVAL_TICKS){ // give pack leader time to load in
+            return false;
+        }
         if (level.getGameTime() - this.lastCheckTimestamp < FollowPackLeader.INTERVAL_TICKS) {
             return false;
         } else {
@@ -39,11 +43,11 @@ public class ValidateLeader extends Behavior<LivingEntity> {
         Optional<LivingEntity> packLeader = PackAi.getLeader(follower);
         if(packLeader.isPresent()){
             LivingEntity leader = packLeader.get();
-            if(!leader.isAlive() || PackAi.isFollower(leader) || !AiUtil.canBeConsideredAnAlly(follower, leader)){
+            if(!leader.isAlive() || PackAi.isFollower(leader) || !AiUtil.canBeConsideredAnAlly(follower, leader) || !follower.closerThan(leader, CLOSE_ENOUGH_TO_BE_RECALLED)){
                 PackAi.stopFollowing(follower, leader);
                 MiscUtil.sendParticlesAroundSelf(level, follower, ParticleTypes.SMOKE, follower.getEyeHeight(),  10, 0.2D);
             } else{
-                PackAi.getFollowers(leader).get().add(follower);
+                PackAi.getFollowers(leader).get().add(follower); // re-add the follower to the leader's followers if not already present
             }
         } else{
             PackAi.eraseLeader(follower);

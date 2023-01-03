@@ -31,6 +31,9 @@ public class StartHowling<E extends LivingEntity> extends Behavior<E> {
     @SuppressWarnings("OptionalGetWithoutIsPresent")
     @Override
     protected boolean checkExtraStartConditions(ServerLevel level, E mob) {
+        if(mob.tickCount < FollowPackLeader.INTERVAL_TICKS){ // give pack members time to load in
+            return false;
+        }
         if(PackAi.isFollower(mob)){
             Optional<LivingEntity> leader = PackAi.getLeader(mob);
             return leader.isPresent() && this.followerTooFar(leader.get(), mob);

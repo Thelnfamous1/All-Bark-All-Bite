@@ -161,8 +161,8 @@ public class WolfAi {
         brain.addActivityAndRemoveMemoriesWhenStopped(Activity.LONG_JUMP,
                 WolfGoalPackages.getLongJumpPackage(),
                 ImmutableSet.of(
-                        Pair.of(COTWMemoryModuleTypes.LONG_JUMP_TARGET.get(), MemoryStatus.VALUE_PRESENT),
-                        Pair.of(MemoryModuleType.LONG_JUMP_COOLDOWN_TICKS, MemoryStatus.VALUE_ABSENT)
+                        Pair.of(COTWMemoryModuleTypes.LONG_JUMP_TARGET.get(), MemoryStatus.VALUE_PRESENT)
+                        //Pair.of(MemoryModuleType.LONG_JUMP_COOLDOWN_TICKS, MemoryStatus.VALUE_ABSENT)
                 ),
                 ImmutableSet.of(
                         COTWMemoryModuleTypes.LONG_JUMP_TARGET.get()

@@ -4,11 +4,13 @@ import com.google.common.collect.ImmutableMap;
 import com.infamous.call_of_the_wild.common.entity.dog.ai.SharedWolfAi;
 import com.infamous.call_of_the_wild.common.registry.COTWMemoryModuleTypes;
 import com.infamous.call_of_the_wild.common.util.*;
+import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.PathfinderMob;
 import net.minecraft.world.entity.Pose;
 import net.minecraft.world.entity.ai.behavior.Behavior;
+import net.minecraft.world.entity.ai.behavior.BlockPosTracker;
 import net.minecraft.world.entity.ai.memory.MemoryModuleType;
 import net.minecraft.world.entity.ai.memory.MemoryStatus;
 import net.minecraft.world.phys.Vec3;
@@ -85,8 +87,9 @@ public class Pounce<E extends PathfinderMob> extends Behavior<E> {
         AngerAi.setAngerTarget(mob, target, SharedWolfAi.ANGER_DURATION.sample(mob.getRandom()));
 
         mob.getBrain().eraseMemory(COTWMemoryModuleTypes.STALK_TARGET.get());
-        LongJumpAi.setLongJumpTarget(mob, new AlwaysVisibleEntityTracker(target, false));
-        AiUtil.alwaysLookAtEntity(mob, target, true);
+        BlockPos targetPos = target.blockPosition();
+        LongJumpAi.setLongJumpTarget(mob, new BlockPosTracker(targetPos));
+        AiUtil.lookAtTargetIgnoreLineOfSight(mob, target);
         mob.getBrain().eraseMemory(MemoryModuleType.WALK_TARGET);
     }
 }

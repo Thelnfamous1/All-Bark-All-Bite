@@ -29,14 +29,14 @@ public class StalkPrey<E extends PathfinderMob> extends Behavior<E> {
     public static final int POUNCE_DELAY_TICKS = 15;
     private final BiPredicate<E, LivingEntity> wantsToStalk;
     private final float stalkSpeedModifier;
-    private final float catchUpSpeedModifier;
+    private final float walkSpeedModifier;
     private final int closeEnough;
     private final int tooFar;
     private final Function<E, Boolean> isInterested;
     private final BiConsumer<E, Boolean> toggleInterest;
     private final double maxJumpVelocity;
 
-    public StalkPrey(BiPredicate<E, LivingEntity> wantsToStalk, float stalkSpeedModifier, float catchUpSpeedModifier, int closeEnough, int tooFar, Function<E, Boolean> isInterested, BiConsumer<E, Boolean> toggleInterest, double maxJumpVelocity) {
+    public StalkPrey(BiPredicate<E, LivingEntity> wantsToStalk, float stalkSpeedModifier, float walkSpeedModifier, int closeEnough, int tooFar, Function<E, Boolean> isInterested, BiConsumer<E, Boolean> toggleInterest, double maxJumpVelocity) {
         super(ImmutableMap.of(
                 COTWMemoryModuleTypes.STALK_TARGET.get(), MemoryStatus.VALUE_PRESENT,
                 COTWMemoryModuleTypes.POUNCE_DELAY.get(), MemoryStatus.REGISTERED,
@@ -46,7 +46,7 @@ public class StalkPrey<E extends PathfinderMob> extends Behavior<E> {
         ));
         this.wantsToStalk = wantsToStalk;
         this.stalkSpeedModifier = stalkSpeedModifier;
-        this.catchUpSpeedModifier = catchUpSpeedModifier;
+        this.walkSpeedModifier = walkSpeedModifier;
         this.closeEnough = closeEnough;
         this.tooFar = tooFar;
         this.isInterested = isInterested;
@@ -73,12 +73,13 @@ public class StalkPrey<E extends PathfinderMob> extends Behavior<E> {
                 this.lookAtTarget(mob, target);
             } else {
                 this.setIsPreparingToPounce(mob, false);
+                mob.getBrain().eraseMemory(COTWMemoryModuleTypes.STALK_TARGET.get());
             }
         }
     }
 
     private void lookAtTarget(E mob, LivingEntity target) {
-        AiUtil.alwaysLookAtEntity(mob, target, true);
+        AiUtil.lookAtTargetIgnoreLineOfSight(mob, target);
     }
 
     private void setIsPreparingToPounce(E mob, boolean isPreparing) {
@@ -120,10 +121,20 @@ public class StalkPrey<E extends PathfinderMob> extends Behavior<E> {
         Brain<?> brain = mob.getBrain();
         this.lookAtTarget(mob, target);
         boolean tooFar = !mob.closerThan(target, this.tooFar);
+
+        brain.getMemory(MemoryModuleType.WALK_TARGET).ifPresent(wt -> {
+            float wtSpeedModifier = wt.getSpeedModifier();
+            if(tooFar && wtSpeedModifier != this.walkSpeedModifier && wtSpeedModifier == this.stalkSpeedModifier){
+                mob.getNavigation().setSpeedModifier(this.walkSpeedModifier);
+            } else if(wtSpeedModifier != this.stalkSpeedModifier && wtSpeedModifier == this.walkSpeedModifier){
+                mob.getNavigation().setSpeedModifier(this.stalkSpeedModifier);
+            }
+        });
+
         WalkTarget walkTarget = new WalkTarget(
                 new EntityTracker(target, false),
-                tooFar ? this.catchUpSpeedModifier : this.stalkSpeedModifier,
-                tooFar ? this.tooFar : this.closeEnough);
+                tooFar ? this.walkSpeedModifier : this.stalkSpeedModifier,
+                this.closeEnough);
         brain.setMemory(MemoryModuleType.WALK_TARGET, walkTarget);
     }
 

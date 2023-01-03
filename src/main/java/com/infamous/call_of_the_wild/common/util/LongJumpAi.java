@@ -116,7 +116,12 @@ public class LongJumpAi {
        mob.getBrain().eraseMemory(COTWMemoryModuleTypes.LONG_JUMP_TARGET.get());
     }
 
+    @SuppressWarnings("BooleanMethodIsAlwaysInverted")
     public static boolean isMidJump(LivingEntity mob) {
        return mob.getBrain().hasMemoryValue(MemoryModuleType.LONG_JUMP_MID_JUMP);
+    }
+
+    public static boolean isOnJumpCooldown(LivingEntity wolf){
+        return wolf.getBrain().hasMemoryValue(MemoryModuleType.LONG_JUMP_COOLDOWN_TICKS);
     }
 }
