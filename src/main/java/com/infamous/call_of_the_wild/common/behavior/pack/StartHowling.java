@@ -3,6 +3,7 @@ package com.infamous.call_of_the_wild.common.behavior.pack;
 import com.google.common.collect.ImmutableMap;
 import com.infamous.call_of_the_wild.common.entity.dog.ai.SharedWolfAi;
 import com.infamous.call_of_the_wild.common.registry.COTWMemoryModuleTypes;
+import com.infamous.call_of_the_wild.common.util.AiUtil;
 import com.infamous.call_of_the_wild.common.util.PackAi;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.util.valueproviders.UniformInt;
@@ -12,11 +13,13 @@ import net.minecraft.world.entity.ai.memory.MemoryStatus;
 
 import java.util.Optional;
 import java.util.Set;
+import java.util.UUID;
 
 @SuppressWarnings({"NullableProblems", "unused"})
 public class StartHowling<E extends LivingEntity> extends Behavior<E> {
     private final UniformInt howlCooldown;
     private final int tooFar;
+    private long lastCheckTimestamp;
 
     public StartHowling(UniformInt howlCooldown, int tooFar) {
         super(ImmutableMap.of(
@@ -31,22 +34,33 @@ public class StartHowling<E extends LivingEntity> extends Behavior<E> {
     @SuppressWarnings("OptionalGetWithoutIsPresent")
     @Override
     protected boolean checkExtraStartConditions(ServerLevel level, E mob) {
-        if(mob.tickCount < FollowPackLeader.INTERVAL_TICKS){ // give pack members time to load in
+        if(this.lastCheckTimestamp != 0 && level.getGameTime() - this.lastCheckTimestamp < FollowPackLeader.INTERVAL_TICKS){
             return false;
-        }
-        if(PackAi.isFollower(mob)){
-            Optional<LivingEntity> leader = PackAi.getLeader(mob);
-            return leader.isPresent() && this.followerTooFar(leader.get(), mob);
-        } else if(PackAi.hasFollowers(mob)){
-            Set<LivingEntity> followers = PackAi.getFollowers(mob).get();
-            for(LivingEntity follower : followers){
-                if(follower == mob) continue; // ignore self
-                if(this.followerTooFar(mob, follower)){
-                    return true;
+        } else{
+            if(PackAi.isFollower(mob)){
+                this.timestampLastCheck(level.getGameTime());
+
+                Optional<LivingEntity> leader = PackAi.getLeader(mob);
+                return leader.isPresent() && this.followerTooFar(leader.get(), mob);
+            } else if(PackAi.hasFollowers(mob)){
+                this.timestampLastCheck(level.getGameTime());
+
+                Set<UUID> followerUUIDs = PackAi.getFollowerUUIDs(mob).get();
+                for(UUID followerUUID : followerUUIDs){
+                    if(followerUUID.equals(mob.getUUID())) continue; // ignore self
+                    Optional<LivingEntity> follower = AiUtil.getLivingEntityFromUUID(level, followerUUID);
+                    if(follower.isPresent() && this.followerTooFar(mob, follower.get())){
+                        return true;
+                    }
                 }
+                return false;
             }
+            return true;
         }
-        return true;
+    }
+
+    private void timestampLastCheck(long gameTime) {
+        this.lastCheckTimestamp = gameTime;
     }
 
     private boolean followerTooFar(LivingEntity leader, LivingEntity follower) {

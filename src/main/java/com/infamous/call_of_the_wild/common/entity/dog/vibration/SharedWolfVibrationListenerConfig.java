@@ -78,7 +78,7 @@ public abstract class SharedWolfVibrationListenerConfig<T extends TamableAnimal>
 
     @SuppressWarnings("OptionalGetWithoutIsPresent")
     private boolean canTreatAsFollower(LivingEntity other) {
-        return PackAi.hasFollowers(this.entity) && (PackAi.getFollowers(this.entity).get().contains(other) || PackAi.canAddToFollowers(this.entity, other));
+        return PackAi.hasFollowers(this.entity) && (PackAi.getFollowerUUIDs(this.entity).get().contains(other.getUUID()) || PackAi.canAddToFollowers(this.entity, other));
     }
 
     private void respondToHowl(boolean ignoreCooldown) {

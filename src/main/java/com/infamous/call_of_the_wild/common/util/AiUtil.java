@@ -1,6 +1,7 @@
 package com.infamous.call_of_the_wild.common.util;
 
 import com.mojang.datafixers.util.Pair;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.tags.TagKey;
 import net.minecraft.util.Mth;
 import net.minecraft.world.effect.MobEffectInstance;
@@ -18,6 +19,9 @@ import net.minecraft.world.entity.ai.sensing.Sensor;
 import net.minecraft.world.entity.animal.Turtle;
 import net.minecraft.world.food.FoodProperties;
 import net.minecraft.world.level.Level;
+
+import java.util.Optional;
+import java.util.UUID;
 
 public class AiUtil {
 
@@ -103,5 +107,18 @@ public class AiUtil {
 
     public static void lookAtTargetIgnoreLineOfSight(LivingEntity mob, LivingEntity target) {
         mob.getBrain().setMemory(MemoryModuleType.LOOK_TARGET, BehaviorUtils.canSee(mob, target) ? new EntityTracker(target, true) : new BlockPosTracker(target.blockPosition()));
+    }
+
+    public static Optional<LivingEntity> getLivingEntityFromUUID(ServerLevel level, UUID uuid) {
+        return Optional.of(uuid).map(level::getEntity).map((e) -> {
+            LivingEntity result;
+            if (e instanceof LivingEntity livingentity) {
+                result = livingentity;
+            } else {
+                result = null;
+            }
+
+            return result;
+        });
     }
 }

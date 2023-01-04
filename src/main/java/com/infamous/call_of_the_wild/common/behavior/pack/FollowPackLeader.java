@@ -43,7 +43,7 @@ public class FollowPackLeader<E extends LivingEntity> extends Behavior<E> {
             return false;
         } else if (PackAi.isFollower(mob)) {
             return this.wantsToFollowLeader(mob);
-        } else if (level.getGameTime() - this.lastCheckTimestamp < INTERVAL_TICKS) {
+        } else if (this.lastCheckTimestamp != 0 && level.getGameTime() - this.lastCheckTimestamp < INTERVAL_TICKS) {
             return false;
         } else {
             this.lastCheckTimestamp = level.getGameTime();

@@ -5,6 +5,7 @@ import com.infamous.call_of_the_wild.common.entity.dog.ai.Dog;
 import com.infamous.call_of_the_wild.common.entity.dog.vibration.DogVibrationListenerConfig;
 import com.infamous.call_of_the_wild.common.entity.dog.vibration.WolfVibrationListenerConfig;
 import com.infamous.call_of_the_wild.common.sensor.vibration.EntityVibrationListener;
+import com.infamous.call_of_the_wild.common.util.codec.MutableSetCodec;
 import com.mojang.serialization.Codec;
 import net.minecraft.core.GlobalPos;
 import net.minecraft.core.UUIDUtil;
@@ -17,10 +18,7 @@ import net.minecraftforge.registries.DeferredRegister;
 import net.minecraftforge.registries.ForgeRegistries;
 import net.minecraftforge.registries.RegistryObject;
 
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 
 public class COTWMemoryModuleTypes {
 
@@ -81,9 +79,9 @@ public class COTWMemoryModuleTypes {
             "leader",
             () -> new MemoryModuleType<>(Optional.of(UUIDUtil.CODEC)));
 
-    public static RegistryObject<MemoryModuleType<Set<LivingEntity>>> FOLLOWERS = MEMORY_MODULE_TYPES.register(
+    public static RegistryObject<MemoryModuleType<Set<UUID>>> FOLLOWERS = MEMORY_MODULE_TYPES.register(
             "followers",
-            () -> new MemoryModuleType<>(Optional.empty()));
+            () -> new MemoryModuleType<>(Optional.of(new MutableSetCodec<>(UUIDUtil.CODEC))));
 
     public static final RegistryObject<MemoryModuleType<List<LivingEntity>>> NEAREST_ALLIES = MEMORY_MODULE_TYPES.register("nearest_allies",
             () -> new MemoryModuleType<>(Optional.empty()));

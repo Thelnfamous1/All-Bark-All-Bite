@@ -6,11 +6,11 @@ import com.infamous.call_of_the_wild.CallOfTheWild;
 import com.infamous.call_of_the_wild.common.entity.DogSpawner;
 import com.infamous.call_of_the_wild.common.entity.dog.ai.Dog;
 import com.infamous.call_of_the_wild.common.entity.dog.ai.WolfAi;
+import com.infamous.call_of_the_wild.common.event.BrainEvent;
 import com.infamous.call_of_the_wild.common.registry.COTWEntityTypes;
 import com.infamous.call_of_the_wild.common.util.BrainUtil;
 import com.infamous.call_of_the_wild.common.util.DebugUtil;
 import com.infamous.call_of_the_wild.common.util.ReflectionUtil;
-import net.minecraft.nbt.NbtOps;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
@@ -71,10 +71,23 @@ public class ForgeEventHandler {
         }
     }
 
+    @SubscribeEvent
+    static void onMakeBrain(BrainEvent.MakeBrain event){
+        LivingEntity entity = event.getEntity();
+        if(entity.getType() == EntityType.WOLF){
+            Brain<Wolf> replacement = WolfAi.makeBrain(event.makeBrain(WolfAi.MEMORY_TYPES, WolfAi.SENSOR_TYPES));
+            event.setNewBrain(replacement);
+        }
+    }
+
+    @SubscribeEvent
+    static void onVillagerRefresh(BrainEvent.VillagerRefresh event){
+        addVillagerDogInteractionBehaviors(event.getEntity());
+    }
+
     @SubscribeEvent(priority = EventPriority.HIGHEST)
     static void onEntityJoinLevel(EntityJoinLevelEvent event){
         if(event.getLevel().isClientSide) return;
-        ServerLevel serverLevel = (ServerLevel) event.getLevel();
         Entity entity = event.getEntity();
         addMobDogInteractionGoals(entity);
 
@@ -85,11 +98,7 @@ public class ForgeEventHandler {
         if(entity instanceof Wolf wolf && entity.getType() == EntityType.WOLF){
             wolf.goalSelector.removeAllGoals();
             wolf.targetSelector.removeAllGoals();
-            NbtOps nbtOps = NbtOps.INSTANCE;
-            Brain<Wolf> replacement = WolfAi.makeBrain(BrainUtil.makeBrain(WolfAi.MEMORY_TYPES, WolfAi.SENSOR_TYPES, BrainUtil.makeDynamic(nbtOps)));
-            boolean loadedFromDisk = event.loadedFromDisk();
-            BrainUtil.replaceBrain(wolf, serverLevel, replacement, loadedFromDisk);
-            if(!loadedFromDisk) {
+            if(!event.loadedFromDisk()) {
                 WolfAi.initMemories(wolf, wolf.getRandom());
             }
         }

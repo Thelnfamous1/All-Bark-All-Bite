@@ -84,8 +84,7 @@ public class VibrationSensor<E extends LivingEntity, VLC extends EntityVibration
     }
 
     /**
-     * In vanilla, DynamicGameEventListeners associated with an entity's state are updated whenever an entity joins a new ServerLevel,
-     * changes its SectionPos in a ServerLevel, or leaves its ServerLevel.
+     * In vanilla, DynamicGameEventListeners associated with an entity's state are updated whenever the entity joins a new ServerLevel, changes its SectionPos in a ServerLevel, or leaves its ServerLevel.
      * Here, we recreate that functionality using Events.
      */
     @Mod.EventBusSubscriber(bus = Mod.EventBusSubscriber.Bus.FORGE, modid = CallOfTheWild.MODID)

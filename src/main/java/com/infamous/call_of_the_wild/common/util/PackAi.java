@@ -1,6 +1,5 @@
 package com.infamous.call_of_the_wild.common.util;
 
-import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
 import com.infamous.call_of_the_wild.common.registry.COTWMemoryModuleTypes;
 import net.minecraft.world.entity.LivingEntity;
@@ -8,20 +7,23 @@ import net.minecraft.world.entity.Mob;
 import net.minecraft.world.entity.ai.behavior.BehaviorUtils;
 import net.minecraftforge.event.ForgeEventFactory;
 
-import java.util.*;
+import java.util.Optional;
+import java.util.Set;
+import java.util.UUID;
 
 public class PackAi {
     public static boolean hasFollowers(LivingEntity mob) {
         return getPackSize(mob) > 1;
     }
 
+    @SuppressWarnings("OptionalGetWithoutIsPresent")
     public static int getPackSize(LivingEntity mob) {
-        return getFollowers(mob).orElse(ImmutableSet.of()).size();
+        return getFollowerUUIDs(mob).get().size();
     }
 
-    public static Optional<Set<LivingEntity>> getFollowers(LivingEntity mob) {
+    public static Optional<Set<UUID>> getFollowerUUIDs(LivingEntity mob) {
         if(!mob.getBrain().hasMemoryValue(COTWMemoryModuleTypes.FOLLOWERS.get())){
-            mob.getBrain().setMemory(COTWMemoryModuleTypes.FOLLOWERS.get(), Sets.newHashSet(mob));
+            mob.getBrain().setMemory(COTWMemoryModuleTypes.FOLLOWERS.get(), Sets.newHashSet(mob.getUUID()));
         }
         return mob.getBrain().getMemory(COTWMemoryModuleTypes.FOLLOWERS.get());
     }
@@ -39,8 +41,9 @@ public class PackAi {
         eraseLeader(mob);
     }
 
+    @SuppressWarnings("OptionalGetWithoutIsPresent")
     private static void removeFollower(LivingEntity leader, LivingEntity mob) {
-        getFollowers(leader).ifPresent(followers -> followers.remove(mob));
+        getFollowerUUIDs(leader).get().remove(mob.getUUID());
     }
 
     public static void eraseLeader(LivingEntity mob) {
@@ -51,9 +54,10 @@ public class PackAi {
         return getLeaderUUID(mob).isPresent();
     }
 
+    @SuppressWarnings("OptionalGetWithoutIsPresent")
     public static void startFollowing(LivingEntity mob, LivingEntity leader) {
         setLeader(mob, leader);
-        getFollowers(leader).ifPresent(followers -> followers.add(mob));
+        getFollowerUUIDs(leader).get().add(mob.getUUID());
     }
 
     private static void setLeader(LivingEntity mob, LivingEntity leader) {

@@ -26,10 +26,7 @@ public class ValidateLeader extends Behavior<LivingEntity> {
 
     @Override
     protected boolean checkExtraStartConditions(ServerLevel level, LivingEntity follower) {
-        if(follower.tickCount < FollowPackLeader.INTERVAL_TICKS){ // give pack leader time to load in
-            return false;
-        }
-        if (level.getGameTime() - this.lastCheckTimestamp < FollowPackLeader.INTERVAL_TICKS) {
+        if (this.lastCheckTimestamp != 0 && level.getGameTime() - this.lastCheckTimestamp < FollowPackLeader.INTERVAL_TICKS) {
             return false;
         } else {
             this.lastCheckTimestamp = level.getGameTime();
@@ -47,7 +44,7 @@ public class ValidateLeader extends Behavior<LivingEntity> {
                 PackAi.stopFollowing(follower, leader);
                 MiscUtil.sendParticlesAroundSelf(level, follower, ParticleTypes.SMOKE, follower.getEyeHeight(),  10, 0.2D);
             } else{
-                PackAi.getFollowers(leader).get().add(follower); // re-add the follower to the leader's followers if not already present
+                PackAi.getFollowerUUIDs(leader).get().add(follower.getUUID()); // re-add the follower to the leader's followers if not already present
             }
         } else{
             PackAi.eraseLeader(follower);
