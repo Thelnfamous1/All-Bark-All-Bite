@@ -1,7 +1,7 @@
 package com.infamous.call_of_the_wild.common.behavior.pack;
 
 import com.google.common.collect.ImmutableMap;
-import com.infamous.call_of_the_wild.common.registry.COTWMemoryModuleTypes;
+import com.infamous.call_of_the_wild.common.registry.ABABMemoryModuleTypes;
 import com.infamous.call_of_the_wild.common.util.AiUtil;
 import com.infamous.call_of_the_wild.common.util.MiscUtil;
 import com.infamous.call_of_the_wild.common.util.PackAi;
@@ -20,7 +20,7 @@ public class ValidateLeader extends Behavior<LivingEntity> {
 
     public ValidateLeader() {
         super(ImmutableMap.of(
-                COTWMemoryModuleTypes.LEADER.get(), MemoryStatus.VALUE_PRESENT
+                ABABMemoryModuleTypes.LEADER.get(), MemoryStatus.VALUE_PRESENT
         ));
     }
 

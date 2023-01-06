@@ -2,7 +2,7 @@ package com.infamous.call_of_the_wild.common.behavior.pack;
 
 import com.google.common.collect.ImmutableMap;
 import com.infamous.call_of_the_wild.common.entity.dog.ai.SharedWolfAi;
-import com.infamous.call_of_the_wild.common.registry.COTWMemoryModuleTypes;
+import com.infamous.call_of_the_wild.common.registry.ABABMemoryModuleTypes;
 import com.infamous.call_of_the_wild.common.util.AiUtil;
 import com.infamous.call_of_the_wild.common.util.PackAi;
 import net.minecraft.server.level.ServerLevel;
@@ -23,9 +23,9 @@ public class StartHowling<E extends LivingEntity> extends Behavior<E> {
 
     public StartHowling(UniformInt howlCooldown, int tooFar) {
         super(ImmutableMap.of(
-                COTWMemoryModuleTypes.LEADER.get(), MemoryStatus.REGISTERED,
-                COTWMemoryModuleTypes.FOLLOWERS.get(), MemoryStatus.REGISTERED,
-                COTWMemoryModuleTypes.HOWLED_RECENTLY.get(), MemoryStatus.VALUE_ABSENT
+                ABABMemoryModuleTypes.LEADER.get(), MemoryStatus.REGISTERED,
+                ABABMemoryModuleTypes.FOLLOWERS.get(), MemoryStatus.REGISTERED,
+                ABABMemoryModuleTypes.HOWLED_RECENTLY.get(), MemoryStatus.VALUE_ABSENT
         ));
         this.howlCooldown = howlCooldown;
         this.tooFar = tooFar;

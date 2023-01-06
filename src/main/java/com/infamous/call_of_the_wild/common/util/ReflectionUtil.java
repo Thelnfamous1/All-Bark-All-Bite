@@ -1,7 +1,7 @@
 package com.infamous.call_of_the_wild.common.util;
 
 import com.google.common.collect.Maps;
-import com.infamous.call_of_the_wild.CallOfTheWild;
+import com.infamous.call_of_the_wild.AllBarkAllBite;
 import net.minecraftforge.fml.util.ObfuscationReflectionHelper;
 
 import java.lang.reflect.Field;
@@ -28,7 +28,7 @@ public class ReflectionUtil {
         try {
             return (T) method.invoke(obj, args);
         } catch (IllegalAccessException | InvocationTargetException e) {
-            CallOfTheWild.LOGGER.error("Reflection error for method name {} called on {} given {}", methodName, obj, Arrays.toString(args));
+            AllBarkAllBite.LOGGER.error("Reflection error for method name {} called on {} given {}", methodName, obj, Arrays.toString(args));
             throw new RuntimeException(e);
         }
     }
@@ -39,7 +39,7 @@ public class ReflectionUtil {
         try {
             field.set(obj, value);
         } catch (IllegalAccessException e) {
-            CallOfTheWild.LOGGER.error("Reflection error for field name {} modified on {} given {}", fieldName, obj, value);
+            AllBarkAllBite.LOGGER.error("Reflection error for field name {} modified on {} given {}", fieldName, obj, value);
             throw new RuntimeException(e);
         }
     }
@@ -51,7 +51,7 @@ public class ReflectionUtil {
         try {
             return (T) field.get(obj);
         } catch (IllegalAccessException e) {
-            CallOfTheWild.LOGGER.error("Reflection error for field named {} retrieved on {}", fieldName, obj);
+            AllBarkAllBite.LOGGER.error("Reflection error for field named {} retrieved on {}", fieldName, obj);
             throw new RuntimeException(e);
         }
     }

@@ -1,14 +1,13 @@
 package com.infamous.call_of_the_wild.common.behavior;
 
 import com.google.common.collect.ImmutableMap;
-import com.infamous.call_of_the_wild.common.registry.COTWMemoryModuleTypes;
+import com.infamous.call_of_the_wild.common.registry.ABABMemoryModuleTypes;
 import com.infamous.call_of_the_wild.common.util.AiUtil;
 import com.infamous.call_of_the_wild.common.util.GenericAi;
 import com.infamous.call_of_the_wild.common.util.PositionTrackerImpl;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.entity.PathfinderMob;
-import net.minecraft.world.entity.Pose;
 import net.minecraft.world.entity.ai.behavior.Behavior;
 import net.minecraft.world.entity.ai.memory.MemoryModuleType;
 import net.minecraft.world.entity.ai.memory.MemoryStatus;
@@ -26,7 +25,7 @@ public class PerchAndSearch<E extends PathfinderMob> extends Behavior<E> {
 
     public PerchAndSearch(Predicate<E> isSitting, BiConsumer<E, Boolean> toggleSitting) {
         super(ImmutableMap.of(
-                COTWMemoryModuleTypes.IS_ALERT.get(), MemoryStatus.VALUE_ABSENT,
+                ABABMemoryModuleTypes.IS_ALERT.get(), MemoryStatus.VALUE_ABSENT,
                 MemoryModuleType.WALK_TARGET, MemoryStatus.VALUE_ABSENT,
                 MemoryModuleType.LOOK_TARGET, MemoryStatus.REGISTERED
         ));
@@ -36,9 +35,7 @@ public class PerchAndSearch<E extends PathfinderMob> extends Behavior<E> {
 
     @Override
     protected boolean checkExtraStartConditions(ServerLevel level, E mob) {
-        return !mob.isSleeping()
-                && mob.getNavigation().isDone()
-                && !mob.hasPose(Pose.CROUCHING)
+        return mob.getNavigation().isDone()
                 && !this.isSitting.test(mob);
     }
 

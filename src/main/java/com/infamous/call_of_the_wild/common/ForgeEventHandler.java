@@ -2,12 +2,12 @@ package com.infamous.call_of_the_wild.common;
 
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Maps;
-import com.infamous.call_of_the_wild.CallOfTheWild;
+import com.infamous.call_of_the_wild.AllBarkAllBite;
 import com.infamous.call_of_the_wild.common.entity.DogSpawner;
 import com.infamous.call_of_the_wild.common.entity.dog.ai.Dog;
 import com.infamous.call_of_the_wild.common.entity.dog.ai.WolfAi;
 import com.infamous.call_of_the_wild.common.event.BrainEvent;
-import com.infamous.call_of_the_wild.common.registry.COTWEntityTypes;
+import com.infamous.call_of_the_wild.common.registry.ABABEntityTypes;
 import com.infamous.call_of_the_wild.common.util.BrainUtil;
 import com.infamous.call_of_the_wild.common.util.DebugUtil;
 import com.infamous.call_of_the_wild.common.util.ReflectionUtil;
@@ -50,7 +50,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-@Mod.EventBusSubscriber(bus = Mod.EventBusSubscriber.Bus.FORGE, modid = CallOfTheWild.MODID)
+@Mod.EventBusSubscriber(bus = Mod.EventBusSubscriber.Bus.FORGE, modid = AllBarkAllBite.MODID)
 public class ForgeEventHandler {
     private static final Map<ResourceKey<Level>, List<CustomSpawner>> CUSTOM_SPAWNERS = Maps.newLinkedHashMap();
     private static final String FOX_IS_DEFENDING = "m_28567_";
@@ -73,8 +73,7 @@ public class ForgeEventHandler {
 
     @SubscribeEvent
     static void onMakeBrain(BrainEvent.MakeBrain event){
-        LivingEntity entity = event.getEntity();
-        if(entity.getType() == EntityType.WOLF){
+        if(event.getEntity().getType() == EntityType.WOLF){
             Brain<Wolf> replacement = WolfAi.makeBrain(event.makeBrain(WolfAi.MEMORY_TYPES, WolfAi.SENSOR_TYPES));
             event.setNewBrain(replacement);
         }
@@ -82,7 +81,7 @@ public class ForgeEventHandler {
 
     @SubscribeEvent
     static void onVillagerRefresh(BrainEvent.VillagerRefresh event){
-        addVillagerDogInteractionBehaviors(event.getEntity());
+        addVillagerDogInteractionBehaviors(event.getNewBrain());
     }
 
     @SubscribeEvent(priority = EventPriority.HIGHEST)
@@ -92,7 +91,7 @@ public class ForgeEventHandler {
         addMobDogInteractionGoals(entity);
 
         if(entity instanceof Villager villager){
-            addVillagerDogInteractionBehaviors(villager);
+            addVillagerDogInteractionBehaviors(villager.getBrain());
         }
 
         if(entity instanceof Wolf wolf && entity.getType() == EntityType.WOLF){
@@ -134,8 +133,8 @@ public class ForgeEventHandler {
     /**
      * See {@link net.minecraft.world.entity.ai.behavior.VillagerGoalPackages}
      */
-    private static void addVillagerDogInteractionBehaviors(Villager villager) {
-        Map<Integer, Map<Activity, Set<Behavior<? super Villager>>>> availableBehaviorsByPriority = BrainUtil.getAvailableBehaviorsByPriority(villager.getBrain());
+    private static void addVillagerDogInteractionBehaviors(Brain<Villager> brain) {
+        Map<Integer, Map<Activity, Set<Behavior<? super Villager>>>> availableBehaviorsByPriority = BrainUtil.getAvailableBehaviorsByPriority(brain);
         for(Integer priority : availableBehaviorsByPriority.keySet()){
             if(priority != 2 && priority != 5) continue; // Villager RunOne behaviors that make them look at or interact with cats are only of priority 2 or 5
 
@@ -147,11 +146,11 @@ public class ForgeEventHandler {
                 if(addedPlayLook && addedPlayInteract) break;
                 if(behavior instanceof RunOne<?> runOne){
                     if(!addedPlayLook){
-                        BrainUtil.getGateBehaviors(runOne).add(new SetEntityLookTarget(COTWEntityTypes.DOG.get(), 8.0F), 8);
+                        BrainUtil.getGateBehaviors(runOne).add(new SetEntityLookTarget(ABABEntityTypes.DOG.get(), 8.0F), 8);
                         addedPlayLook = true;
                         continue;
                     }
-                    BrainUtil.getGateBehaviors(runOne).add(InteractWith.of(COTWEntityTypes.DOG.get(), 8, MemoryModuleType.INTERACTION_TARGET, 0.5F, 2), 1);
+                    BrainUtil.getGateBehaviors(runOne).add(InteractWith.of(ABABEntityTypes.DOG.get(), 8, MemoryModuleType.INTERACTION_TARGET, 0.5F, 2), 1);
                     addedPlayInteract = true;
                 }
             }
@@ -162,11 +161,11 @@ public class ForgeEventHandler {
                 if(addedIdleInteract && addedIdleLook) break;
                 if(behavior instanceof RunOne<?> runOne){
                     if(!addedIdleInteract){
-                        BrainUtil.getGateBehaviors(runOne).add(InteractWith.of(COTWEntityTypes.DOG.get(), 8, MemoryModuleType.INTERACTION_TARGET, 0.5F, 2), 1);
+                        BrainUtil.getGateBehaviors(runOne).add(InteractWith.of(ABABEntityTypes.DOG.get(), 8, MemoryModuleType.INTERACTION_TARGET, 0.5F, 2), 1);
                         addedIdleInteract = true;
                         continue;
                     }
-                    BrainUtil.getGateBehaviors(runOne).add(new SetEntityLookTarget(COTWEntityTypes.DOG.get(), 8.0F), 8);
+                    BrainUtil.getGateBehaviors(runOne).add(new SetEntityLookTarget(ABABEntityTypes.DOG.get(), 8.0F), 8);
                     addedIdleLook = true;
                 }
             }

@@ -1,13 +1,13 @@
 package com.infamous.call_of_the_wild.data;
 
-import com.infamous.call_of_the_wild.CallOfTheWild;
+import com.infamous.call_of_the_wild.AllBarkAllBite;
 import net.minecraft.data.DataGenerator;
 import net.minecraftforge.common.data.ExistingFileHelper;
 import net.minecraftforge.data.event.GatherDataEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
 
-@Mod.EventBusSubscriber(bus = Mod.EventBusSubscriber.Bus.MOD, modid = CallOfTheWild.MODID)
+@Mod.EventBusSubscriber(bus = Mod.EventBusSubscriber.Bus.MOD, modid = AllBarkAllBite.MODID)
 public class DataEventHandler {
 
     @SubscribeEvent
@@ -18,15 +18,16 @@ public class DataEventHandler {
         DataGenerator generator = event.getGenerator();
         ExistingFileHelper existingFileHelper = event.getExistingFileHelper();
 
-        generator.addProvider(isClient, COTWLangProvider.create(generator));
+        generator.addProvider(isClient, ABABLangProvider.create(generator));
+        generator.addProvider(isClient, ABABItemModelProvider.create(generator, existingFileHelper));
 
-        generator.addProvider(isServer, COTWEntityTypeTagProvider.create(generator, existingFileHelper));
+        generator.addProvider(isServer, ABABEntityTypeTagProvider.create(generator, existingFileHelper));
 
-        COTWBlockTagProvider blockTagProvider = new COTWBlockTagProvider(generator, existingFileHelper);
+        ABABBlockTagProvider blockTagProvider = new ABABBlockTagProvider(generator, existingFileHelper);
         generator.addProvider(isServer, blockTagProvider);
-        generator.addProvider(isServer, COTWItemTagProvider.create(generator, blockTagProvider, existingFileHelper));
-        generator.addProvider(isServer, COTWGameEventTagsProvider.create(generator, existingFileHelper));
+        generator.addProvider(isServer, ABABItemTagProvider.create(generator, blockTagProvider, existingFileHelper));
+        generator.addProvider(isServer, ABABGameEventTagsProvider.create(generator, existingFileHelper));
 
-        generator.addProvider(isServer, new COTWLootTableProvider(generator));
+        generator.addProvider(isServer, new ABABLootTableProvider(generator));
     }
 }

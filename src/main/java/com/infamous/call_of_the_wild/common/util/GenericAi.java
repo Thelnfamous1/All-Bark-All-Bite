@@ -1,7 +1,7 @@
 package com.infamous.call_of_the_wild.common.util;
 
 import com.google.common.collect.ImmutableList;
-import com.infamous.call_of_the_wild.common.registry.COTWMemoryModuleTypes;
+import com.infamous.call_of_the_wild.common.registry.ABABMemoryModuleTypes;
 import net.minecraft.world.entity.*;
 import net.minecraft.world.entity.ai.Brain;
 import net.minecraft.world.entity.ai.memory.MemoryModuleType;
@@ -16,19 +16,19 @@ import java.util.Optional;
 public class GenericAi {
 
     public static List<LivingEntity> getNearbyAdults(LivingEntity ageableMob) {
-        return ageableMob.getBrain().getMemory(COTWMemoryModuleTypes.NEAREST_ADULTS.get()).orElse(ImmutableList.of());
+        return ageableMob.getBrain().getMemory(ABABMemoryModuleTypes.NEAREST_ADULTS.get()).orElse(ImmutableList.of());
     }
 
     public static List<LivingEntity> getNearbyVisibleAdults(LivingEntity ageableMob) {
-        return ageableMob.getBrain().getMemory(COTWMemoryModuleTypes.NEAREST_VISIBLE_ADULTS.get()).orElse(ImmutableList.of());
+        return ageableMob.getBrain().getMemory(ABABMemoryModuleTypes.NEAREST_VISIBLE_ADULTS.get()).orElse(ImmutableList.of());
     }
 
     public static List<LivingEntity> getNearbyAllies(LivingEntity ageableMob) {
-        return ageableMob.getBrain().getMemory(COTWMemoryModuleTypes.NEAREST_ALLIES.get()).orElse(ImmutableList.of());
+        return ageableMob.getBrain().getMemory(ABABMemoryModuleTypes.NEAREST_ALLIES.get()).orElse(ImmutableList.of());
     }
 
     public static List<LivingEntity> getNearbyVisibleAllies(LivingEntity ageableMob) {
-        return ageableMob.getBrain().getMemory(COTWMemoryModuleTypes.NEAREST_VISIBLE_ALLIES.get()).orElse(ImmutableList.of());
+        return ageableMob.getBrain().getMemory(ABABMemoryModuleTypes.NEAREST_VISIBLE_ALLIES.get()).orElse(ImmutableList.of());
     }
 
     public static Optional<Player> getNearestVisibleTargetablePlayer(LivingEntity livingEntity) {
@@ -54,7 +54,7 @@ public class GenericAi {
     }
 
     public static boolean isNearDisliked(LivingEntity livingEntity, int desiredDistanceFromDisliked) {
-        return isNearTarget(livingEntity, desiredDistanceFromDisliked, COTWMemoryModuleTypes.NEAREST_VISIBLE_DISLIKED.get());
+        return isNearTarget(livingEntity, desiredDistanceFromDisliked, ABABMemoryModuleTypes.NEAREST_VISIBLE_DISLIKED.get());
     }
 
     @SuppressWarnings("OptionalGetWithoutIsPresent")

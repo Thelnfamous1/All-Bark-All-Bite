@@ -53,8 +53,9 @@ public class BrainEvent extends LivingEvent {
         return new Dynamic<>(nbtOps, nbtOps.createMap(ImmutableMap.of(nbtOps.createString("memories"), nbtOps.emptyMap())));
     }
 
-    public Brain<?> getNewBrain() {
-        return this.newBrain;
+    @SuppressWarnings("unchecked")
+    public <T extends LivingEntity> Brain<T> getNewBrain() {
+        return (Brain<T>) this.newBrain;
     }
 
     public void setNewBrain(Brain<?> brain){

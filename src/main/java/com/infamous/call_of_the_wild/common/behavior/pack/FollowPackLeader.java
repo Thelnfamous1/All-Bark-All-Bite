@@ -1,7 +1,7 @@
 package com.infamous.call_of_the_wild.common.behavior.pack;
 
 import com.google.common.collect.ImmutableMap;
-import com.infamous.call_of_the_wild.common.registry.COTWMemoryModuleTypes;
+import com.infamous.call_of_the_wild.common.registry.ABABMemoryModuleTypes;
 import com.infamous.call_of_the_wild.common.util.GenericAi;
 import com.infamous.call_of_the_wild.common.util.MiscUtil;
 import com.infamous.call_of_the_wild.common.util.PackAi;
@@ -26,10 +26,10 @@ public class FollowPackLeader<E extends LivingEntity> extends Behavior<E> {
 
     public FollowPackLeader(UniformInt followRange, float speedModifier) {
         super(ImmutableMap.of(
-                COTWMemoryModuleTypes.LEADER.get(), MemoryStatus.REGISTERED,
-                COTWMemoryModuleTypes.FOLLOWERS.get(), MemoryStatus.REGISTERED,
-                COTWMemoryModuleTypes.NEAREST_VISIBLE_ADULTS.get(), MemoryStatus.REGISTERED,
-                COTWMemoryModuleTypes.NEAREST_VISIBLE_ALLIES.get(), MemoryStatus.REGISTERED,
+                ABABMemoryModuleTypes.LEADER.get(), MemoryStatus.REGISTERED,
+                ABABMemoryModuleTypes.FOLLOWERS.get(), MemoryStatus.REGISTERED,
+                ABABMemoryModuleTypes.NEAREST_VISIBLE_ADULTS.get(), MemoryStatus.REGISTERED,
+                ABABMemoryModuleTypes.NEAREST_VISIBLE_ALLIES.get(), MemoryStatus.REGISTERED,
                 MemoryModuleType.WALK_TARGET, MemoryStatus.VALUE_ABSENT,
                 MemoryModuleType.LOOK_TARGET, MemoryStatus.REGISTERED
         ));

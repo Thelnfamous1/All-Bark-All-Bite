@@ -1,7 +1,7 @@
 package com.infamous.call_of_the_wild.common.behavior.dig;
 
 import com.google.common.collect.ImmutableMap;
-import com.infamous.call_of_the_wild.common.registry.COTWMemoryModuleTypes;
+import com.infamous.call_of_the_wild.common.registry.ABABMemoryModuleTypes;
 import com.infamous.call_of_the_wild.common.util.DigAi;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.GlobalPos;
@@ -27,7 +27,7 @@ public class DigAtLocation<E extends LivingEntity> extends Behavior<E> {
 
    public DigAtLocation(Consumer<E> onDigCompleted, long digDuration) {
       super(ImmutableMap.of(
-              COTWMemoryModuleTypes.DIG_LOCATION.get(), MemoryStatus.VALUE_PRESENT,
+              ABABMemoryModuleTypes.DIG_LOCATION.get(), MemoryStatus.VALUE_PRESENT,
               MemoryModuleType.LOOK_TARGET, MemoryStatus.REGISTERED));
       this.onDigCompleted = onDigCompleted;
       this.digDuration = digDuration;
@@ -61,7 +61,7 @@ public class DigAtLocation<E extends LivingEntity> extends Behavior<E> {
       if(gameTime % 4L == 0L) DigAi.getDigLocation(mob).ifPresent((bp) -> this.playDiggingSound(level, mob, bp.pos()));
       if(gameTime >= this.digUpAtTime){
          this.onDigCompleted.accept(mob);
-         mob.getBrain().eraseMemory(COTWMemoryModuleTypes.DIG_LOCATION.get());
+         mob.getBrain().eraseMemory(ABABMemoryModuleTypes.DIG_LOCATION.get());
       }
    }
 

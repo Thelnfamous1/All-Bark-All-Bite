@@ -2,10 +2,9 @@ package com.infamous.call_of_the_wild.common.entity.dog.ai;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
-import com.infamous.call_of_the_wild.common.COTWTags;
-import com.infamous.call_of_the_wild.common.registry.COTWActivities;
-import com.infamous.call_of_the_wild.common.registry.COTWMemoryModuleTypes;
-import com.infamous.call_of_the_wild.common.registry.COTWSensorTypes;
+import com.infamous.call_of_the_wild.common.ABABTags;
+import com.infamous.call_of_the_wild.common.registry.ABABMemoryModuleTypes;
+import com.infamous.call_of_the_wild.common.registry.ABABSensorTypes;
 import com.infamous.call_of_the_wild.common.util.*;
 import com.mojang.datafixers.util.Pair;
 import net.minecraft.core.particles.ParticleTypes;
@@ -30,71 +29,69 @@ import java.util.Optional;
 public class WolfAi {
 
     public static final Collection<? extends MemoryModuleType<?>> MEMORY_TYPES = ImmutableList.of(
-            COTWMemoryModuleTypes.IS_ALERT.get(),
+            ABABMemoryModuleTypes.IS_ALERT.get(),
             MemoryModuleType.ANGRY_AT,
             MemoryModuleType.ATTACK_COOLING_DOWN,
             MemoryModuleType.ATTACK_TARGET,
             MemoryModuleType.AVOID_TARGET,
             MemoryModuleType.BREED_TARGET,
             MemoryModuleType.CANT_REACH_WALK_TARGET_SINCE,
-            COTWMemoryModuleTypes.FOLLOWERS.get(),
+            ABABMemoryModuleTypes.FOLLOWERS.get(),
             //MemoryModuleType.HAS_HUNTING_COOLDOWN,
-            COTWMemoryModuleTypes.HAS_SHELTER.get(),
-            COTWMemoryModuleTypes.HOWL_LOCATION.get(),
-            COTWMemoryModuleTypes.HOWLED_RECENTLY.get(),
+            ABABMemoryModuleTypes.HAS_SHELTER.get(),
+            ABABMemoryModuleTypes.HOWL_LOCATION.get(),
+            ABABMemoryModuleTypes.HOWLED_RECENTLY.get(),
             MemoryModuleType.HUNTED_RECENTLY,
             MemoryModuleType.HURT_BY,
             MemoryModuleType.HURT_BY_ENTITY,
             MemoryModuleType.INTERACTION_TARGET,
             MemoryModuleType.IS_PANICKING,
-            COTWMemoryModuleTypes.IS_SLEEPING.get(),
+            ABABMemoryModuleTypes.IS_SLEEPING.get(),
+            ABABMemoryModuleTypes.IS_STALKING.get(),
             MemoryModuleType.IS_TEMPTED,
             MemoryModuleType.LAST_SLEPT,
             MemoryModuleType.LAST_WOKEN,
-            COTWMemoryModuleTypes.LEADER.get(),
+            ABABMemoryModuleTypes.LEADER.get(),
             MemoryModuleType.LONG_JUMP_COOLDOWN_TICKS,
             MemoryModuleType.LONG_JUMP_MID_JUMP,
-            COTWMemoryModuleTypes.LONG_JUMP_TARGET.get(),
+            ABABMemoryModuleTypes.LONG_JUMP_TARGET.get(),
             MemoryModuleType.LOOK_TARGET,
-            COTWMemoryModuleTypes.NEAREST_ADULTS.get(),
-            COTWMemoryModuleTypes.NEAREST_BABIES.get(),
-            COTWMemoryModuleTypes.NEAREST_ALLIES.get(),
+            ABABMemoryModuleTypes.NEAREST_ADULTS.get(),
+            ABABMemoryModuleTypes.NEAREST_BABIES.get(),
+            ABABMemoryModuleTypes.NEAREST_ALLIES.get(),
             MemoryModuleType.NEAREST_ATTACKABLE,
-            COTWMemoryModuleTypes.NEAREST_HUNTABLE.get(),
             MemoryModuleType.NEAREST_LIVING_ENTITIES,
             MemoryModuleType.NEAREST_PLAYERS,
             MemoryModuleType.NEAREST_PLAYER_HOLDING_WANTED_ITEM,
             MemoryModuleType.NEAREST_VISIBLE_ADULT,
-            COTWMemoryModuleTypes.NEAREST_VISIBLE_ADULTS.get(),
+            ABABMemoryModuleTypes.NEAREST_VISIBLE_ADULTS.get(),
             MemoryModuleType.NEAREST_VISIBLE_ATTACKABLE_PLAYER,
-            COTWMemoryModuleTypes.NEAREST_VISIBLE_BABIES.get(),
-            COTWMemoryModuleTypes.NEAREST_VISIBLE_HUNTABLE.get(),
-            COTWMemoryModuleTypes.NEAREST_VISIBLE_ALLIES.get(),
+            ABABMemoryModuleTypes.NEAREST_VISIBLE_BABIES.get(),
+            ABABMemoryModuleTypes.NEAREST_VISIBLE_HUNTABLE.get(),
+            ABABMemoryModuleTypes.NEAREST_VISIBLE_ALLIES.get(),
             MemoryModuleType.NEAREST_VISIBLE_LIVING_ENTITIES,
             MemoryModuleType.NEAREST_VISIBLE_PLAYER,
             MemoryModuleType.PATH,
-            COTWMemoryModuleTypes.POUNCE_DELAY.get(),
-            COTWMemoryModuleTypes.STALK_TARGET.get(),
             MemoryModuleType.TEMPTING_PLAYER,
             MemoryModuleType.TEMPTATION_COOLDOWN_TICKS,
             MemoryModuleType.UNIVERSAL_ANGER,
             MemoryModuleType.VIBRATION_COOLDOWN,
             MemoryModuleType.WALK_TARGET,
-            COTWMemoryModuleTypes.WOLF_VIBRATION_LISTENER.get()
+            ABABMemoryModuleTypes.WOLF_VIBRATION_LISTENER.get()
     );
     public static final Collection<? extends SensorType<? extends Sensor<? super Wolf>>> SENSOR_TYPES = ImmutableList.of(
-            COTWSensorTypes.ANIMAL_TEMPTATIONS.get(),
+            ABABSensorTypes.ANIMAL_TEMPTATIONS.get(),
             SensorType.HURT_BY,
 
             // dependent on NEAREST_VISIBLE_LIVING_ENTITIES
             SensorType.NEAREST_LIVING_ENTITIES,
             SensorType.NEAREST_ADULT,
-            COTWSensorTypes.NEAREST_ALLIES.get(),
+            ABABSensorTypes.NEAREST_ALLIES.get(),
 
             SensorType.NEAREST_ITEMS,
             SensorType.NEAREST_PLAYERS,
-            COTWSensorTypes.WOLF_SPECIFIC_SENSOR.get(),
-            COTWSensorTypes.WOLF_VIBRATION_SENSOR.get()
+            ABABSensorTypes.WOLF_SPECIFIC_SENSOR.get(),
+            ABABSensorTypes.WOLF_VIBRATION_SENSOR.get()
     );
     public static final float WOLF_SIZE_SCALE = 1.25F;
     public static final float WOLF_SIZE_LONG_JUMPING_SCALE = 0.7F;
@@ -103,7 +100,6 @@ public class WolfAi {
         initCoreActivity(brain);
         initFightActivity(brain);
         initRetreatActivity(brain);
-        initStalkActivity(brain);
         initLongJumpActivity(brain);
         initMeetActivity(brain);
         initRestActivity(brain);
@@ -123,7 +119,7 @@ public class WolfAi {
                 WolfGoalPackages.getFightPackage(),
                 ImmutableSet.of(
                         Pair.of(MemoryModuleType.ATTACK_TARGET, MemoryStatus.VALUE_PRESENT),
-                        Pair.of(COTWMemoryModuleTypes.LONG_JUMP_TARGET.get(), MemoryStatus.VALUE_ABSENT),
+                        Pair.of(ABABMemoryModuleTypes.LONG_JUMP_TARGET.get(), MemoryStatus.VALUE_ABSENT),
                         Pair.of(MemoryModuleType.LONG_JUMP_MID_JUMP, MemoryStatus.VALUE_ABSENT)
                 ),
                 ImmutableSet.of(MemoryModuleType.ATTACK_TARGET));
@@ -134,38 +130,21 @@ public class WolfAi {
                 WolfGoalPackages.getAvoidPackage(),
                 ImmutableSet.of(
                         Pair.of(MemoryModuleType.AVOID_TARGET, MemoryStatus.VALUE_PRESENT),
-                        Pair.of(COTWMemoryModuleTypes.LONG_JUMP_TARGET.get(), MemoryStatus.VALUE_ABSENT),
+                        Pair.of(ABABMemoryModuleTypes.LONG_JUMP_TARGET.get(), MemoryStatus.VALUE_ABSENT),
                         Pair.of(MemoryModuleType.LONG_JUMP_MID_JUMP, MemoryStatus.VALUE_ABSENT)
                 ),
                 ImmutableSet.of(MemoryModuleType.AVOID_TARGET));
-    }
-
-    private static void initStalkActivity(Brain<Wolf> brain) {
-        brain.addActivityAndRemoveMemoriesWhenStopped(COTWActivities.STALK.get(),
-                WolfGoalPackages.getStalkPackage(),
-                ImmutableSet.of(
-                        Pair.of(COTWMemoryModuleTypes.STALK_TARGET.get(), MemoryStatus.VALUE_PRESENT),
-                        Pair.of(MemoryModuleType.TEMPTING_PLAYER, MemoryStatus.VALUE_ABSENT),
-                        Pair.of(MemoryModuleType.BREED_TARGET, MemoryStatus.VALUE_ABSENT),
-                        Pair.of(COTWMemoryModuleTypes.HOWL_LOCATION.get(), MemoryStatus.VALUE_ABSENT),
-                        Pair.of(COTWMemoryModuleTypes.LONG_JUMP_TARGET.get(), MemoryStatus.VALUE_ABSENT),
-                        Pair.of(MemoryModuleType.LONG_JUMP_MID_JUMP, MemoryStatus.VALUE_ABSENT)
-                ),
-                ImmutableSet.of(
-                        COTWMemoryModuleTypes.STALK_TARGET.get()
-                )
-        );
     }
 
     private static void initLongJumpActivity(Brain<Wolf> brain) {
         brain.addActivityAndRemoveMemoriesWhenStopped(Activity.LONG_JUMP,
                 WolfGoalPackages.getLongJumpPackage(),
                 ImmutableSet.of(
-                        Pair.of(COTWMemoryModuleTypes.LONG_JUMP_TARGET.get(), MemoryStatus.VALUE_PRESENT)
+                        Pair.of(ABABMemoryModuleTypes.LONG_JUMP_TARGET.get(), MemoryStatus.VALUE_PRESENT)
                         //Pair.of(MemoryModuleType.LONG_JUMP_COOLDOWN_TICKS, MemoryStatus.VALUE_ABSENT)
                 ),
                 ImmutableSet.of(
-                        COTWMemoryModuleTypes.LONG_JUMP_TARGET.get()
+                        ABABMemoryModuleTypes.LONG_JUMP_TARGET.get()
                 )
         );
     }
@@ -174,14 +153,14 @@ public class WolfAi {
         brain.addActivityAndRemoveMemoriesWhenStopped(Activity.MEET,
                 WolfGoalPackages.getMeetPackage(),
                 ImmutableSet.of(
-                        Pair.of(COTWMemoryModuleTypes.HOWL_LOCATION.get(), MemoryStatus.VALUE_PRESENT),
+                        Pair.of(ABABMemoryModuleTypes.HOWL_LOCATION.get(), MemoryStatus.VALUE_PRESENT),
                         Pair.of(MemoryModuleType.TEMPTING_PLAYER, MemoryStatus.VALUE_ABSENT),
                         Pair.of(MemoryModuleType.BREED_TARGET, MemoryStatus.VALUE_ABSENT),
-                        Pair.of(COTWMemoryModuleTypes.LONG_JUMP_TARGET.get(), MemoryStatus.VALUE_ABSENT),
+                        Pair.of(ABABMemoryModuleTypes.LONG_JUMP_TARGET.get(), MemoryStatus.VALUE_ABSENT),
                         Pair.of(MemoryModuleType.LONG_JUMP_MID_JUMP, MemoryStatus.VALUE_ABSENT)
                 ),
                 ImmutableSet.of(
-                        COTWMemoryModuleTypes.HOWL_LOCATION.get()
+                        ABABMemoryModuleTypes.HOWL_LOCATION.get()
                 )
         );
     }
@@ -190,10 +169,12 @@ public class WolfAi {
         brain.addActivityAndRemoveMemoriesWhenStopped(Activity.REST,
                 WolfGoalPackages.getRestPackage(),
                 ImmutableSet.of(
-                        Pair.of(COTWMemoryModuleTypes.IS_SLEEPING.get(), MemoryStatus.VALUE_PRESENT)
+                        Pair.of(ABABMemoryModuleTypes.IS_SLEEPING.get(), MemoryStatus.VALUE_PRESENT),
+                        Pair.of(ABABMemoryModuleTypes.HAS_SHELTER.get(), MemoryStatus.VALUE_PRESENT),
+                        Pair.of(ABABMemoryModuleTypes.IS_ALERT.get(), MemoryStatus.VALUE_ABSENT)
                 ),
                 ImmutableSet.of(
-                        COTWMemoryModuleTypes.IS_SLEEPING.get()
+                        ABABMemoryModuleTypes.IS_SLEEPING.get()
                 )
         );
     }
@@ -208,7 +189,7 @@ public class WolfAi {
         Brain<?> brain = wolf.getBrain();
         Activity previous = brain.getActiveNonCoreActivity().orElse(null);
         brain.setActiveActivityToFirstValid(ImmutableList.of(
-                Activity.FIGHT, Activity.AVOID, COTWActivities.STALK.get(), Activity.LONG_JUMP, Activity.MEET, Activity.REST, Activity.IDLE));
+                Activity.FIGHT, Activity.AVOID, Activity.LONG_JUMP, Activity.MEET, Activity.REST, Activity.IDLE));
         Activity current = brain.getActiveNonCoreActivity().orElse(null);
 
         if (previous != current) {
@@ -262,17 +243,14 @@ public class WolfAi {
                 MemoryModuleType.AVOID_TARGET,
                 MemoryModuleType.IS_PANICKING
         ) && !AiUtil.hasAnyMemory(wolf,
-                COTWMemoryModuleTypes.LONG_JUMP_TARGET.get(),
+                ABABMemoryModuleTypes.IS_STALKING.get(),
+                ABABMemoryModuleTypes.LONG_JUMP_TARGET.get(),
                 MemoryModuleType.LONG_JUMP_MID_JUMP
         );
     }
 
     protected static Optional<SoundEvent> getSoundForCurrentActivity(Wolf wolf) {
-        return wolf.getBrain().getActiveNonCoreActivity().filter(WolfAi::activityMakesSound).map((a) -> getSoundForActivity(wolf, a));
-    }
-
-    private static boolean activityMakesSound(Activity activity) {
-        return activity != COTWActivities.STALK.get();
+        return wolf.getBrain().getActiveNonCoreActivity().map((a) -> getSoundForActivity(wolf, a));
     }
 
     private static SoundEvent getSoundForActivity(Wolf wolf, Activity activity) {
@@ -303,7 +281,7 @@ public class WolfAi {
     }
 
     public static boolean isDisliked(Wolf wolf, LivingEntity livingEntity) {
-        return SharedWolfAi.isDisliked(wolf, livingEntity, COTWTags.WOLF_DISLIKED)
+        return SharedWolfAi.isDisliked(wolf, livingEntity, ABABTags.WOLF_DISLIKED)
                 || livingEntity instanceof Player player && WolfGoalPackages.wantsToAvoidPlayer(wolf, player);
     }
 

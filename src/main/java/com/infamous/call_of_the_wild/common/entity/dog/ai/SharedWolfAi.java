@@ -1,7 +1,7 @@
 package com.infamous.call_of_the_wild.common.entity.dog.ai;
 
-import com.infamous.call_of_the_wild.common.registry.COTWGameEvents;
-import com.infamous.call_of_the_wild.common.registry.COTWMemoryModuleTypes;
+import com.infamous.call_of_the_wild.common.registry.ABABGameEvents;
+import com.infamous.call_of_the_wild.common.registry.ABABMemoryModuleTypes;
 import com.infamous.call_of_the_wild.common.util.AiUtil;
 import com.infamous.call_of_the_wild.common.util.AngerAi;
 import com.infamous.call_of_the_wild.common.util.GenericAi;
@@ -14,7 +14,10 @@ import net.minecraft.tags.TagKey;
 import net.minecraft.util.RandomSource;
 import net.minecraft.util.TimeUtil;
 import net.minecraft.util.valueproviders.UniformInt;
-import net.minecraft.world.entity.*;
+import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.Pose;
+import net.minecraft.world.entity.TamableAnimal;
 import net.minecraft.world.entity.ai.Brain;
 import net.minecraft.world.entity.ai.behavior.BehaviorUtils;
 import net.minecraft.world.entity.ai.behavior.BlockPosTracker;
@@ -22,6 +25,7 @@ import net.minecraft.world.entity.ai.behavior.EntityTracker;
 import net.minecraft.world.entity.ai.behavior.PositionTracker;
 import net.minecraft.world.entity.ai.memory.MemoryModuleType;
 import net.minecraft.world.entity.ai.sensing.Sensor;
+import net.minecraft.world.entity.animal.Animal;
 import net.minecraft.world.entity.animal.Wolf;
 import net.minecraft.world.entity.animal.horse.Llama;
 import net.minecraft.world.entity.monster.Monster;
@@ -29,7 +33,6 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.entity.schedule.Activity;
 
 import java.util.Optional;
-import java.util.function.Predicate;
 
 public class SharedWolfAi {
     public static final int TOO_CLOSE_TO_LEAP = 2;
@@ -145,21 +148,17 @@ public class SharedWolfAi {
      * Called by {@link com.infamous.call_of_the_wild.common.sensor.WolfSpecificSensor#doTick(ServerLevel, Wolf)}
      * and {@link com.infamous.call_of_the_wild.common.sensor.DogSpecificSensor#doTick(ServerLevel, Dog)}
      */
-    public static boolean isHuntable(TamableAnimal wolf, LivingEntity livingEntity, TagKey<EntityType<?>> huntTargets, boolean requireLineOfSight) {
-        return AiUtil.isHuntable(wolf, livingEntity, huntTargets, requireLineOfSight) || AiUtil.isHuntableBabyTurtle(wolf, livingEntity);
+    public static boolean isHuntable(TamableAnimal wolf, LivingEntity livingEntity, int closeEnough, TagKey<EntityType<?>> huntTargets, boolean requireLineOfSight) {
+        return AiUtil.isHuntable(wolf, livingEntity, closeEnough, huntTargets, requireLineOfSight) || AiUtil.isHuntableBabyTurtle(wolf, livingEntity, closeEnough);
     }
 
     public static void setHowledRecently(LivingEntity wolf, int howlCooldownInTicks) {
-        wolf.getBrain().setMemoryWithExpiry(COTWMemoryModuleTypes.HOWLED_RECENTLY.get(), true, howlCooldownInTicks);
+        wolf.getBrain().setMemoryWithExpiry(ABABMemoryModuleTypes.HOWLED_RECENTLY.get(), true, howlCooldownInTicks);
     }
 
-    public static boolean canBeAlertedBy(TamableAnimal wolf, LivingEntity target, Predicate<LivingEntity> isPrey){
-        if (target.getType() == wolf.getType()) {
-            return false;
-        } else if (!(isPrey.test(target)) && !(target instanceof Monster)) {
-            if (target instanceof TamableAnimal otherTamable) {
-                return !otherTamable.isTame();
-            } else if (!(target instanceof Player player) || !player.isSpectator() && !player.isCreative()) {
+    public static boolean canBeAlertedBy(TamableAnimal wolf, LivingEntity target){
+        if (!(target instanceof Animal) && !(target instanceof Monster)) {
+            if (!(target instanceof Player player) || !target.isSpectator() && !player.isCreative()) {
                 if (wolf.isOwnedBy(target)) {
                     return false;
                 } else {
@@ -168,6 +167,9 @@ public class SharedWolfAi {
             } else {
                 return false;
             }
+        } else if (target instanceof TamableAnimal tamableAnimal) {
+            LivingEntity owner = wolf.getOwner();
+            return owner != null ? wolf.wantsToAttack(tamableAnimal, target) : !tamableAnimal.isTame();
         } else {
             return true;
         }
@@ -189,7 +191,6 @@ public class SharedWolfAi {
         //wolf.setIsInterested(false);
         if(wolf.hasPose(Pose.CROUCHING)){
             wolf.setPose(Pose.STANDING);
-            wolf.getBrain().eraseMemory(COTWMemoryModuleTypes.POUNCE_DELAY.get());
         }
         if(wolf.isOrderedToSit() || wolf.isInSittingPose()){
             wolf.setOrderedToSit(false);
@@ -224,15 +225,15 @@ public class SharedWolfAi {
 
     static boolean canSleep(TamableAnimal wolf) {
         return wolf.level.isDay()
-                && wolf.getBrain().hasMemoryValue(COTWMemoryModuleTypes.HAS_SHELTER.get())
-                && !wolf.getBrain().hasMemoryValue(COTWMemoryModuleTypes.IS_ALERT.get())
+                && wolf.getBrain().hasMemoryValue(ABABMemoryModuleTypes.HAS_SHELTER.get())
+                && !wolf.getBrain().hasMemoryValue(ABABMemoryModuleTypes.IS_ALERT.get())
                 && !wolf.isInPowderSnow;
     }
 
     public static void followHowl(TamableAnimal wolf, BlockPos blockPos) {
         GlobalPos howlPos = GlobalPos.of(wolf.getLevel().dimension(), blockPos);
         wolf.getBrain().setMemory(MemoryModuleType.LOOK_TARGET, new BlockPosTracker(blockPos));
-        wolf.getBrain().setMemory(COTWMemoryModuleTypes.HOWL_LOCATION.get(), howlPos);
+        wolf.getBrain().setMemory(ABABMemoryModuleTypes.HOWL_LOCATION.get(), howlPos);
         wolf.getBrain().eraseMemory(MemoryModuleType.WALK_TARGET);
     }
 
@@ -244,7 +245,7 @@ public class SharedWolfAi {
             if (wolf.getLevel().dimension() == globalPos.dimension()) {
                 return Optional.of(new BlockPosTracker(globalPos.pos()));
             }
-            brain.eraseMemory(COTWMemoryModuleTypes.HOWL_LOCATION.get());
+            brain.eraseMemory(ABABMemoryModuleTypes.HOWL_LOCATION.get());
         }
         return Optional.empty();
     }
@@ -258,15 +259,15 @@ public class SharedWolfAi {
     }
 
     public static Optional<GlobalPos> getHowlLocation(LivingEntity wolf) {
-        return wolf.getBrain().getMemory(COTWMemoryModuleTypes.HOWL_LOCATION.get());
+        return wolf.getBrain().getMemory(ABABMemoryModuleTypes.HOWL_LOCATION.get());
     }
 
     public static void howl(LivingEntity wolf){
         wolf.playSound(SoundEvents.WOLF_HOWL, HOWL_VOLUME, wolf.getVoicePitch());
-        wolf.gameEvent(COTWGameEvents.ENTITY_HOWL.get());
+        wolf.gameEvent(ABABGameEvents.ENTITY_HOWL.get());
     }
 
     public static boolean hasHowledRecently(LivingEntity wolf) {
-        return wolf.getBrain().hasMemoryValue(COTWMemoryModuleTypes.HOWLED_RECENTLY.get());
+        return wolf.getBrain().hasMemoryValue(ABABMemoryModuleTypes.HOWLED_RECENTLY.get());
     }
 }

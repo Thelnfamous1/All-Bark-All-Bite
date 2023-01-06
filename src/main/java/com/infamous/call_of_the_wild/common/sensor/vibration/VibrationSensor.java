@@ -1,7 +1,7 @@
 package com.infamous.call_of_the_wild.common.sensor.vibration;
 
 import com.google.common.collect.ImmutableSet;
-import com.infamous.call_of_the_wild.CallOfTheWild;
+import com.infamous.call_of_the_wild.AllBarkAllBite;
 import com.infamous.call_of_the_wild.common.util.BrainUtil;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.Entity;
@@ -87,7 +87,7 @@ public class VibrationSensor<E extends LivingEntity, VLC extends EntityVibration
      * In vanilla, DynamicGameEventListeners associated with an entity's state are updated whenever the entity joins a new ServerLevel, changes its SectionPos in a ServerLevel, or leaves its ServerLevel.
      * Here, we recreate that functionality using Events.
      */
-    @Mod.EventBusSubscriber(bus = Mod.EventBusSubscriber.Bus.FORGE, modid = CallOfTheWild.MODID)
+    @Mod.EventBusSubscriber(bus = Mod.EventBusSubscriber.Bus.FORGE, modid = AllBarkAllBite.MODID)
     private static class EventHandler{
 
         @SubscribeEvent

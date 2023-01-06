@@ -1,7 +1,7 @@
 package com.infamous.call_of_the_wild.common.behavior.sleep;
 
 import com.google.common.collect.ImmutableMap;
-import com.infamous.call_of_the_wild.common.registry.COTWMemoryModuleTypes;
+import com.infamous.call_of_the_wild.common.registry.ABABMemoryModuleTypes;
 import com.infamous.call_of_the_wild.common.util.GenericAi;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.util.Unit;
@@ -19,7 +19,7 @@ public class StartSleeping<E extends LivingEntity> extends Behavior<E> {
 
     public StartSleeping(Predicate<E> canSleep) {
         super(ImmutableMap.of(
-                COTWMemoryModuleTypes.IS_SLEEPING.get(), MemoryStatus.VALUE_ABSENT,
+                ABABMemoryModuleTypes.IS_SLEEPING.get(), MemoryStatus.VALUE_ABSENT,
                 MemoryModuleType.LAST_WOKEN, MemoryStatus.REGISTERED,
                 MemoryModuleType.LOOK_TARGET, MemoryStatus.REGISTERED,
                 MemoryModuleType.WALK_TARGET, MemoryStatus.VALUE_ABSENT,
@@ -54,7 +54,7 @@ public class StartSleeping<E extends LivingEntity> extends Behavior<E> {
     public void start(ServerLevel level, E mob, long gameTime) {
         mob.getBrain().eraseMemory(MemoryModuleType.LOOK_TARGET);
         GenericAi.goToSleep(mob);
-        mob.getBrain().setMemory(COTWMemoryModuleTypes.IS_SLEEPING.get(), Unit.INSTANCE);
+        mob.getBrain().setMemory(ABABMemoryModuleTypes.IS_SLEEPING.get(), Unit.INSTANCE);
     }
 
 }

@@ -1,7 +1,7 @@
 package com.infamous.call_of_the_wild.common.entity.dog.ai;
 
 import com.google.common.collect.ImmutableList;
-import com.infamous.call_of_the_wild.common.COTWTags;
+import com.infamous.call_of_the_wild.common.ABABTags;
 import com.infamous.call_of_the_wild.common.entity.EntityVariant;
 import com.infamous.call_of_the_wild.common.entity.VariantMob;
 import com.infamous.call_of_the_wild.common.entity.dog.CollaredMob;
@@ -52,6 +52,7 @@ import net.minecraft.world.level.block.RenderShape;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.pathfinder.BlockPathTypes;
 import net.minecraft.world.phys.Vec3;
+import net.minecraftforge.common.ForgeSpawnEggItem;
 import net.minecraftforge.event.ForgeEventFactory;
 import net.minecraftforge.registries.IForgeRegistry;
 import org.apache.commons.lang3.tuple.MutablePair;
@@ -69,11 +70,11 @@ public class Dog extends TamableAnimal implements InterestedMob, ShakingMob, Var
             MemoryModuleType.BREED_TARGET,
             MemoryModuleType.CANT_REACH_WALK_TARGET_SINCE,
             MemoryModuleType.DIG_COOLDOWN,
-            COTWMemoryModuleTypes.DIG_LOCATION.get(),
-            COTWMemoryModuleTypes.DISABLE_WALK_TO_FETCH_ITEM.get(),
-            COTWMemoryModuleTypes.DISABLE_WALK_TO_PLAY_ITEM.get(),
-            COTWMemoryModuleTypes.FETCHING_DISABLED.get(),
-            COTWMemoryModuleTypes.FETCHING_ITEM.get(),
+            ABABMemoryModuleTypes.DIG_LOCATION.get(),
+            ABABMemoryModuleTypes.DISABLE_WALK_TO_FETCH_ITEM.get(),
+            ABABMemoryModuleTypes.DISABLE_WALK_TO_PLAY_ITEM.get(),
+            ABABMemoryModuleTypes.FETCHING_DISABLED.get(),
+            ABABMemoryModuleTypes.FETCHING_ITEM.get(),
             //MemoryModuleType.HAS_HUNTING_COOLDOWN,
             MemoryModuleType.HUNTED_RECENTLY,
             MemoryModuleType.HURT_BY,
@@ -83,41 +84,41 @@ public class Dog extends TamableAnimal implements InterestedMob, ShakingMob, Var
             MemoryModuleType.IS_TEMPTED,
             MemoryModuleType.ITEM_PICKUP_COOLDOWN_TICKS,
             MemoryModuleType.LOOK_TARGET,
-            COTWMemoryModuleTypes.NEAREST_ADULTS.get(),
-            COTWMemoryModuleTypes.NEAREST_BABIES.get(),
-            COTWMemoryModuleTypes.NEAREST_ALLIES.get(),
+            ABABMemoryModuleTypes.NEAREST_ADULTS.get(),
+            ABABMemoryModuleTypes.NEAREST_BABIES.get(),
+            ABABMemoryModuleTypes.NEAREST_ALLIES.get(),
             MemoryModuleType.NEAREST_ATTACKABLE,
             MemoryModuleType.NEAREST_LIVING_ENTITIES,
             MemoryModuleType.NEAREST_PLAYERS,
             MemoryModuleType.NEAREST_PLAYER_HOLDING_WANTED_ITEM,
             MemoryModuleType.NEAREST_VISIBLE_ADULT,
-            COTWMemoryModuleTypes.NEAREST_VISIBLE_ADULTS.get(),
+            ABABMemoryModuleTypes.NEAREST_VISIBLE_ADULTS.get(),
             MemoryModuleType.NEAREST_VISIBLE_ATTACKABLE_PLAYER,
-            COTWMemoryModuleTypes.NEAREST_VISIBLE_BABIES.get(),
-            COTWMemoryModuleTypes.NEAREST_VISIBLE_HUNTABLE.get(),
-            COTWMemoryModuleTypes.NEAREST_VISIBLE_ALLIES.get(),
+            ABABMemoryModuleTypes.NEAREST_VISIBLE_BABIES.get(),
+            ABABMemoryModuleTypes.NEAREST_VISIBLE_HUNTABLE.get(),
+            ABABMemoryModuleTypes.NEAREST_VISIBLE_ALLIES.get(),
             MemoryModuleType.NEAREST_VISIBLE_LIVING_ENTITIES,
             MemoryModuleType.NEAREST_VISIBLE_PLAYER,
             MemoryModuleType.NEAREST_VISIBLE_WANTED_ITEM,
             MemoryModuleType.PATH,
-            COTWMemoryModuleTypes.PLAYING_DISABLED.get(),
-            COTWMemoryModuleTypes.PLAYING_WITH_ITEM.get(),
+            ABABMemoryModuleTypes.PLAYING_DISABLED.get(),
+            ABABMemoryModuleTypes.PLAYING_WITH_ITEM.get(),
             MemoryModuleType.TEMPTING_PLAYER,
             MemoryModuleType.TEMPTATION_COOLDOWN_TICKS,
-            COTWMemoryModuleTypes.TIME_TRYING_TO_REACH_FETCH_ITEM.get(),
-            COTWMemoryModuleTypes.TIME_TRYING_TO_REACH_PLAY_ITEM.get(),
+            ABABMemoryModuleTypes.TIME_TRYING_TO_REACH_FETCH_ITEM.get(),
+            ABABMemoryModuleTypes.TIME_TRYING_TO_REACH_PLAY_ITEM.get(),
             MemoryModuleType.UNIVERSAL_ANGER,
             MemoryModuleType.WALK_TARGET
     );
     public static final Collection<? extends SensorType<? extends Sensor<? super Dog>>> SENSOR_TYPES = ImmutableList.of(
-            COTWSensorTypes.ANIMAL_TEMPTATIONS.get(),
+            ABABSensorTypes.ANIMAL_TEMPTATIONS.get(),
             SensorType.HURT_BY,
 
             // dependent on NEAREST_VISIBLE_LIVING_ENTITIES
             SensorType.NEAREST_LIVING_ENTITIES,
             SensorType.NEAREST_ADULT,
-            COTWSensorTypes.NEAREST_ALLIES.get(),
-            COTWSensorTypes.DOG_SPECIFIC_SENSOR.get(),
+            ABABSensorTypes.NEAREST_ALLIES.get(),
+            ABABSensorTypes.DOG_SPECIFIC_SENSOR.get(),
 
             SensorType.NEAREST_ITEMS,
             SensorType.NEAREST_PLAYERS
@@ -129,7 +130,7 @@ public class Dog extends TamableAnimal implements InterestedMob, ShakingMob, Var
     private static final int FLAG_INTERESTED = 8;
     private static final int FLAG_WET = 16;
     private static final int FLAG_SHAKING = 32;
-    private static final EntityDataAccessor<EntityVariant> DATA_VARIANT_ID = SynchedEntityData.defineId(Dog.class, COTWEntityDataSerializers.DOG_VARIANT.get());
+    private static final EntityDataAccessor<EntityVariant> DATA_VARIANT_ID = SynchedEntityData.defineId(Dog.class, ABABEntityDataSerializers.DOG_VARIANT.get());
     private static final EntityDataAccessor<Integer> DATA_COLLAR_COLOR = SynchedEntityData.defineId(Dog.class, EntityDataSerializers.INT);
     private static final byte JUMPING_ID = (byte) 1;
     private final MutablePair<Float, Float> interestedAngles = new MutablePair<>(0.0F, 0.0F);
@@ -166,7 +167,7 @@ public class Dog extends TamableAnimal implements InterestedMob, ShakingMob, Var
     @Override
     protected void defineSynchedData() {
         super.defineSynchedData();
-        this.entityData.define(DATA_VARIANT_ID, COTWDogVariants.BROWN.get());
+        this.entityData.define(DATA_VARIANT_ID, ABABDogVariants.BROWN.get());
         this.entityData.define(DATA_COLLAR_COLOR, DyeColor.RED.getId());
     }
 
@@ -418,7 +419,7 @@ public class Dog extends TamableAnimal implements InterestedMob, ShakingMob, Var
     @Override
     public boolean isFood(ItemStack stack) {
         FoodProperties foodProperties = stack.getFoodProperties(this);
-        return stack.is(COTWTags.DOG_FOOD) || foodProperties != null && foodProperties.isMeat();
+        return stack.is(ABABTags.DOG_FOOD) || foodProperties != null && foodProperties.isMeat();
     }
 
     @Override
@@ -429,7 +430,7 @@ public class Dog extends TamableAnimal implements InterestedMob, ShakingMob, Var
     @Nullable
     @Override
     public AgeableMob getBreedOffspring(ServerLevel level, AgeableMob partner) {
-        Dog offspring = COTWEntityTypes.DOG.get().create(level);
+        Dog offspring = ABABEntityTypes.DOG.get().create(level);
         if (partner instanceof Dog mate && offspring != null) {
             if (this.random.nextBoolean()) {
                 offspring.setVariant(this.getVariant());
@@ -606,11 +607,18 @@ public class Dog extends TamableAnimal implements InterestedMob, ShakingMob, Var
          */
     }
 
+    @SuppressWarnings("ConstantConditions")
+    @Nullable
+    @Override
+    public ItemStack getPickResult() {
+        return ForgeSpawnEggItem.fromEntityType(this.getType()).getDefaultInstance();
+    }
+
     // VariantMob
 
     @Override
     public IForgeRegistry<EntityVariant> getVariantRegistry() {
-        return COTWDogVariants.DOG_VARIANT_REGISTRY.get();
+        return ABABDogVariants.DOG_VARIANT_REGISTRY.get();
     }
 
     @Override

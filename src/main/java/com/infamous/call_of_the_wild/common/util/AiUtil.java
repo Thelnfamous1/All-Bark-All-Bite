@@ -58,19 +58,18 @@ public class AiUtil {
         }
     }
 
-    public static boolean isHostile(Mob mob, LivingEntity target, TagKey<EntityType<?>> alwaysHostiles, boolean requireLineOfSight){
-        return isClose(mob, target)
+    public static boolean isHostile(Mob mob, LivingEntity target, int closeEnough, TagKey<EntityType<?>> alwaysHostiles, boolean requireLineOfSight){
+        return isClose(mob, target, closeEnough)
                 && target.getType().is(alwaysHostiles)
                 && isAttackable(mob, target, requireLineOfSight);
     }
 
-    public static boolean isClose(Mob mob, LivingEntity target) {
-        double followRange = getFollowRange(mob);
-        return target.distanceToSqr(mob) <= followRange * followRange;
+    public static boolean isClose(Mob mob, LivingEntity target, int closeEnough) {
+        return target.distanceToSqr(mob) <= Mth.square(closeEnough);
     }
 
-    public static boolean isHuntable(Mob mob, LivingEntity target, TagKey<EntityType<?>> huntTargets, boolean requireLineOfSight){
-        return isClose(mob, target)
+    public static boolean isHuntable(Mob mob, LivingEntity target, int closeEnough, TagKey<EntityType<?>> huntTargets, boolean requireLineOfSight){
+        return isClose(mob, target, closeEnough)
                 && isHuntTarget(mob, target, huntTargets)
                 && isAttackable(mob, target, requireLineOfSight);
     }
@@ -84,8 +83,8 @@ public class AiUtil {
                 && target.getType().is(huntTargets);
     }
 
-    public static boolean isHuntableBabyTurtle(Mob mob, LivingEntity target) {
-        return isClose(mob, target)
+    public static boolean isHuntableBabyTurtle(Mob mob, LivingEntity target, int closeEnough) {
+        return isClose(mob, target, closeEnough)
                 && !hasAnyMemory(mob, MemoryModuleType.HUNTED_RECENTLY, MemoryModuleType.HAS_HUNTING_COOLDOWN)
                 && target instanceof Turtle turtle
                 && Turtle.BABY_ON_LAND_SELECTOR.test(turtle)

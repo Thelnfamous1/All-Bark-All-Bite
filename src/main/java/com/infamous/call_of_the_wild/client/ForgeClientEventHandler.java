@@ -1,6 +1,6 @@
 package com.infamous.call_of_the_wild.client;
 
-import com.infamous.call_of_the_wild.CallOfTheWild;
+import com.infamous.call_of_the_wild.AllBarkAllBite;
 import com.mojang.blaze3d.vertex.PoseStack;
 import net.minecraft.client.Camera;
 import net.minecraft.client.Minecraft;
@@ -11,7 +11,7 @@ import net.minecraftforge.client.event.RenderLevelStageEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
 
-@Mod.EventBusSubscriber(bus = Mod.EventBusSubscriber.Bus.FORGE, modid = CallOfTheWild.MODID, value = Dist.CLIENT)
+@Mod.EventBusSubscriber(bus = Mod.EventBusSubscriber.Bus.FORGE, modid = AllBarkAllBite.MODID, value = Dist.CLIENT)
 public class ForgeClientEventHandler {
 
     @SuppressWarnings("ConstantConditions")

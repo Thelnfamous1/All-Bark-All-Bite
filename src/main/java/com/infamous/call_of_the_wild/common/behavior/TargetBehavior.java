@@ -6,7 +6,6 @@ import com.infamous.call_of_the_wild.common.util.GenericAi;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.Mob;
-import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.ai.behavior.Behavior;
 import net.minecraft.world.entity.ai.behavior.StartAttacking;
 import net.minecraft.world.entity.ai.memory.MemoryModuleType;
@@ -89,7 +88,7 @@ public abstract class TargetBehavior<E extends Mob> extends Behavior<E> {
     }
 
     protected double getFollowDistance(E mob) {
-        return mob.getAttributeValue(Attributes.FOLLOW_RANGE);
+        return AiUtil.getFollowRange(mob);
     }
 
     @Override

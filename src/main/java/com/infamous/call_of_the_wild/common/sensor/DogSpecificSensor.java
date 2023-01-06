@@ -1,11 +1,11 @@
 package com.infamous.call_of_the_wild.common.sensor;
 
 import com.google.common.collect.ImmutableSet;
-import com.infamous.call_of_the_wild.common.COTWTags;
+import com.infamous.call_of_the_wild.common.ABABTags;
 import com.infamous.call_of_the_wild.common.entity.dog.ai.Dog;
 import com.infamous.call_of_the_wild.common.entity.dog.ai.DogGoalPackages;
 import com.infamous.call_of_the_wild.common.entity.dog.ai.SharedWolfAi;
-import com.infamous.call_of_the_wild.common.registry.COTWMemoryModuleTypes;
+import com.infamous.call_of_the_wild.common.registry.ABABMemoryModuleTypes;
 import com.infamous.call_of_the_wild.common.util.AiUtil;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.LivingEntity;
@@ -20,12 +20,15 @@ import java.util.Set;
 
 @SuppressWarnings("NullableProblems")
 public class DogSpecificSensor extends Sensor<Dog> {
+
+    private static final int TARGET_DETECTION_DISTANCE = 10;
+
     @Override
     public Set<MemoryModuleType<?>> requires() {
         return ImmutableSet.of(
                 MemoryModuleType.NEAREST_VISIBLE_LIVING_ENTITIES,
-                COTWMemoryModuleTypes.NEAREST_VISIBLE_DISLIKED.get(),
-                COTWMemoryModuleTypes.NEAREST_VISIBLE_HUNTABLE.get(),
+                ABABMemoryModuleTypes.NEAREST_VISIBLE_DISLIKED.get(),
+                ABABMemoryModuleTypes.NEAREST_VISIBLE_HUNTABLE.get(),
                 MemoryModuleType.NEAREST_ATTACKABLE,
                 MemoryModuleType.NEAREST_PLAYER_HOLDING_WANTED_ITEM);
     }
@@ -45,14 +48,14 @@ public class DogSpecificSensor extends Sensor<Dog> {
         for (LivingEntity livingEntity : nvle.findAll((le) -> true)) {
             if(nearestDisliked.isEmpty()
                     && !tame
-                    && SharedWolfAi.isDisliked(dog, livingEntity, COTWTags.DOG_DISLIKED)){
+                    && SharedWolfAi.isDisliked(dog, livingEntity, ABABTags.DOG_DISLIKED)){
                 nearestDisliked = Optional.of(livingEntity);
             } else if(nearestHuntable.isEmpty()
                     && !tame
-                    && SharedWolfAi.isHuntable(dog, livingEntity, COTWTags.DOG_HUNT_TARGETS, true)){
+                    && SharedWolfAi.isHuntable(dog, livingEntity, TARGET_DETECTION_DISTANCE, ABABTags.DOG_HUNT_TARGETS, true)){
                 nearestHuntable = Optional.of(livingEntity);
             } else if(nearestAttackable.isEmpty()
-                    && AiUtil.isHostile(dog, livingEntity, COTWTags.DOG_ALWAYS_HOSTILES, true)){
+                    && AiUtil.isHostile(dog, livingEntity, TARGET_DETECTION_DISTANCE, ABABTags.DOG_ALWAYS_HOSTILES, true)){
                 nearestAttackable = Optional.of(livingEntity);
             } else if (livingEntity instanceof Player player) {
                 if (nearestPlayerHoldingLovedItem.isEmpty()
@@ -63,8 +66,8 @@ public class DogSpecificSensor extends Sensor<Dog> {
             }
         }
 
-        brain.setMemory(COTWMemoryModuleTypes.NEAREST_VISIBLE_DISLIKED.get(), nearestDisliked);
-        brain.setMemory(COTWMemoryModuleTypes.NEAREST_VISIBLE_HUNTABLE.get(), nearestHuntable);
+        brain.setMemory(ABABMemoryModuleTypes.NEAREST_VISIBLE_DISLIKED.get(), nearestDisliked);
+        brain.setMemory(ABABMemoryModuleTypes.NEAREST_VISIBLE_HUNTABLE.get(), nearestHuntable);
         brain.setMemory(MemoryModuleType.NEAREST_ATTACKABLE, nearestAttackable);
         brain.setMemory(MemoryModuleType.NEAREST_PLAYER_HOLDING_WANTED_ITEM, nearestPlayerHoldingLovedItem);
     }

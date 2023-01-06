@@ -1,6 +1,6 @@
 package com.infamous.call_of_the_wild.common.entity.dog.vibration;
 
-import com.infamous.call_of_the_wild.common.COTWTags;
+import com.infamous.call_of_the_wild.common.ABABTags;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.entity.animal.Wolf;
 import net.minecraft.world.level.gameevent.GameEvent;
@@ -10,6 +10,6 @@ public class WolfVibrationListenerConfig extends SharedWolfVibrationListenerConf
 
     @Override
     public TagKey<GameEvent> getListenableEvents() {
-        return COTWTags.WOLF_CAN_LISTEN;
+        return ABABTags.WOLF_CAN_LISTEN;
     }
 }

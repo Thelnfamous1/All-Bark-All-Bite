@@ -1,7 +1,7 @@
 package com.infamous.call_of_the_wild.client;
 
 import com.google.common.collect.Sets;
-import com.infamous.call_of_the_wild.CallOfTheWild;
+import com.infamous.call_of_the_wild.AllBarkAllBite;
 import net.minecraft.client.model.geom.ModelLayerLocation;
 import net.minecraft.resources.ResourceLocation;
 
@@ -26,6 +26,6 @@ public class COTWModelLayers {
     }
 
     private static ModelLayerLocation createLocation(String path, String layer) {
-        return new ModelLayerLocation(new ResourceLocation(CallOfTheWild.MODID, path), layer);
+        return new ModelLayerLocation(new ResourceLocation(AllBarkAllBite.MODID, path), layer);
     }
 }

@@ -1,6 +1,6 @@
 package com.infamous.call_of_the_wild.common.util;
 
-import com.infamous.call_of_the_wild.common.registry.COTWMemoryModuleTypes;
+import com.infamous.call_of_the_wild.common.registry.ABABMemoryModuleTypes;
 import net.minecraft.util.valueproviders.UniformInt;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.memory.MemoryModuleType;
@@ -24,15 +24,7 @@ public class HunterAi {
     }
 
     public static Optional<LivingEntity> getNearestVisibleHuntable(LivingEntity mob){
-        return mob.getBrain().getMemory(COTWMemoryModuleTypes.NEAREST_VISIBLE_HUNTABLE.get());
-    }
-
-    public static Optional<LivingEntity> getNearestHuntable(LivingEntity mob){
-        return mob.getBrain().getMemory(COTWMemoryModuleTypes.NEAREST_HUNTABLE.get());
-    }
-
-    public static Optional<LivingEntity> getStalkTarget(LivingEntity mob){
-        return mob.getBrain().getMemory(COTWMemoryModuleTypes.STALK_TARGET.get());
+        return mob.getBrain().getMemory(ABABMemoryModuleTypes.NEAREST_VISIBLE_HUNTABLE.get());
     }
 
 }

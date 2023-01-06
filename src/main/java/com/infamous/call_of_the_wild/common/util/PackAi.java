@@ -1,7 +1,7 @@
 package com.infamous.call_of_the_wild.common.util;
 
 import com.google.common.collect.Sets;
-import com.infamous.call_of_the_wild.common.registry.COTWMemoryModuleTypes;
+import com.infamous.call_of_the_wild.common.registry.ABABMemoryModuleTypes;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.Mob;
 import net.minecraft.world.entity.ai.behavior.BehaviorUtils;
@@ -22,18 +22,18 @@ public class PackAi {
     }
 
     public static Optional<Set<UUID>> getFollowerUUIDs(LivingEntity mob) {
-        if(!mob.getBrain().hasMemoryValue(COTWMemoryModuleTypes.FOLLOWERS.get())){
-            mob.getBrain().setMemory(COTWMemoryModuleTypes.FOLLOWERS.get(), Sets.newHashSet(mob.getUUID()));
+        if(!mob.getBrain().hasMemoryValue(ABABMemoryModuleTypes.FOLLOWERS.get())){
+            mob.getBrain().setMemory(ABABMemoryModuleTypes.FOLLOWERS.get(), Sets.newHashSet(mob.getUUID()));
         }
-        return mob.getBrain().getMemory(COTWMemoryModuleTypes.FOLLOWERS.get());
+        return mob.getBrain().getMemory(ABABMemoryModuleTypes.FOLLOWERS.get());
     }
 
     public static Optional<UUID> getLeaderUUID(LivingEntity mob) {
-        return mob.getBrain().getMemory(COTWMemoryModuleTypes.LEADER.get());
+        return mob.getBrain().getMemory(ABABMemoryModuleTypes.LEADER.get());
     }
 
     public static Optional<LivingEntity> getLeader(LivingEntity mob) {
-        return BehaviorUtils.getLivingEntityFromUUIDMemory(mob, COTWMemoryModuleTypes.LEADER.get());
+        return BehaviorUtils.getLivingEntityFromUUIDMemory(mob, ABABMemoryModuleTypes.LEADER.get());
     }
 
     public static void stopFollowing(LivingEntity mob, LivingEntity leader) {
@@ -47,7 +47,7 @@ public class PackAi {
     }
 
     public static void eraseLeader(LivingEntity mob) {
-        mob.getBrain().eraseMemory(COTWMemoryModuleTypes.LEADER.get());
+        mob.getBrain().eraseMemory(ABABMemoryModuleTypes.LEADER.get());
     }
 
     public static boolean isFollower(LivingEntity mob) {
@@ -61,7 +61,7 @@ public class PackAi {
     }
 
     private static void setLeader(LivingEntity mob, LivingEntity leader) {
-        mob.getBrain().setMemory(COTWMemoryModuleTypes.LEADER.get(), leader.getUUID());
+        mob.getBrain().setMemory(ABABMemoryModuleTypes.LEADER.get(), leader.getUUID());
     }
 
     public static boolean canFollow(LivingEntity mob, LivingEntity other) {

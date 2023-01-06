@@ -1,7 +1,7 @@
 package com.infamous.call_of_the_wild.common.util;
 
 import com.google.common.collect.Lists;
-import com.infamous.call_of_the_wild.common.registry.COTWMemoryModuleTypes;
+import com.infamous.call_of_the_wild.common.registry.ABABMemoryModuleTypes;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.EntityDimensions;
 import net.minecraft.world.entity.LivingEntity;
@@ -105,15 +105,15 @@ public class LongJumpAi {
     }
 
    public static Optional<PositionTracker> getLongJumpTarget(LivingEntity mob) {
-      return mob.getBrain().getMemory(COTWMemoryModuleTypes.LONG_JUMP_TARGET.get());
+      return mob.getBrain().getMemory(ABABMemoryModuleTypes.LONG_JUMP_TARGET.get());
    }
 
     public static void setLongJumpTarget(LivingEntity mob, PositionTracker target) {
-        mob.getBrain().setMemory(COTWMemoryModuleTypes.LONG_JUMP_TARGET.get(), target);
+        mob.getBrain().setMemory(ABABMemoryModuleTypes.LONG_JUMP_TARGET.get(), target);
     }
 
     public static void clearLongJumpTarget(LivingEntity mob){
-       mob.getBrain().eraseMemory(COTWMemoryModuleTypes.LONG_JUMP_TARGET.get());
+       mob.getBrain().eraseMemory(ABABMemoryModuleTypes.LONG_JUMP_TARGET.get());
     }
 
     @SuppressWarnings("BooleanMethodIsAlwaysInverted")

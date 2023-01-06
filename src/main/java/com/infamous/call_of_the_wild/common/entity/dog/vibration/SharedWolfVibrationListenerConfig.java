@@ -1,7 +1,7 @@
 package com.infamous.call_of_the_wild.common.entity.dog.vibration;
 
 import com.infamous.call_of_the_wild.common.entity.dog.ai.SharedWolfAi;
-import com.infamous.call_of_the_wild.common.registry.COTWGameEvents;
+import com.infamous.call_of_the_wild.common.registry.ABABGameEvents;
 import com.infamous.call_of_the_wild.common.sensor.vibration.EntityVibrationListenerConfig;
 import com.infamous.call_of_the_wild.common.util.PackAi;
 import net.minecraft.core.BlockPos;
@@ -41,7 +41,7 @@ public abstract class SharedWolfVibrationListenerConfig<T extends TamableAnimal>
     protected void onEntityReceiveSignal(ServerLevel level, GameEventListener gameEventListener, BlockPos signalPos, GameEvent signalEvent, @Nullable Entity signalSender, @Nullable Entity signalSenderOwner, float signalDistance) {
         //this.entity.getBrain().setMemoryWithExpiry(MemoryModuleType.VIBRATION_COOLDOWN, Unit.INSTANCE, 40L);
 
-        if (signalEvent == COTWGameEvents.ENTITY_HOWL.get()
+        if (signalEvent == ABABGameEvents.ENTITY_HOWL.get()
                 && signalSender != this.entity
                 && signalSender instanceof LivingEntity howler) {
             if(!this.wantsToRespond(howler)) return;

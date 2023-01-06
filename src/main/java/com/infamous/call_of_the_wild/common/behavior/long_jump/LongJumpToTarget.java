@@ -1,8 +1,8 @@
 package com.infamous.call_of_the_wild.common.behavior.long_jump;
 
 import com.google.common.collect.ImmutableMap;
-import com.infamous.call_of_the_wild.CallOfTheWild;
-import com.infamous.call_of_the_wild.common.registry.COTWMemoryModuleTypes;
+import com.infamous.call_of_the_wild.AllBarkAllBite;
+import com.infamous.call_of_the_wild.common.registry.ABABMemoryModuleTypes;
 import com.infamous.call_of_the_wild.common.util.LongJumpAi;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
@@ -50,7 +50,7 @@ public class LongJumpToTarget<E extends Mob> extends Behavior<E> {
 
    public LongJumpToTarget(UniformInt timeBetweenLongJumps, float maxJumpVelocity, Function<E, SoundEvent> getJumpSound, Predicate<BlockState> acceptableLandingSpot) {
       super(ImmutableMap.of(
-                      COTWMemoryModuleTypes.LONG_JUMP_TARGET.get(), MemoryStatus.VALUE_PRESENT,
+                      ABABMemoryModuleTypes.LONG_JUMP_TARGET.get(), MemoryStatus.VALUE_PRESENT,
                       MemoryModuleType.LOOK_TARGET, MemoryStatus.REGISTERED,
                       MemoryModuleType.LONG_JUMP_COOLDOWN_TICKS, MemoryStatus.VALUE_ABSENT,
                       MemoryModuleType.LONG_JUMP_MID_JUMP, MemoryStatus.VALUE_ABSENT),
@@ -130,7 +130,7 @@ public class LongJumpToTarget<E extends Mob> extends Behavior<E> {
          PathNavigation navigation = mob.getNavigation();
          Path path = navigation.createPath(targetBlockPosition, 0, MIN_PATHFIND_DISTANCE_TO_VALID_JUMP);
          if (path != null && path.canReach()) {
-            CallOfTheWild.LOGGER.info("{} cannot path to jump target at {}!", mob, targetBlockPosition);
+            AllBarkAllBite.LOGGER.info("{} cannot path to jump target at {}!", mob, targetBlockPosition);
             //return;
          }
 

@@ -1,7 +1,7 @@
 package com.infamous.call_of_the_wild.common.entity;
 
 import com.infamous.call_of_the_wild.common.entity.dog.ai.Dog;
-import com.infamous.call_of_the_wild.common.registry.COTWEntityTypes;
+import com.infamous.call_of_the_wild.common.registry.ABABEntityTypes;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.util.RandomSource;
@@ -37,7 +37,7 @@ public class DogSpawner implements CustomSpawner {
                BlockPos targetPos = player.blockPosition().offset(xOffset, 0, zOffset);
                int horizontalOffset = 10;
                if (level.hasChunksAt(targetPos.getX() - horizontalOffset, targetPos.getZ() - horizontalOffset, targetPos.getX() + horizontalOffset, targetPos.getZ() + horizontalOffset)) {
-                  if (NaturalSpawner.isSpawnPositionOk(SpawnPlacements.Type.ON_GROUND, level, targetPos, COTWEntityTypes.DOG.get())) {
+                  if (NaturalSpawner.isSpawnPositionOk(SpawnPlacements.Type.ON_GROUND, level, targetPos, ABABEntityTypes.DOG.get())) {
                      if (level.isCloseToVillage(targetPos, 2)) {
                         return this.spawnInVillage(level, targetPos);
                      }
@@ -76,7 +76,7 @@ public class DogSpawner implements CustomSpawner {
    }
 
    private int spawnDog(BlockPos blockPos, ServerLevel level) {
-      Dog dog = COTWEntityTypes.DOG.get().create(level);
+      Dog dog = ABABEntityTypes.DOG.get().create(level);
       if (dog == null) {
          return 0;
       } else {

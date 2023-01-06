@@ -1,7 +1,7 @@
 package com.infamous.call_of_the_wild.common.behavior.hunter;
 
 import com.google.common.collect.ImmutableMap;
-import com.infamous.call_of_the_wild.common.registry.COTWMemoryModuleTypes;
+import com.infamous.call_of_the_wild.common.registry.ABABMemoryModuleTypes;
 import com.infamous.call_of_the_wild.common.util.HunterAi;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.util.valueproviders.UniformInt;
@@ -23,7 +23,7 @@ public class StartHunting<E extends LivingEntity> extends Behavior<E> {
 
    public StartHunting(Predicate<E> canHuntPredicate, BiConsumer<E, LivingEntity> startHunting, UniformInt huntCooldown) {
       super(ImmutableMap.of(
-              COTWMemoryModuleTypes.NEAREST_VISIBLE_HUNTABLE.get(), MemoryStatus.VALUE_PRESENT,
+              ABABMemoryModuleTypes.NEAREST_VISIBLE_HUNTABLE.get(), MemoryStatus.VALUE_PRESENT,
               MemoryModuleType.ATTACK_TARGET, MemoryStatus.VALUE_ABSENT,
               MemoryModuleType.HUNTED_RECENTLY, MemoryStatus.VALUE_ABSENT)
       );

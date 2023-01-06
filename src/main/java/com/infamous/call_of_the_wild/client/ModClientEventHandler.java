@@ -1,7 +1,7 @@
 package com.infamous.call_of_the_wild.client;
 
-import com.infamous.call_of_the_wild.CallOfTheWild;
-import com.infamous.call_of_the_wild.common.registry.COTWEntityTypes;
+import com.infamous.call_of_the_wild.AllBarkAllBite;
+import com.infamous.call_of_the_wild.common.registry.ABABEntityTypes;
 import net.minecraft.world.entity.EntityType;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.client.event.EntityRenderersEvent;
@@ -9,7 +9,7 @@ import net.minecraftforge.eventbus.api.EventPriority;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
 
-@Mod.EventBusSubscriber(bus = Mod.EventBusSubscriber.Bus.MOD, modid = CallOfTheWild.MODID, value = Dist.CLIENT)
+@Mod.EventBusSubscriber(bus = Mod.EventBusSubscriber.Bus.MOD, modid = AllBarkAllBite.MODID, value = Dist.CLIENT)
 public class ModClientEventHandler {
 
     @SubscribeEvent
@@ -19,7 +19,7 @@ public class ModClientEventHandler {
 
     @SubscribeEvent(priority = EventPriority.HIGHEST)
     static void onRegisterRenderers(EntityRenderersEvent.RegisterRenderers event){
-        event.registerEntityRenderer(COTWEntityTypes.DOG.get(), DogRenderer::new);
+        event.registerEntityRenderer(ABABEntityTypes.DOG.get(), DogRenderer::new);
         event.registerEntityRenderer(EntityType.WOLF, COTWWolfRenderer::new);
     }
 

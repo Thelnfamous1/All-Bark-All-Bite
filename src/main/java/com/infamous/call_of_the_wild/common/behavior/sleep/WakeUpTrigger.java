@@ -1,7 +1,7 @@
 package com.infamous.call_of_the_wild.common.behavior.sleep;
 
 import com.google.common.collect.ImmutableMap;
-import com.infamous.call_of_the_wild.common.registry.COTWMemoryModuleTypes;
+import com.infamous.call_of_the_wild.common.registry.ABABMemoryModuleTypes;
 import com.infamous.call_of_the_wild.common.util.GenericAi;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.LivingEntity;
@@ -17,7 +17,7 @@ public class WakeUpTrigger<E extends LivingEntity> extends Behavior<E> {
 
     public WakeUpTrigger(Predicate<E> wantsToWakeUp) {
         super(ImmutableMap.of(
-                COTWMemoryModuleTypes.IS_SLEEPING.get(), MemoryStatus.VALUE_PRESENT
+                ABABMemoryModuleTypes.IS_SLEEPING.get(), MemoryStatus.VALUE_PRESENT
         ));
         this.wantsToWakeUp = wantsToWakeUp;
     }
@@ -30,6 +30,6 @@ public class WakeUpTrigger<E extends LivingEntity> extends Behavior<E> {
     @Override
     protected void start(ServerLevel level, E mob, long gameTime) {
         GenericAi.wakeUp(mob);
-        mob.getBrain().eraseMemory(COTWMemoryModuleTypes.IS_SLEEPING.get());
+        mob.getBrain().eraseMemory(ABABMemoryModuleTypes.IS_SLEEPING.get());
     }
 }
