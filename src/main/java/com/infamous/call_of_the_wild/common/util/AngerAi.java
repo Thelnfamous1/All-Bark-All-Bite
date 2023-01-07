@@ -51,6 +51,7 @@ public class AngerAi {
             brain.setMemoryWithExpiry(MemoryModuleType.ANGRY_AT, target.getUUID(), angerTimeInTicks);
             if(livingEntity instanceof NeutralMob neutralMob){
                 neutralMob.setTarget(target);
+                neutralMob.setPersistentAngerTarget(target.getUUID());
                 neutralMob.setRemainingPersistentAngerTime(angerTimeInTicks);
             }
 

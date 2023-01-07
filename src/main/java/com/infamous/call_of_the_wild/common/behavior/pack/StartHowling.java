@@ -1,7 +1,7 @@
 package com.infamous.call_of_the_wild.common.behavior.pack;
 
 import com.google.common.collect.ImmutableMap;
-import com.infamous.call_of_the_wild.common.entity.dog.ai.SharedWolfAi;
+import com.infamous.call_of_the_wild.common.entity.SharedWolfAi;
 import com.infamous.call_of_the_wild.common.registry.ABABMemoryModuleTypes;
 import com.infamous.call_of_the_wild.common.util.AiUtil;
 import com.infamous.call_of_the_wild.common.util.PackAi;

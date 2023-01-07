@@ -1,6 +1,6 @@
-package com.infamous.call_of_the_wild.common.entity.dog.vibration;
+package com.infamous.call_of_the_wild.common.vibration;
 
-import com.infamous.call_of_the_wild.common.entity.dog.ai.SharedWolfAi;
+import com.infamous.call_of_the_wild.common.entity.SharedWolfAi;
 import com.infamous.call_of_the_wild.common.registry.ABABGameEvents;
 import com.infamous.call_of_the_wild.common.sensor.vibration.EntityVibrationListenerConfig;
 import com.infamous.call_of_the_wild.common.util.PackAi;

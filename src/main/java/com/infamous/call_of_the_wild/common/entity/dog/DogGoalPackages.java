@@ -1,4 +1,4 @@
-package com.infamous.call_of_the_wild.common.entity.dog.ai;
+package com.infamous.call_of_the_wild.common.entity.dog;
 
 import com.google.common.collect.ImmutableList;
 import com.infamous.call_of_the_wild.common.ABABTags;
@@ -13,6 +13,7 @@ import com.infamous.call_of_the_wild.common.behavior.pet.FollowOwner;
 import com.infamous.call_of_the_wild.common.behavior.pet.OwnerHurtByTarget;
 import com.infamous.call_of_the_wild.common.behavior.pet.OwnerHurtTarget;
 import com.infamous.call_of_the_wild.common.behavior.pet.SitWhenOrderedTo;
+import com.infamous.call_of_the_wild.common.entity.SharedWolfAi;
 import com.infamous.call_of_the_wild.common.registry.ABABEntityTypes;
 import com.infamous.call_of_the_wild.common.registry.ABABMemoryModuleTypes;
 import com.infamous.call_of_the_wild.common.util.*;
@@ -105,7 +106,7 @@ public class DogGoalPackages {
                 ABABMemoryModuleTypes.FETCHING_ITEM.get(),
                 ABABMemoryModuleTypes.DIG_LOCATION.get());
 
-        SharedWolfAi.tellAlliesIWasAttacked(dog, attacker);
+        SharedWolfAi.reactToAttack(dog, attacker);
     }
 
     static void onThrown(Dog dog){

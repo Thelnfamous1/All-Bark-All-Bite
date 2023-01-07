@@ -1,7 +1,7 @@
-package com.infamous.call_of_the_wild.common.entity.dog.vibration;
+package com.infamous.call_of_the_wild.common.vibration;
 
 import com.infamous.call_of_the_wild.common.ABABTags;
-import com.infamous.call_of_the_wild.common.entity.dog.ai.Dog;
+import com.infamous.call_of_the_wild.common.entity.dog.Dog;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.level.gameevent.GameEvent;
 

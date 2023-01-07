@@ -1,4 +1,4 @@
-package com.infamous.call_of_the_wild.common.entity.dog.vibration;
+package com.infamous.call_of_the_wild.common.vibration;
 
 import com.infamous.call_of_the_wild.common.ABABTags;
 import net.minecraft.tags.TagKey;

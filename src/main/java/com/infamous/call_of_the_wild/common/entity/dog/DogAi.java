@@ -1,8 +1,9 @@
-package com.infamous.call_of_the_wild.common.entity.dog.ai;
+package com.infamous.call_of_the_wild.common.entity.dog;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.infamous.call_of_the_wild.common.ABABTags;
+import com.infamous.call_of_the_wild.common.entity.SharedWolfAi;
 import com.infamous.call_of_the_wild.common.registry.ABABActivities;
 import com.infamous.call_of_the_wild.common.registry.ABABMemoryModuleTypes;
 import com.infamous.call_of_the_wild.common.util.*;
@@ -32,7 +33,7 @@ import java.util.function.Supplier;
 
 public class DogAi {
 
-    protected static Brain<?> makeBrain(Brain<Dog> brain) {
+    public static Brain<?> makeBrain(Brain<Dog> brain) {
         initCoreActivity(brain);
         initFightActivity(brain);
         initRetreatActivity(brain);
@@ -94,7 +95,7 @@ public class DogAi {
     /**
      * Called by {@link Dog#mobInteract(Player, InteractionHand)}
      */
-    protected static InteractionResult mobInteract(Dog dog, Player player, InteractionHand hand, Supplier<InteractionResult> animalInteract) {
+    public static InteractionResult mobInteract(Dog dog, Player player, InteractionHand hand, Supplier<InteractionResult> animalInteract) {
         ItemStack stack = player.getItemInHand(hand);
         Item item = stack.getItem();
         Level level = dog.level;
@@ -178,7 +179,7 @@ public class DogAi {
     /**
      * Called by {@link Dog#customServerAiStep()}
      */
-    protected static void updateActivity(Dog dog) {
+    public static void updateActivity(Dog dog) {
         Brain<Dog> brain = dog.getBrain();
         Activity previous = brain.getActiveNonCoreActivity().orElse(null);
         brain.setActiveActivityToFirstValid(ImmutableList.of(Activity.FIGHT, Activity.AVOID, Activity.DIG, ABABActivities.FETCH.get(), Activity.IDLE));
@@ -197,7 +198,7 @@ public class DogAi {
                 ABABMemoryModuleTypes.DIG_LOCATION.get()));
     }
 
-    protected static Optional<SoundEvent> getSoundForCurrentActivity(Dog dog) {
+    public static Optional<SoundEvent> getSoundForCurrentActivity(Dog dog) {
         return dog.getBrain().getActiveNonCoreActivity().map((a) -> getSoundForActivity(dog, a));
     }
 
@@ -216,7 +217,7 @@ public class DogAi {
     /**
      * Called by {@link Dog#wantsToPickUp(ItemStack)}
      */
-    protected static boolean wantsToPickup(Dog dog, ItemStack stack) {
+    public static boolean wantsToPickup(Dog dog, ItemStack stack) {
         if (AiUtil.hasAnyMemory(dog,
                 MemoryModuleType.ATTACK_TARGET,
                 MemoryModuleType.AVOID_TARGET,
@@ -232,7 +233,7 @@ public class DogAi {
     /**
      * Called by {@link Dog#pickUpItem(ItemEntity)}
      */
-    protected static void pickUpItem(Dog dog, ItemEntity itemEntity) {
+    public static void pickUpItem(Dog dog, ItemEntity itemEntity) {
         dog.take(itemEntity, 1);
         ItemStack singleton = MiscUtil.removeOneItemFromItemEntity(itemEntity);
         holdInMouth(dog, singleton);

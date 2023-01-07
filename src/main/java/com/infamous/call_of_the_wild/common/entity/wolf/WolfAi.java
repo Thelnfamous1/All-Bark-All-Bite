@@ -1,8 +1,9 @@
-package com.infamous.call_of_the_wild.common.entity.dog.ai;
+package com.infamous.call_of_the_wild.common.entity.wolf;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.infamous.call_of_the_wild.common.ABABTags;
+import com.infamous.call_of_the_wild.common.entity.SharedWolfAi;
 import com.infamous.call_of_the_wild.common.registry.ABABMemoryModuleTypes;
 import com.infamous.call_of_the_wild.common.registry.ABABSensorTypes;
 import com.infamous.call_of_the_wild.common.util.*;
@@ -12,7 +13,7 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.util.RandomSource;
-import net.minecraft.world.entity.*;
+import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.Brain;
 import net.minecraft.world.entity.ai.memory.MemoryModuleType;
 import net.minecraft.world.entity.ai.memory.MemoryStatus;
@@ -22,6 +23,7 @@ import net.minecraft.world.entity.animal.Wolf;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.entity.schedule.Activity;
 import net.minecraftforge.event.entity.living.LivingEvent;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.Collection;
 import java.util.Optional;
@@ -193,8 +195,10 @@ public class WolfAi {
         Activity current = brain.getActiveNonCoreActivity().orElse(null);
 
         if (previous != current) {
-            getSoundForCurrentActivity(wolf).ifPresent(se -> wolf.playSound(getSoundForActivity(wolf, current), ReflectionUtil.callMethod("m_6121_", wolf), wolf.getVoicePitch()));
+            getSoundForCurrentActivity(wolf).ifPresent(se -> wolf.playSound(se, ReflectionUtil.callMethod("m_6121_", wolf), wolf.getVoicePitch()));
         }
+
+        if(GenericAi.getAttackTarget(wolf).isEmpty()) wolf.setTarget(null);
 
         wolf.setAggressive(brain.hasMemoryValue(MemoryModuleType.ATTACK_TARGET));
         wolf.setSprinting(canSprint(wolf));
@@ -249,15 +253,16 @@ public class WolfAi {
         );
     }
 
-    protected static Optional<SoundEvent> getSoundForCurrentActivity(Wolf wolf) {
+    public static Optional<SoundEvent> getSoundForCurrentActivity(Wolf wolf) {
         return wolf.getBrain().getActiveNonCoreActivity().map((a) -> getSoundForActivity(wolf, a));
     }
 
+    @Nullable
     private static SoundEvent getSoundForActivity(Wolf wolf, Activity activity) {
         if (activity == Activity.FIGHT) {
-            return SoundEvents.WOLF_GROWL;
-        } else if (activity == Activity.AVOID && GenericAi.isNearAvoidTarget(wolf, SharedWolfAi.DESIRED_DISTANCE_FROM_DISLIKED)) {
-            return SoundEvents.WOLF_HURT;
+            return !isStalkingOrWantsToStalk(wolf) ? SoundEvents.WOLF_GROWL : null;
+        } else if (activity == Activity.AVOID) {
+            return GenericAi.isNearAvoidTarget(wolf, SharedWolfAi.DESIRED_DISTANCE_FROM_DISLIKED) ? SoundEvents.WOLF_HURT : null;
         } else if (activity == Activity.REST) {
             return SoundEvents.FOX_SLEEP;
         } else if (wolf.getRandom().nextInt(3) == 0) {
@@ -265,6 +270,14 @@ public class WolfAi {
         } else {
             return SoundEvents.WOLF_AMBIENT;
         }
+    }
+
+    private static boolean isStalkingOrWantsToStalk(Wolf wolf) {
+        Optional<LivingEntity> attackTarget = GenericAi.getAttackTarget(wolf);
+        return wolf.getBrain().hasMemoryValue(ABABMemoryModuleTypes.IS_STALKING.get())
+                || attackTarget.isPresent()
+                && WolfGoalPackages.wantsToStalk(wolf, attackTarget.get())
+                && wolf.distanceToSqr(attackTarget.get()) > SharedWolfAi.POUNCE_DISTANCE;
     }
 
 
@@ -281,7 +294,7 @@ public class WolfAi {
     }
 
     public static boolean isDisliked(Wolf wolf, LivingEntity livingEntity) {
-        return SharedWolfAi.isDisliked(wolf, livingEntity, ABABTags.WOLF_DISLIKED)
+        return SharedWolfAi.isDisliked(livingEntity, ABABTags.WOLF_DISLIKED)
                 || livingEntity instanceof Player player && WolfGoalPackages.wantsToAvoidPlayer(wolf, player);
     }
 

@@ -1,7 +1,6 @@
 package com.infamous.call_of_the_wild.common.behavior.long_jump;
 
 import com.google.common.collect.ImmutableMap;
-import com.infamous.call_of_the_wild.AllBarkAllBite;
 import com.infamous.call_of_the_wild.common.registry.ABABMemoryModuleTypes;
 import com.infamous.call_of_the_wild.common.util.LongJumpAi;
 import net.minecraft.core.BlockPos;
@@ -18,7 +17,6 @@ import net.minecraft.world.entity.ai.memory.MemoryStatus;
 import net.minecraft.world.entity.ai.navigation.PathNavigation;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraft.world.level.pathfinder.Path;
 import net.minecraft.world.level.pathfinder.WalkNodeEvaluator;
 import net.minecraft.world.phys.Vec3;
 
@@ -30,7 +28,6 @@ import java.util.function.Predicate;
 @SuppressWarnings("NullableProblems")
 public class LongJumpToTarget<E extends Mob> extends Behavior<E> {
    protected static final int FIND_JUMP_TRIES = 20;
-   private static final int PREPARE_JUMP_DURATION = 40;
    protected static final int MIN_PATHFIND_DISTANCE_TO_VALID_JUMP = 8;
    private static final int TIME_OUT_DURATION = 200;
    private final UniformInt timeBetweenLongJumps;
@@ -42,13 +39,14 @@ public class LongJumpToTarget<E extends Mob> extends Behavior<E> {
    protected int findJumpTries;
    protected long prepareJumpStart;
    private final Function<E, SoundEvent> getJumpSound;
+   private final int prepareJumpDuration;
    private final Predicate<BlockState> acceptableLandingSpot;
 
-   public LongJumpToTarget(UniformInt timeBetweenLongJumps, float maxJumpVelocity, Function<E, SoundEvent> getJumpSound) {
-      this(timeBetweenLongJumps, maxJumpVelocity, getJumpSound, (bs) -> false);
+   public LongJumpToTarget(UniformInt timeBetweenLongJumps, float maxJumpVelocity, Function<E, SoundEvent> getJumpSound, int prepareJumpDuration) {
+      this(timeBetweenLongJumps, maxJumpVelocity, getJumpSound, prepareJumpDuration, (bs) -> false);
    }
 
-   public LongJumpToTarget(UniformInt timeBetweenLongJumps, float maxJumpVelocity, Function<E, SoundEvent> getJumpSound, Predicate<BlockState> acceptableLandingSpot) {
+   public LongJumpToTarget(UniformInt timeBetweenLongJumps, float maxJumpVelocity, Function<E, SoundEvent> getJumpSound, int prepareJumpDuration, Predicate<BlockState> acceptableLandingSpot) {
       super(ImmutableMap.of(
                       ABABMemoryModuleTypes.LONG_JUMP_TARGET.get(), MemoryStatus.VALUE_PRESENT,
                       MemoryModuleType.LOOK_TARGET, MemoryStatus.REGISTERED,
@@ -58,6 +56,7 @@ public class LongJumpToTarget<E extends Mob> extends Behavior<E> {
       this.timeBetweenLongJumps = timeBetweenLongJumps;
       this.maxJumpVelocity = maxJumpVelocity;
       this.getJumpSound = getJumpSound;
+      this.prepareJumpDuration = prepareJumpDuration;
       this.acceptableLandingSpot = acceptableLandingSpot;
    }
 
@@ -87,7 +86,6 @@ public class LongJumpToTarget<E extends Mob> extends Behavior<E> {
       return LongJumpAi.getLongJumpTarget(mob);
    }
 
-
    @Override
    protected void start(ServerLevel level, E mob, long gameTime) {
       this.chosenJump = null;
@@ -98,7 +96,7 @@ public class LongJumpToTarget<E extends Mob> extends Behavior<E> {
    @Override
    protected void tick(ServerLevel level, E mob, long gameTime) {
       if (this.chosenJump != null) {
-         if (gameTime - this.prepareJumpStart >= PREPARE_JUMP_DURATION) {
+         if (gameTime - this.prepareJumpStart >= this.prepareJumpDuration) {
             mob.setYRot(mob.yBodyRot);
             mob.setDiscardFriction(true);
             double jumpLength = this.chosenJump.length();
@@ -127,12 +125,15 @@ public class LongJumpToTarget<E extends Mob> extends Behavior<E> {
          }
 
          mob.getBrain().setMemory(MemoryModuleType.LOOK_TARGET, target);
+
          PathNavigation navigation = mob.getNavigation();
-         Path path = navigation.createPath(targetBlockPosition, 0, MIN_PATHFIND_DISTANCE_TO_VALID_JUMP);
+         navigation.createPath(targetBlockPosition, 0, MIN_PATHFIND_DISTANCE_TO_VALID_JUMP);
+         /*
          if (path != null && path.canReach()) {
-            AllBarkAllBite.LOGGER.info("{} cannot path to jump target at {}!", mob, targetBlockPosition);
-            //return;
+            return;
          }
+          */
+
 
          this.chosenJump = optimalJumpVector;
          this.prepareJumpStart = gameTime;

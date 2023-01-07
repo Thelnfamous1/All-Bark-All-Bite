@@ -1,4 +1,4 @@
-package com.infamous.call_of_the_wild.common.entity.dog;
+package com.infamous.call_of_the_wild.common.entity;
 
 import net.minecraft.util.Mth;
 import org.apache.commons.lang3.tuple.MutablePair;

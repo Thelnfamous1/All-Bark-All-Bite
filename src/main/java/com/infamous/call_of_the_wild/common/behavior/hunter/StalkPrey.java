@@ -2,16 +2,16 @@ package com.infamous.call_of_the_wild.common.behavior.hunter;
 
 import com.google.common.collect.ImmutableMap;
 import com.infamous.call_of_the_wild.common.registry.ABABMemoryModuleTypes;
+import com.infamous.call_of_the_wild.common.util.AiUtil;
 import com.infamous.call_of_the_wild.common.util.GenericAi;
 import com.infamous.call_of_the_wild.common.util.LongJumpAi;
-import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.util.Mth;
 import net.minecraft.util.Unit;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.PathfinderMob;
 import net.minecraft.world.entity.ai.Brain;
 import net.minecraft.world.entity.ai.behavior.Behavior;
-import net.minecraft.world.entity.ai.behavior.BlockPosTracker;
 import net.minecraft.world.entity.ai.behavior.EntityTracker;
 import net.minecraft.world.entity.ai.memory.MemoryModuleType;
 import net.minecraft.world.entity.ai.memory.MemoryStatus;
@@ -24,18 +24,20 @@ import java.util.function.Predicate;
 
 @SuppressWarnings("NullableProblems")
 public class StalkPrey<E extends PathfinderMob> extends Behavior<E> {
-    public static final int POUNCE_DELAY_TICKS = 15;
+    private static final int CROUCH_ANIMATION_DURATION = 15;
+    private static final int PATH_INTERVAL = 10;
+    private static final double INITIAL_VISION_OFFSET = 0.5D; // dot initially only needs to be greater than 1 - (0.5 / 0.5) == 0
     private final BiPredicate<E, LivingEntity> wantsToStalk;
     private final float speedModifier;
     private final int closeEnough;
-    private final Predicate<E> isPreparingToPounce;
-    private final BiConsumer<E, Boolean> toggleIsPreparingToPounce;
+    private final Predicate<E> isCrouching;
+    private final BiConsumer<E, Boolean> toggleCrouching;
     private final double maxJumpVelocity;
     private int calculatePathCounter;
     private int crouchAnimationTimer;
     private StalkPrey.State state = StalkPrey.State.DONE;
 
-    public StalkPrey(BiPredicate<E, LivingEntity> wantsToStalk, float speedModifier, int closeEnough, Predicate<E> isPreparingToPounce, BiConsumer<E, Boolean> toggleIsPreparingToPounce, double maxJumpVelocity) {
+    public StalkPrey(BiPredicate<E, LivingEntity> wantsToStalk, float speedModifier, int closeEnough, Predicate<E> isCrouching, BiConsumer<E, Boolean> toggleCrouching, double maxJumpVelocity) {
         super(ImmutableMap.of(
                 MemoryModuleType.ATTACK_TARGET, MemoryStatus.VALUE_PRESENT,
                 ABABMemoryModuleTypes.IS_STALKING.get(), MemoryStatus.REGISTERED,
@@ -47,8 +49,8 @@ public class StalkPrey<E extends PathfinderMob> extends Behavior<E> {
         this.wantsToStalk = wantsToStalk;
         this.speedModifier = speedModifier;
         this.closeEnough = closeEnough;
-        this.isPreparingToPounce = isPreparingToPounce;
-        this.toggleIsPreparingToPounce = toggleIsPreparingToPounce;
+        this.isCrouching = isCrouching;
+        this.toggleCrouching = toggleCrouching;
         this.maxJumpVelocity = maxJumpVelocity;
     }
 
@@ -56,7 +58,7 @@ public class StalkPrey<E extends PathfinderMob> extends Behavior<E> {
     @Override
     protected boolean checkExtraStartConditions(ServerLevel level, E mob) {
         LivingEntity target = this.getStalkTarget(mob).get();
-        return this.canStalk(mob, target) && !mob.closerThan(target, this.closeEnough);
+        return this.canStalk(mob, target) && mob.distanceToSqr(target) > Mth.square(this.closeEnough);
     }
 
     private Optional<LivingEntity> getStalkTarget(E mob) {
@@ -104,12 +106,15 @@ public class StalkPrey<E extends PathfinderMob> extends Behavior<E> {
 
     private boolean canStalk(E mob, LivingEntity target) {
         return target.isAlive()
+                && !AiUtil.isLookingAtMe(mob, target, INITIAL_VISION_OFFSET)
                 && this.wantsToStalk.test(mob, target)
-                && !this.isPreparingToPounce.test(mob);
+                && !this.isCrouching.test(mob);
     }
 
     private boolean canPounce(E mob, LivingEntity target){
         return target.isAlive()
+                && !AiUtil.isLookingAtMe(mob, target, INITIAL_VISION_OFFSET)
+                //&& this.isCrouching.test(mob)
                 && LongJumpAi.calculateOptimalJumpVector(mob, target.position(), this.maxJumpVelocity, LongJumpAi.ALLOWED_ANGLES) != null;
     }
 
@@ -119,28 +124,27 @@ public class StalkPrey<E extends PathfinderMob> extends Behavior<E> {
         LivingEntity target = this.getStalkTarget(mob).get();
         switch (this.state){
             case MOVE_TO_TARGET -> {
-                if (mob.closerThan(target, this.closeEnough)) {
-                    this.toggleIsPreparingToPounce.accept(mob, true);
+                if (mob.distanceToSqr(target) <= Mth.square(this.closeEnough)) {
+                    this.toggleCrouching.accept(mob, true);
                     this.clearWalkTarget(mob);
-                    this.state = State.CROUCH_ANIMATION;
                     this.crouchAnimationTimer = 0;
+                    this.state = State.CROUCH_ANIMATION;
                 } else if (this.calculatePathCounter <= 0) {
                     this.setWalkAndLookTarget(mob, target);
-                    this.calculatePathCounter = 10;
+                    this.calculatePathCounter = PATH_INTERVAL;
                 } else {
                     --this.calculatePathCounter;
                 }
             }
             case CROUCH_ANIMATION -> {
-                if (this.crouchAnimationTimer++ >= POUNCE_DELAY_TICKS) {
+                if (this.crouchAnimationTimer++ >= CROUCH_ANIMATION_DURATION) {
                     this.state = State.POUNCE;
                 }
             }
             case POUNCE -> {
-                BlockPos targetPos = target.blockPosition();
-                LongJumpAi.setLongJumpTarget(mob, new BlockPosTracker(targetPos));
+                LongJumpAi.setLongJumpTarget(mob, new EntityTracker(target, false));
                 this.lookAtTarget(mob, target);
-                mob.getBrain().eraseMemory(MemoryModuleType.WALK_TARGET);
+                this.clearWalkTarget(mob);
                 this.state = State.DONE;
             }
             case DONE -> {
@@ -165,7 +169,7 @@ public class StalkPrey<E extends PathfinderMob> extends Behavior<E> {
 
     @Override
     protected void stop(ServerLevel level, E mob, long gameTime) {
-        this.toggleIsPreparingToPounce.accept(mob, false);
+        this.toggleCrouching.accept(mob, false);
         mob.getBrain().eraseMemory(ABABMemoryModuleTypes.IS_STALKING.get());
         this.state = State.DONE;
     }

@@ -21,11 +21,11 @@ public class ABABEntityTypeTagProvider extends EntityTypeTagsProvider {
     @Override
     protected void addTags() {
         this.tag(ABABTags.DOG_ALWAYS_HOSTILES).addTag(EntityTypeTags.SKELETONS);
-        this.tag(ABABTags.DOG_HUNT_TARGETS).add(EntityType.FOX, EntityType.RABBIT, EntityType.CHICKEN);
+        this.tag(ABABTags.DOG_HUNT_TARGETS).add(EntityType.RABBIT, EntityType.CHICKEN);
         this.tag(ABABTags.DOG_DISLIKED);
 
-        this.tag(ABABTags.WOLF_ALWAYS_HOSTILES).addTag(EntityTypeTags.SKELETONS);
-        this.tag(ABABTags.WOLF_HUNT_TARGETS).add(EntityType.SHEEP, EntityType.GOAT, EntityType.PIG, EntityType.FOX, EntityType.RABBIT, EntityType.CHICKEN);
-        this.tag(ABABTags.WOLF_DISLIKED);
+        this.tag(ABABTags.WOLF_ALWAYS_HOSTILES).addTag(EntityTypeTags.SKELETONS).add(EntityType.FOX);
+        this.tag(ABABTags.WOLF_HUNT_TARGETS).add(EntityType.SHEEP, EntityType.GOAT, EntityType.PIG, EntityType.RABBIT, EntityType.CHICKEN);
+        this.tag(ABABTags.WOLF_DISLIKED).add(EntityType.LLAMA).add(EntityType.TRADER_LLAMA);
     }
 }

@@ -4,13 +4,12 @@ import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Maps;
 import com.infamous.call_of_the_wild.AllBarkAllBite;
 import com.infamous.call_of_the_wild.common.entity.DogSpawner;
-import com.infamous.call_of_the_wild.common.entity.dog.ai.Dog;
-import com.infamous.call_of_the_wild.common.entity.dog.ai.WolfAi;
+import com.infamous.call_of_the_wild.common.entity.dog.Dog;
+import com.infamous.call_of_the_wild.common.entity.wolf.WolfAi;
 import com.infamous.call_of_the_wild.common.event.BrainEvent;
 import com.infamous.call_of_the_wild.common.registry.ABABEntityTypes;
 import com.infamous.call_of_the_wild.common.util.BrainUtil;
 import com.infamous.call_of_the_wild.common.util.DebugUtil;
-import com.infamous.call_of_the_wild.common.util.ReflectionUtil;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
@@ -21,12 +20,9 @@ import net.minecraft.world.entity.ai.behavior.InteractWith;
 import net.minecraft.world.entity.ai.behavior.RunOne;
 import net.minecraft.world.entity.ai.behavior.SetEntityLookTarget;
 import net.minecraft.world.entity.ai.goal.AvoidEntityGoal;
-import net.minecraft.world.entity.ai.goal.target.NearestAttackableTargetGoal;
 import net.minecraft.world.entity.ai.memory.MemoryModuleType;
-import net.minecraft.world.entity.animal.Fox;
 import net.minecraft.world.entity.animal.Rabbit;
 import net.minecraft.world.entity.animal.Wolf;
-import net.minecraft.world.entity.animal.horse.Llama;
 import net.minecraft.world.entity.monster.AbstractSkeleton;
 import net.minecraft.world.entity.npc.Villager;
 import net.minecraft.world.entity.schedule.Activity;
@@ -53,7 +49,7 @@ import java.util.Set;
 @Mod.EventBusSubscriber(bus = Mod.EventBusSubscriber.Bus.FORGE, modid = AllBarkAllBite.MODID)
 public class ForgeEventHandler {
     private static final Map<ResourceKey<Level>, List<CustomSpawner>> CUSTOM_SPAWNERS = Maps.newLinkedHashMap();
-    private static final String FOX_IS_DEFENDING = "m_28567_";
+    //private static final String FOX_IS_DEFENDING = "m_28567_";
 
     static {
         ArrayList<CustomSpawner> overworldSpawners = Lists.newArrayList();
@@ -104,10 +100,12 @@ public class ForgeEventHandler {
     }
 
     private static void addMobDogInteractionGoals(Entity entity) {
+        /*
         if(entity instanceof Fox fox){
             fox.goalSelector.addGoal(4, new AvoidEntityGoal<>(fox, Dog.class, 8.0F, 1.6D, 1.4D,
                     (le) -> !((Dog)le).isTame() && !(boolean) ReflectionUtil.callMethod(FOX_IS_DEFENDING, fox)));
         }
+         */
         if(entity instanceof Rabbit rabbit){
             rabbit.goalSelector.addGoal(4, new AvoidEntityGoal<>(rabbit, Dog.class, 10.0F, 2.2D, 2.2D){
                 @Override
@@ -119,6 +117,7 @@ public class ForgeEventHandler {
         if(entity instanceof AbstractSkeleton skeleton){
             skeleton.goalSelector.addGoal(3, new AvoidEntityGoal<>(skeleton, Dog.class, 6.0F, 1.0D, 1.2D));
         }
+        /*
         if(entity instanceof Llama llama){
             llama.targetSelector.addGoal(2, new NearestAttackableTargetGoal<>(llama, Dog.class, 16, false, true,
                     (le) -> !((Dog)le).isTame()){
@@ -128,6 +127,7 @@ public class ForgeEventHandler {
                 }
             });
         }
+         */
     }
 
     /**

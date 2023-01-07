@@ -11,14 +11,12 @@ import net.minecraft.world.entity.Mob;
 import net.minecraft.world.entity.OwnableEntity;
 import net.minecraft.world.entity.ai.Brain;
 import net.minecraft.world.entity.ai.attributes.Attributes;
-import net.minecraft.world.entity.ai.behavior.BehaviorUtils;
-import net.minecraft.world.entity.ai.behavior.BlockPosTracker;
-import net.minecraft.world.entity.ai.behavior.EntityTracker;
 import net.minecraft.world.entity.ai.memory.MemoryModuleType;
 import net.minecraft.world.entity.ai.sensing.Sensor;
 import net.minecraft.world.entity.animal.Turtle;
 import net.minecraft.world.food.FoodProperties;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.phys.Vec3;
 
 import java.util.Optional;
 import java.util.UUID;
@@ -78,17 +76,17 @@ public class AiUtil {
         return requireLineOfSight ? Sensor.isEntityAttackable(mob, target) : Sensor.isEntityAttackableIgnoringLineOfSight(mob, target);
     }
 
+    @SuppressWarnings("unused")
     public static boolean isHuntTarget(LivingEntity mob, LivingEntity target, TagKey<EntityType<?>> huntTargets) {
-        return !hasAnyMemory(mob, MemoryModuleType.HUNTED_RECENTLY, MemoryModuleType.HAS_HUNTING_COOLDOWN)
-                && target.getType().is(huntTargets);
+        return //!hasAnyMemory(mob, MemoryModuleType.HUNTED_RECENTLY, MemoryModuleType.HAS_HUNTING_COOLDOWN) &&
+            target.getType().is(huntTargets);
     }
 
-    public static boolean isHuntableBabyTurtle(Mob mob, LivingEntity target, int closeEnough) {
+    public static boolean isHuntableBabyTurtle(Mob mob, LivingEntity target, int closeEnough, boolean requireLineOfSight) {
         return isClose(mob, target, closeEnough)
-                && !hasAnyMemory(mob, MemoryModuleType.HUNTED_RECENTLY, MemoryModuleType.HAS_HUNTING_COOLDOWN)
                 && target instanceof Turtle turtle
                 && Turtle.BABY_ON_LAND_SELECTOR.test(turtle)
-                && Sensor.isEntityAttackable(mob, turtle);
+                && isAttackable(mob, turtle, requireLineOfSight);
     }
 
     public static boolean canBeConsideredAnAlly(LivingEntity mob, LivingEntity other) {
@@ -104,10 +102,6 @@ public class AiUtil {
         return ReflectionUtil.getField(LIVING_ENTITY_JUMPING, LivingEntity.class, livingEntity);
     }
 
-    public static void lookAtTargetIgnoreLineOfSight(LivingEntity mob, LivingEntity target) {
-        mob.getBrain().setMemory(MemoryModuleType.LOOK_TARGET, BehaviorUtils.canSee(mob, target) ? new EntityTracker(target, true) : new BlockPosTracker(target.blockPosition()));
-    }
-
     public static Optional<LivingEntity> getLivingEntityFromUUID(ServerLevel level, UUID uuid) {
         return Optional.of(uuid).map(level::getEntity).map((e) -> {
             LivingEntity result;
@@ -119,5 +113,15 @@ public class AiUtil {
 
             return result;
         });
+    }
+
+    @SuppressWarnings("BooleanMethodIsAlwaysInverted")
+    public static boolean isLookingAtMe(LivingEntity me, LivingEntity target, double offset) {
+        Vec3 viewVector = target.getViewVector(1.0F).normalize();
+        Vec3 eyeToMyEyeVector = target.getEyePosition().vectorTo(me.getEyePosition());
+        double distance = eyeToMyEyeVector.length();
+        eyeToMyEyeVector = eyeToMyEyeVector.normalize();
+        double dot = viewVector.dot(eyeToMyEyeVector);
+        return dot > 1.0D - offset / distance && target.hasLineOfSight(me);
     }
 }

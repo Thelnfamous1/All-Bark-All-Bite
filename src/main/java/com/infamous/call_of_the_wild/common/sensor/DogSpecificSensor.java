@@ -2,9 +2,9 @@ package com.infamous.call_of_the_wild.common.sensor;
 
 import com.google.common.collect.ImmutableSet;
 import com.infamous.call_of_the_wild.common.ABABTags;
-import com.infamous.call_of_the_wild.common.entity.dog.ai.Dog;
-import com.infamous.call_of_the_wild.common.entity.dog.ai.DogGoalPackages;
-import com.infamous.call_of_the_wild.common.entity.dog.ai.SharedWolfAi;
+import com.infamous.call_of_the_wild.common.entity.dog.Dog;
+import com.infamous.call_of_the_wild.common.entity.dog.DogGoalPackages;
+import com.infamous.call_of_the_wild.common.entity.SharedWolfAi;
 import com.infamous.call_of_the_wild.common.registry.ABABMemoryModuleTypes;
 import com.infamous.call_of_the_wild.common.util.AiUtil;
 import net.minecraft.server.level.ServerLevel;
@@ -48,7 +48,7 @@ public class DogSpecificSensor extends Sensor<Dog> {
         for (LivingEntity livingEntity : nvle.findAll((le) -> true)) {
             if(nearestDisliked.isEmpty()
                     && !tame
-                    && SharedWolfAi.isDisliked(dog, livingEntity, ABABTags.DOG_DISLIKED)){
+                    && SharedWolfAi.isDisliked(livingEntity, ABABTags.DOG_DISLIKED)){
                 nearestDisliked = Optional.of(livingEntity);
             } else if(nearestHuntable.isEmpty()
                     && !tame

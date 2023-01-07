@@ -5,7 +5,8 @@
   "refmap": "call_of_the_wild.refmap.json",
   "mixins": [
     "LivingEntityMixin",
-    "VillagerMixin"
+    "VillagerMixin",
+    "WolfMixin"
   ],
   "client": [
   ],

@@ -1,12 +1,8 @@
-package com.infamous.call_of_the_wild.common.entity.dog.ai;
+package com.infamous.call_of_the_wild.common.entity.dog;
 
 import com.google.common.collect.ImmutableList;
 import com.infamous.call_of_the_wild.common.ABABTags;
-import com.infamous.call_of_the_wild.common.entity.EntityVariant;
-import com.infamous.call_of_the_wild.common.entity.VariantMob;
-import com.infamous.call_of_the_wild.common.entity.dog.CollaredMob;
-import com.infamous.call_of_the_wild.common.entity.dog.InterestedMob;
-import com.infamous.call_of_the_wild.common.entity.dog.ShakingMob;
+import com.infamous.call_of_the_wild.common.entity.*;
 import com.infamous.call_of_the_wild.common.registry.*;
 import com.infamous.call_of_the_wild.common.util.AiUtil;
 import com.infamous.call_of_the_wild.common.util.MiscUtil;

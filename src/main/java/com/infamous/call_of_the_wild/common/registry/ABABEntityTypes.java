@@ -1,7 +1,7 @@
 package com.infamous.call_of_the_wild.common.registry;
 
 import com.infamous.call_of_the_wild.AllBarkAllBite;
-import com.infamous.call_of_the_wild.common.entity.dog.ai.Dog;
+import com.infamous.call_of_the_wild.common.entity.dog.Dog;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.MobCategory;
 import net.minecraftforge.registries.DeferredRegister;

@@ -1,6 +1,6 @@
 package com.infamous.call_of_the_wild.client;
 
-import com.infamous.call_of_the_wild.common.entity.dog.ai.Dog;
+import com.infamous.call_of_the_wild.common.entity.dog.Dog;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.math.Vector3f;
 import net.minecraft.client.renderer.ItemInHandRenderer;

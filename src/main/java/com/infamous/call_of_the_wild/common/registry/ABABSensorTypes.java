@@ -1,9 +1,9 @@
 package com.infamous.call_of_the_wild.common.registry;
 
 import com.infamous.call_of_the_wild.AllBarkAllBite;
-import com.infamous.call_of_the_wild.common.entity.dog.ai.Dog;
-import com.infamous.call_of_the_wild.common.entity.dog.vibration.DogVibrationListenerConfig;
-import com.infamous.call_of_the_wild.common.entity.dog.vibration.WolfVibrationListenerConfig;
+import com.infamous.call_of_the_wild.common.entity.dog.Dog;
+import com.infamous.call_of_the_wild.common.vibration.DogVibrationListenerConfig;
+import com.infamous.call_of_the_wild.common.vibration.WolfVibrationListenerConfig;
 import com.infamous.call_of_the_wild.common.sensor.AllySensor;
 import com.infamous.call_of_the_wild.common.sensor.AnimalTemptationSensor;
 import com.infamous.call_of_the_wild.common.sensor.DogSpecificSensor;
