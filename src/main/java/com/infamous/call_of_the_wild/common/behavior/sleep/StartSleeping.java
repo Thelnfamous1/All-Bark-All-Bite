@@ -9,52 +9,36 @@ import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.behavior.Behavior;
 import net.minecraft.world.entity.ai.memory.MemoryModuleType;
 import net.minecraft.world.entity.ai.memory.MemoryStatus;
-
 import java.util.Optional;
-import java.util.function.Predicate;
 
-@SuppressWarnings({"NullableProblems", "unused"})
-public class StartSleeping<E extends LivingEntity> extends Behavior<E> {
-    private final Predicate<E> canSleep;
+@SuppressWarnings("NullableProblems")
+public class StartSleeping extends Behavior<LivingEntity> {
+    public static final long COOLDOWN_AFTER_BEING_WOKEN = 100L;
 
-    public StartSleeping(Predicate<E> canSleep) {
+    public StartSleeping() {
         super(ImmutableMap.of(
-                ABABMemoryModuleTypes.IS_SLEEPING.get(), MemoryStatus.VALUE_ABSENT,
-                MemoryModuleType.LAST_WOKEN, MemoryStatus.REGISTERED,
-                MemoryModuleType.LOOK_TARGET, MemoryStatus.REGISTERED,
-                MemoryModuleType.WALK_TARGET, MemoryStatus.VALUE_ABSENT,
-                MemoryModuleType.CANT_REACH_WALK_TARGET_SINCE, MemoryStatus.REGISTERED
+                ABABMemoryModuleTypes.IS_SLEEPING.get(), MemoryStatus.REGISTERED,
+                MemoryModuleType.LAST_WOKEN, MemoryStatus.REGISTERED
         ));
-        this.canSleep = canSleep;
     }
 
-    @Override
-    public boolean checkExtraStartConditions(ServerLevel level, E mob) {
-        if (mob.isPassenger()) {
+    protected boolean checkExtraStartConditions(ServerLevel level, LivingEntity entity) {
+        if (entity.isPassenger()) {
             return false;
         } else {
-            if (mob.xxa == 0.0F && mob.yya == 0.0F && mob.zza == 0.0F) {
-                return this.isNotOnSleepCooldown(mob) && this.canSleep.test(mob);
-            } else {
-                return false;
+            Optional<Long> lastWoken = entity.getBrain().getMemory(MemoryModuleType.LAST_WOKEN);
+            if (lastWoken.isPresent()) {
+                long ticksSinceLastWoken = level.getGameTime() - lastWoken.get();
+                return ticksSinceLastWoken <= 0L || ticksSinceLastWoken >= COOLDOWN_AFTER_BEING_WOKEN;
             }
+            return true;
         }
     }
 
-    private boolean isNotOnSleepCooldown(E mob){
-        Optional<Long> lastWoken = mob.getBrain().getMemory(MemoryModuleType.LAST_WOKEN);
-        if (lastWoken.isPresent()) {
-            long timeDiff = mob.level.getGameTime() - lastWoken.get();
-            return timeDiff <= 0L || timeDiff >= 100L;
-        }
-        return true;
-    }
-
-    @Override
-    public void start(ServerLevel level, E mob, long gameTime) {
-        mob.getBrain().eraseMemory(MemoryModuleType.LOOK_TARGET);
-        GenericAi.goToSleep(mob);
-        mob.getBrain().setMemory(ABABMemoryModuleTypes.IS_SLEEPING.get(), Unit.INSTANCE);
+    protected void start(ServerLevel level, LivingEntity entity, long gameTime) {
+        GenericAi.goToSleep(entity);
+        entity.getBrain().eraseMemory(MemoryModuleType.LOOK_TARGET);
+        entity.getBrain().setMemory(ABABMemoryModuleTypes.IS_SLEEPING.get(), Unit.INSTANCE);
     }
 
 }

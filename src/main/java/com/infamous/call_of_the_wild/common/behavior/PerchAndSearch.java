@@ -1,7 +1,6 @@
 package com.infamous.call_of_the_wild.common.behavior;
 
 import com.google.common.collect.ImmutableMap;
-import com.infamous.call_of_the_wild.common.registry.ABABMemoryModuleTypes;
 import com.infamous.call_of_the_wild.common.util.AiUtil;
 import com.infamous.call_of_the_wild.common.util.GenericAi;
 import com.infamous.call_of_the_wild.common.util.PositionTrackerImpl;
@@ -25,7 +24,6 @@ public class PerchAndSearch<E extends PathfinderMob> extends Behavior<E> {
 
     public PerchAndSearch(Predicate<E> isSitting, BiConsumer<E, Boolean> toggleSitting) {
         super(ImmutableMap.of(
-                ABABMemoryModuleTypes.IS_ALERT.get(), MemoryStatus.VALUE_ABSENT,
                 MemoryModuleType.WALK_TARGET, MemoryStatus.VALUE_ABSENT,
                 MemoryModuleType.LOOK_TARGET, MemoryStatus.REGISTERED
         ));

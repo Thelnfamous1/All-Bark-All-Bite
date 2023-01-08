@@ -2,21 +2,26 @@ package com.infamous.call_of_the_wild.common.util;
 
 import com.mojang.datafixers.util.Pair;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.sounds.SoundEvent;
 import net.minecraft.tags.TagKey;
 import net.minecraft.util.Mth;
+import net.minecraft.world.InteractionHand;
+import net.minecraft.world.InteractionResult;
 import net.minecraft.world.effect.MobEffectInstance;
-import net.minecraft.world.entity.EntityType;
-import net.minecraft.world.entity.LivingEntity;
-import net.minecraft.world.entity.Mob;
-import net.minecraft.world.entity.OwnableEntity;
+import net.minecraft.world.entity.*;
 import net.minecraft.world.entity.ai.Brain;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.ai.memory.MemoryModuleType;
 import net.minecraft.world.entity.ai.sensing.Sensor;
+import net.minecraft.world.entity.animal.Animal;
 import net.minecraft.world.entity.animal.Turtle;
+import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.food.FoodProperties;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.Vec3;
+import net.minecraftforge.event.ForgeEventFactory;
+import org.apache.commons.lang3.function.TriFunction;
 
 import java.util.Optional;
 import java.util.UUID;
@@ -24,6 +29,7 @@ import java.util.UUID;
 public class AiUtil {
 
     private static final String LIVING_ENTITY_JUMPING = "f_20899_";
+    private static final String LIVING_ENTITY_GET_SOUND_VOLUME = "m_6121_";
 
     public static int reducedTickDelay(int ticks) {
         return Mth.positiveCeilDiv(ticks, 2);
@@ -103,16 +109,7 @@ public class AiUtil {
     }
 
     public static Optional<LivingEntity> getLivingEntityFromUUID(ServerLevel level, UUID uuid) {
-        return Optional.of(uuid).map(level::getEntity).map((e) -> {
-            LivingEntity result;
-            if (e instanceof LivingEntity livingentity) {
-                result = livingentity;
-            } else {
-                result = null;
-            }
-
-            return result;
-        });
+        return Optional.of(uuid).map(level::getEntity).filter(LivingEntity.class::isInstance).map(LivingEntity.class::cast);
     }
 
     @SuppressWarnings("BooleanMethodIsAlwaysInverted")
@@ -123,5 +120,67 @@ public class AiUtil {
         eyeToMyEyeVector = eyeToMyEyeVector.normalize();
         double dot = viewVector.dot(eyeToMyEyeVector);
         return dot > 1.0D - offset / distance && target.hasLineOfSight(me);
+    }
+
+    public static <T extends Entity> InteractionResult interactOn(Player player, T entity, InteractionHand hand, TriFunction<T, Player, InteractionHand, InteractionResult> interactCallback){
+        ItemStack itemInHand = player.getItemInHand(hand);
+        ItemStack itemInHandCopy = itemInHand.copy();
+        InteractionResult interactionResult = interactCallback.apply(entity, player, hand); // replaces Entity#interact(Player, InteractionHand);
+        if (interactionResult.consumesAction()) {
+            if (player.getAbilities().instabuild && itemInHand == player.getItemInHand(hand) && itemInHand.getCount() < itemInHandCopy.getCount()) {
+                itemInHand.setCount(itemInHandCopy.getCount());
+            }
+
+            if (!player.getAbilities().instabuild && itemInHand.isEmpty()) {
+                ForgeEventFactory.onPlayerDestroyItem(player, itemInHandCopy, hand);
+            }
+            return interactionResult;
+        } else {
+            if (!itemInHand.isEmpty() && entity instanceof LivingEntity) {
+                if (player.getAbilities().instabuild) {
+                    itemInHand = itemInHandCopy;
+                }
+
+                InteractionResult interactLivingEntity = itemInHand.interactLivingEntity(player, (LivingEntity)entity, hand);
+                if (interactLivingEntity.consumesAction()) {
+                    if (itemInHand.isEmpty() && !player.getAbilities().instabuild) {
+                        ForgeEventFactory.onPlayerDestroyItem(player, itemInHandCopy, hand);
+                        player.setItemInHand(hand, ItemStack.EMPTY);
+                    }
+
+                    return interactLivingEntity;
+                }
+            }
+
+            return InteractionResult.PASS;
+        }
+    }
+
+    public static boolean isInjured(LivingEntity livingEntity){
+        return livingEntity.getHealth() < livingEntity.getMaxHealth();
+    }
+
+    public static void animalEat(Animal animal, ItemStack stack) {
+        if (animal.isFood(stack) && !animal.level.isClientSide) {
+            playSoundEvent(animal, animal.getEatingSound(stack));
+
+            float healAmount = 1.0F;
+            FoodProperties foodProperties = stack.getFoodProperties(animal);
+            if(foodProperties != null){
+                healAmount = foodProperties.getNutrition();
+                addEatEffect(animal, animal.level, foodProperties);
+            }
+            if(isInjured(animal)) animal.heal(healAmount);
+
+            animal.ate();
+        }
+    }
+
+    public static void playSoundEvent(LivingEntity livingEntity, SoundEvent soundEvent) {
+        livingEntity.playSound(soundEvent, getSoundVolume(livingEntity), livingEntity.getVoicePitch());
+    }
+
+    private static float getSoundVolume(LivingEntity livingEntity) {
+        return ReflectionUtil.callMethod(LIVING_ENTITY_GET_SOUND_VOLUME, livingEntity);
     }
 }

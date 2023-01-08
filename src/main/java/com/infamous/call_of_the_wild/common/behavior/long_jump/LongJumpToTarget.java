@@ -14,7 +14,6 @@ import net.minecraft.world.entity.ai.behavior.Behavior;
 import net.minecraft.world.entity.ai.behavior.PositionTracker;
 import net.minecraft.world.entity.ai.memory.MemoryModuleType;
 import net.minecraft.world.entity.ai.memory.MemoryStatus;
-import net.minecraft.world.entity.ai.navigation.PathNavigation;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.pathfinder.WalkNodeEvaluator;
@@ -27,8 +26,6 @@ import java.util.function.Predicate;
 
 @SuppressWarnings("NullableProblems")
 public class LongJumpToTarget<E extends Mob> extends Behavior<E> {
-   protected static final int FIND_JUMP_TRIES = 20;
-   protected static final int MIN_PATHFIND_DISTANCE_TO_VALID_JUMP = 8;
    private static final int TIME_OUT_DURATION = 200;
    private final UniformInt timeBetweenLongJumps;
    protected final float maxJumpVelocity;
@@ -36,7 +33,6 @@ public class LongJumpToTarget<E extends Mob> extends Behavior<E> {
    protected Vec3 initialPosition;
    @Nullable
    protected Vec3 chosenJump;
-   protected int findJumpTries;
    protected long prepareJumpStart;
    private final Function<E, SoundEvent> getJumpSound;
    private final int prepareJumpDuration;
@@ -62,17 +58,17 @@ public class LongJumpToTarget<E extends Mob> extends Behavior<E> {
 
    @Override
    protected boolean checkExtraStartConditions(ServerLevel level, E mob) {
-      boolean canUse = mob.isOnGround()
+      boolean canStart = mob.isOnGround()
               && !mob.isInWater()
               && !mob.isInLava()
               && !level.getBlockState(mob.blockPosition()).is(Blocks.HONEY_BLOCK)
               && this.hasValidJumpTarget(mob);
-      if (!canUse) {
+      if (!canStart) {
          mob.getBrain().setMemory(MemoryModuleType.LONG_JUMP_COOLDOWN_TICKS, this.timeBetweenLongJumps.sample(level.random) / 2);
          LongJumpAi.clearLongJumpTarget(mob);
       }
 
-      return canUse;
+      return canStart;
    }
 
    private boolean hasValidJumpTarget(LivingEntity mob) {
@@ -89,26 +85,8 @@ public class LongJumpToTarget<E extends Mob> extends Behavior<E> {
    @Override
    protected void start(ServerLevel level, E mob, long gameTime) {
       this.chosenJump = null;
-      this.findJumpTries = FIND_JUMP_TRIES;
+      this.pickCandidate(level, mob, gameTime);
       this.initialPosition = mob.position();
-   }
-
-   @Override
-   protected void tick(ServerLevel level, E mob, long gameTime) {
-      if (this.chosenJump != null) {
-         if (gameTime - this.prepareJumpStart >= this.prepareJumpDuration) {
-            mob.setYRot(mob.yBodyRot);
-            mob.setDiscardFriction(true);
-            double jumpLength = this.chosenJump.length();
-            double boostedJumpLength = jumpLength + mob.getJumpBoostPower();
-            mob.setDeltaMovement(this.chosenJump.scale(boostedJumpLength / jumpLength));
-            mob.getBrain().setMemory(MemoryModuleType.LONG_JUMP_MID_JUMP, true);
-            level.playSound(null, mob, this.getJumpSound.apply(mob), SoundSource.NEUTRAL, 1.0F, 1.0F);
-         }
-      } else if(!LongJumpAi.isMidJump(mob)){
-         --this.findJumpTries;
-         this.pickCandidate(level, mob, gameTime);
-      }
    }
 
    protected void pickCandidate(ServerLevel level, E mob, long gameTime) {
@@ -125,16 +103,6 @@ public class LongJumpToTarget<E extends Mob> extends Behavior<E> {
          }
 
          mob.getBrain().setMemory(MemoryModuleType.LOOK_TARGET, target);
-
-         PathNavigation navigation = mob.getNavigation();
-         navigation.createPath(targetBlockPosition, 0, MIN_PATHFIND_DISTANCE_TO_VALID_JUMP);
-         /*
-         if (path != null && path.canReach()) {
-            return;
-         }
-          */
-
-
          this.chosenJump = optimalJumpVector;
          this.prepareJumpStart = gameTime;
       });
@@ -157,7 +125,6 @@ public class LongJumpToTarget<E extends Mob> extends Behavior<E> {
    protected boolean canStillUse(ServerLevel level, E mob, long gameTime) {
       boolean canStillUse = this.initialPosition != null
               && this.initialPosition.equals(mob.position())
-              && this.findJumpTries > 0
               && !mob.isInWaterOrBubble()
               && (this.chosenJump != null || this.hasValidJumpTarget(mob));
       if (!canStillUse && !LongJumpAi.isMidJump(mob)) {
@@ -165,8 +132,21 @@ public class LongJumpToTarget<E extends Mob> extends Behavior<E> {
          mob.getBrain().eraseMemory(MemoryModuleType.LOOK_TARGET);
          LongJumpAi.clearLongJumpTarget(mob);
       }
-
       return canStillUse;
    }
 
+   @Override
+   protected void tick(ServerLevel level, E mob, long gameTime) {
+      if (this.chosenJump != null) {
+         if (gameTime - this.prepareJumpStart >= this.prepareJumpDuration) {
+            mob.setYRot(mob.yBodyRot);
+            mob.setDiscardFriction(true);
+            double jumpLength = this.chosenJump.length();
+            double boostedJumpLength = jumpLength + mob.getJumpBoostPower();
+            mob.setDeltaMovement(this.chosenJump.scale(boostedJumpLength / jumpLength));
+            mob.getBrain().setMemory(MemoryModuleType.LONG_JUMP_MID_JUMP, true);
+            level.playSound(null, mob, this.getJumpSound.apply(mob), SoundSource.NEUTRAL, 1.0F, 1.0F);
+         }
+      }
+   }
 }

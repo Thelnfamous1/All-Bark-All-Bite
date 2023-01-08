@@ -3,10 +3,14 @@ package com.infamous.call_of_the_wild.common.entity.dog;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.infamous.call_of_the_wild.common.ABABTags;
+import com.infamous.call_of_the_wild.common.entity.AnimalAccessor;
 import com.infamous.call_of_the_wild.common.entity.SharedWolfAi;
 import com.infamous.call_of_the_wild.common.registry.ABABActivities;
 import com.infamous.call_of_the_wild.common.registry.ABABMemoryModuleTypes;
-import com.infamous.call_of_the_wild.common.util.*;
+import com.infamous.call_of_the_wild.common.util.AiUtil;
+import com.infamous.call_of_the_wild.common.util.DigAi;
+import com.infamous.call_of_the_wild.common.util.GenericAi;
+import com.infamous.call_of_the_wild.common.util.MiscUtil;
 import com.mojang.datafixers.util.Pair;
 import net.minecraft.core.BlockPos;
 import net.minecraft.sounds.SoundEvent;
@@ -29,7 +33,6 @@ import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.event.ForgeEventFactory;
 
 import java.util.Optional;
-import java.util.function.Supplier;
 
 public class DogAi {
 
@@ -95,7 +98,7 @@ public class DogAi {
     /**
      * Called by {@link Dog#mobInteract(Player, InteractionHand)}
      */
-    public static InteractionResult mobInteract(Dog dog, Player player, InteractionHand hand, Supplier<InteractionResult> animalInteract) {
+    public static InteractionResult mobInteract(Dog dog, Player player, InteractionHand hand) {
         ItemStack stack = player.getItemInHand(hand);
         Item item = stack.getItem();
         Level level = dog.level;
@@ -115,12 +118,12 @@ public class DogAi {
                     }
                 }
 
-                if(dog.isFood(stack) && dog.isInjured()){
+                if(dog.isFood(stack) && AiUtil.isInjured(dog)){
                     dog.usePlayerItem(player, hand, stack);
                     return InteractionResult.CONSUME;
                 }
 
-                InteractionResult animalInteractResult = animalInteract.get(); // will set in breed mode if adult and not on cooldown, or age up if baby
+                InteractionResult animalInteractResult = AnimalAccessor.cast(dog).animalInteract(player, hand);
                 boolean willNotBreed = !animalInteractResult.consumesAction() || dog.isBaby();
                 if (willNotBreed && dog.isOwnedBy(player)) {
                     dog.setOrderedToSit(!dog.isOrderedToSit());
@@ -134,9 +137,7 @@ public class DogAi {
                 DyeColor dyecolor = dyeItem.getDyeColor();
                 if (dyecolor != dog.getCollarColor()) {
                     dog.setCollarColor(dyecolor);
-                    if (!player.getAbilities().instabuild) {
-                        stack.shrink(1);
-                    }
+                    dog.usePlayerItem(player, hand, stack);
 
                     return InteractionResult.CONSUME;
                 }
@@ -190,12 +191,16 @@ public class DogAi {
         }
 
         dog.setAggressive(brain.hasMemoryValue(MemoryModuleType.ATTACK_TARGET));
-        dog.setSprinting(AiUtil.hasAnyMemory(dog,
+        dog.setSprinting(canSprint(dog));
+    }
+
+    private static boolean canSprint(Dog dog) {
+        return AiUtil.hasAnyMemory(dog,
                 MemoryModuleType.ATTACK_TARGET,
                 MemoryModuleType.AVOID_TARGET,
                 MemoryModuleType.IS_PANICKING,
                 ABABMemoryModuleTypes.FETCHING_ITEM.get(),
-                ABABMemoryModuleTypes.DIG_LOCATION.get()));
+                ABABMemoryModuleTypes.DIG_LOCATION.get());
     }
 
     public static Optional<SoundEvent> getSoundForCurrentActivity(Dog dog) {

@@ -7,12 +7,16 @@ import com.infamous.call_of_the_wild.common.entity.SharedWolfAi;
 import com.infamous.call_of_the_wild.common.registry.ABABMemoryModuleTypes;
 import com.infamous.call_of_the_wild.common.registry.ABABSensorTypes;
 import com.infamous.call_of_the_wild.common.util.*;
+import com.infamous.call_of_the_wild.common.entity.AnimalAccessor;
 import com.mojang.datafixers.util.Pair;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.util.RandomSource;
+import net.minecraft.world.InteractionHand;
+import net.minecraft.world.InteractionResult;
+import net.minecraft.world.entity.EntitySelector;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.Brain;
 import net.minecraft.world.entity.ai.memory.MemoryModuleType;
@@ -22,6 +26,7 @@ import net.minecraft.world.entity.ai.sensing.SensorType;
 import net.minecraft.world.entity.animal.Wolf;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.entity.schedule.Activity;
+import net.minecraft.world.item.*;
 import net.minecraftforge.event.entity.living.LivingEvent;
 import org.jetbrains.annotations.Nullable;
 
@@ -29,9 +34,7 @@ import java.util.Collection;
 import java.util.Optional;
 
 public class WolfAi {
-
     public static final Collection<? extends MemoryModuleType<?>> MEMORY_TYPES = ImmutableList.of(
-            ABABMemoryModuleTypes.IS_ALERT.get(),
             MemoryModuleType.ANGRY_AT,
             MemoryModuleType.ATTACK_COOLING_DOWN,
             MemoryModuleType.ATTACK_TARGET,
@@ -39,8 +42,6 @@ public class WolfAi {
             MemoryModuleType.BREED_TARGET,
             MemoryModuleType.CANT_REACH_WALK_TARGET_SINCE,
             ABABMemoryModuleTypes.FOLLOWERS.get(),
-            //MemoryModuleType.HAS_HUNTING_COOLDOWN,
-            ABABMemoryModuleTypes.HAS_SHELTER.get(),
             ABABMemoryModuleTypes.HOWL_LOCATION.get(),
             ABABMemoryModuleTypes.HOWLED_RECENTLY.get(),
             MemoryModuleType.HUNTED_RECENTLY,
@@ -50,7 +51,6 @@ public class WolfAi {
             MemoryModuleType.IS_PANICKING,
             ABABMemoryModuleTypes.IS_SLEEPING.get(),
             ABABMemoryModuleTypes.IS_STALKING.get(),
-            MemoryModuleType.IS_TEMPTED,
             MemoryModuleType.LAST_SLEPT,
             MemoryModuleType.LAST_WOKEN,
             ABABMemoryModuleTypes.LEADER.get(),
@@ -74,15 +74,11 @@ public class WolfAi {
             MemoryModuleType.NEAREST_VISIBLE_LIVING_ENTITIES,
             MemoryModuleType.NEAREST_VISIBLE_PLAYER,
             MemoryModuleType.PATH,
-            MemoryModuleType.TEMPTING_PLAYER,
-            MemoryModuleType.TEMPTATION_COOLDOWN_TICKS,
             MemoryModuleType.UNIVERSAL_ANGER,
-            MemoryModuleType.VIBRATION_COOLDOWN,
             MemoryModuleType.WALK_TARGET,
             ABABMemoryModuleTypes.WOLF_VIBRATION_LISTENER.get()
     );
     public static final Collection<? extends SensorType<? extends Sensor<? super Wolf>>> SENSOR_TYPES = ImmutableList.of(
-            ABABSensorTypes.ANIMAL_TEMPTATIONS.get(),
             SensorType.HURT_BY,
 
             // dependent on NEAREST_VISIBLE_LIVING_ENTITIES
@@ -156,10 +152,7 @@ public class WolfAi {
                 WolfGoalPackages.getMeetPackage(),
                 ImmutableSet.of(
                         Pair.of(ABABMemoryModuleTypes.HOWL_LOCATION.get(), MemoryStatus.VALUE_PRESENT),
-                        Pair.of(MemoryModuleType.TEMPTING_PLAYER, MemoryStatus.VALUE_ABSENT),
-                        Pair.of(MemoryModuleType.BREED_TARGET, MemoryStatus.VALUE_ABSENT),
-                        Pair.of(ABABMemoryModuleTypes.LONG_JUMP_TARGET.get(), MemoryStatus.VALUE_ABSENT),
-                        Pair.of(MemoryModuleType.LONG_JUMP_MID_JUMP, MemoryStatus.VALUE_ABSENT)
+                        Pair.of(MemoryModuleType.BREED_TARGET, MemoryStatus.VALUE_ABSENT)
                 ),
                 ImmutableSet.of(
                         ABABMemoryModuleTypes.HOWL_LOCATION.get()
@@ -171,9 +164,7 @@ public class WolfAi {
         brain.addActivityAndRemoveMemoriesWhenStopped(Activity.REST,
                 WolfGoalPackages.getRestPackage(),
                 ImmutableSet.of(
-                        Pair.of(ABABMemoryModuleTypes.IS_SLEEPING.get(), MemoryStatus.VALUE_PRESENT),
-                        Pair.of(ABABMemoryModuleTypes.HAS_SHELTER.get(), MemoryStatus.VALUE_PRESENT),
-                        Pair.of(ABABMemoryModuleTypes.IS_ALERT.get(), MemoryStatus.VALUE_ABSENT)
+                        Pair.of(ABABMemoryModuleTypes.IS_SLEEPING.get(), MemoryStatus.VALUE_PRESENT)
                 ),
                 ImmutableSet.of(
                         ABABMemoryModuleTypes.IS_SLEEPING.get()
@@ -195,25 +186,14 @@ public class WolfAi {
         Activity current = brain.getActiveNonCoreActivity().orElse(null);
 
         if (previous != current) {
-            getSoundForCurrentActivity(wolf).ifPresent(se -> wolf.playSound(se, ReflectionUtil.callMethod("m_6121_", wolf), wolf.getVoicePitch()));
+            getSoundForCurrentActivity(wolf).ifPresent(se -> AiUtil.playSoundEvent(wolf, se));
         }
 
-        if(GenericAi.getAttackTarget(wolf).isEmpty()) wolf.setTarget(null);
+        if(GenericAi.getAttackTarget(wolf).isEmpty() && wolf.getTarget() != null) wolf.setTarget(null);
 
         wolf.setAggressive(brain.hasMemoryValue(MemoryModuleType.ATTACK_TARGET));
         wolf.setSprinting(canSprint(wolf));
 
-        //PackAi.updatePack(wolf, FollowPackLeader.INTERVAL_TICKS);
-
-        /*
-        Optional<LivingEntity> target = HunterAi.getStalkTarget(wolf);
-        if (target.isEmpty() || !target.get().isAlive()) {
-            if(wolf.hasPose(Pose.CROUCHING)){
-                wolf.setPose(Pose.STANDING);
-                wolf.setIsInterested(false);
-            }
-        }
-         */
         boolean inWater = wolf.isInWater();
         if (inWater || wolf.getTarget() != null || wolf.level.isThundering()) {
             GenericAi.wakeUp(wolf);
@@ -295,11 +275,50 @@ public class WolfAi {
 
     public static boolean isDisliked(Wolf wolf, LivingEntity livingEntity) {
         return SharedWolfAi.isDisliked(livingEntity, ABABTags.WOLF_DISLIKED)
-                || livingEntity instanceof Player player && WolfGoalPackages.wantsToAvoidPlayer(wolf, player);
+                || isDislikedPlayer(wolf, livingEntity);
+    }
+
+    public static boolean isDislikedPlayer(Wolf wolf, LivingEntity livingEntity) {
+        return livingEntity instanceof Player player
+                && !wolf.isOwnedBy(player)
+                && !player.isDiscrete()
+                && EntitySelector.NO_CREATIVE_OR_SPECTATOR.test(player);
     }
 
     public static void initMemories(Wolf wolf, RandomSource random) {
         wolf.getBrain().setMemory(MemoryModuleType.LONG_JUMP_COOLDOWN_TICKS, WolfGoalPackages.TIME_BETWEEN_LONG_JUMPS.sample(random));
         SharedWolfAi.initMemories(wolf, random);
+    }
+
+    public static InteractionResult mobInteract(Wolf wolf, Player player, InteractionHand hand) {
+        ItemStack itemInHand = player.getItemInHand(hand);
+        Item item = itemInHand.getItem();
+        if (!wolf.level.isClientSide) {
+            if (wolf.isTame() && wolf.isOwnedBy(player)) {
+                if (wolf.isFood(itemInHand) && AiUtil.isInjured(wolf)) {
+                    AiUtil.animalEat(wolf, itemInHand);
+                    AnimalAccessor.cast(wolf).takeItemFromPlayer(player, hand, itemInHand);
+                    return InteractionResult.SUCCESS;
+                }
+
+                if (!(item instanceof DyeItem dyeItem)) {
+                    ItemStack copy = itemInHand.copy(); // retain a copy of the item before it is potentially consumed during animalInteract
+                    InteractionResult animalInteractionResult = AnimalAccessor.cast(wolf).animalInteract(player, hand);
+                    if(animalInteractionResult.consumesAction()){
+                        AiUtil.animalEat(wolf, copy);
+                    }
+                    return animalInteractionResult;
+                }
+
+                DyeColor dyeColor = dyeItem.getDyeColor();
+                if (dyeColor != wolf.getCollarColor()) {
+                    wolf.setCollarColor(dyeColor);
+                    AnimalAccessor.cast(wolf).takeItemFromPlayer(player, hand, itemInHand);
+
+                    return InteractionResult.SUCCESS;
+                }
+            }
+        }
+        return AnimalAccessor.cast(wolf).animalInteract(player, hand);
     }
 }

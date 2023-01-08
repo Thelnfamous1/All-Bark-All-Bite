@@ -29,5 +29,7 @@ public class ModEventHandler {
     @SubscribeEvent
     static void onEntityAttributeModification(EntityAttributeModificationEvent event){
         event.add(EntityType.WOLF, Attributes.FOLLOW_RANGE, 64.0D);
+        event.add(EntityType.WOLF, Attributes.MAX_HEALTH, 20.0D);
+        event.add(EntityType.WOLF, Attributes.ATTACK_DAMAGE, 5.0D);
     }
 }

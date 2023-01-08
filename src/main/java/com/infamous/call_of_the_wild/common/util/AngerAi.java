@@ -76,4 +76,8 @@ public class AngerAi {
           setAngerTarget(mob, livingentity, angerTimeInTicks);
        }
     }
+
+    public static boolean hasAngryAt(LivingEntity entity) {
+        return entity.getBrain().hasMemoryValue(MemoryModuleType.ANGRY_AT);
+    }
 }

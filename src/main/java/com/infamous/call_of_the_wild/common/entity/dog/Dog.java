@@ -5,6 +5,7 @@ import com.infamous.call_of_the_wild.common.ABABTags;
 import com.infamous.call_of_the_wild.common.entity.*;
 import com.infamous.call_of_the_wild.common.registry.*;
 import com.infamous.call_of_the_wild.common.util.AiUtil;
+import com.infamous.call_of_the_wild.common.entity.AnimalAccessor;
 import com.infamous.call_of_the_wild.common.util.MiscUtil;
 import com.mojang.serialization.Dynamic;
 import net.minecraft.core.BlockPos;
@@ -57,7 +58,7 @@ import org.jetbrains.annotations.Nullable;
 import java.util.Collection;
 
 @SuppressWarnings("NullableProblems")
-public class Dog extends TamableAnimal implements InterestedMob, ShakingMob, VariantMob, CollaredMob {
+public class Dog extends TamableAnimal implements InterestedMob, ShakingMob, VariantMob, CollaredMob, AnimalAccessor {
     public static final Collection<? extends MemoryModuleType<?>> MEMORY_TYPES = ImmutableList.of(
             MemoryModuleType.ANGRY_AT,
             MemoryModuleType.ATTACK_COOLING_DOWN,
@@ -142,8 +143,6 @@ public class Dog extends TamableAnimal implements InterestedMob, ShakingMob, Var
     private int jumpTicks;
     private int jumpDuration;
     private final MutablePair<Float, Float> shakeAnims = new MutablePair<>(0.0F, 0.0F);
-    private static final double START_HEALTH = 8.0D;
-    private static final double TAME_HEALTH = 20.0D;
 
     public Dog(EntityType<? extends Dog> type, Level level) {
         super(type, level);
@@ -156,8 +155,8 @@ public class Dog extends TamableAnimal implements InterestedMob, ShakingMob, Var
     public static AttributeSupplier.Builder createAttributes() {
         return Mob.createMobAttributes()
                 .add(Attributes.MOVEMENT_SPEED, 0.3D)
-                .add(Attributes.MAX_HEALTH, START_HEALTH)
-                .add(Attributes.ATTACK_DAMAGE, 2.0D);
+                .add(Attributes.MAX_HEALTH, 15.0D)
+                .add(Attributes.ATTACK_DAMAGE, 4.0D);
     }
 
     @Override
@@ -353,19 +352,6 @@ public class Dog extends TamableAnimal implements InterestedMob, ShakingMob, Var
         }
     }
 
-    @SuppressWarnings("ConstantConditions")
-    public void setTame(boolean tame) {
-        super.setTame(tame);
-        if (tame) {
-            this.getAttribute(Attributes.MAX_HEALTH).setBaseValue(TAME_HEALTH);
-            this.setHealth((float)TAME_HEALTH);
-        } else {
-            this.getAttribute(Attributes.MAX_HEALTH).setBaseValue(START_HEALTH);
-        }
-
-        this.getAttribute(Attributes.ATTACK_DAMAGE).setBaseValue(4.0D);
-    }
-
     @Override
     public InteractionResult mobInteract(Player player, InteractionHand hand) {
         ItemStack stack = player.getItemInHand(hand);
@@ -375,31 +361,14 @@ public class Dog extends TamableAnimal implements InterestedMob, ShakingMob, Var
                     || this.isFood(stack) && !this.isTame() && !this.isAggressive();
             return canInteract && !this.hasPose(Pose.DIGGING) ? InteractionResult.SUCCESS : InteractionResult.PASS;
         } else {
-            return DogAi.mobInteract(this, player, hand, () -> super.mobInteract(player, hand));
+            return DogAi.mobInteract(this, player, hand);
         }
     }
 
     @Override
     protected void usePlayerItem(Player player, InteractionHand hand, ItemStack stack) {
-        if (this.isFood(stack) && !this.level.isClientSide) {
-            this.playSoundEvent(this.getEatingSound(stack));
-
-            float healAmount = 1.0F;
-            FoodProperties foodProperties = stack.getFoodProperties(this);
-            if(foodProperties != null){
-                healAmount = foodProperties.getNutrition();
-                AiUtil.addEatEffect(this, level, foodProperties);
-            }
-            if(this.isInjured()) this.heal(healAmount);
-
-            this.ate();
-        }
-
+        AiUtil.animalEat(this, stack);
         super.usePlayerItem(player, hand, stack);
-    }
-
-    public boolean isInjured(){
-        return this.getHealth() < this.getMaxHealth();
     }
 
     @Override
@@ -693,4 +662,15 @@ public class Dog extends TamableAnimal implements InterestedMob, ShakingMob, Var
         return this.interestedAngles;
     }
 
+    // AnimalAccessor
+
+    @Override
+    public InteractionResult animalInteract(Player player, InteractionHand hand) {
+        return super.mobInteract(player, hand);
+    }
+
+    @Override
+    public void takeItemFromPlayer(Player player, InteractionHand hand, ItemStack itemStack) {
+        this.usePlayerItem(player, hand, itemStack);
+    }
 }

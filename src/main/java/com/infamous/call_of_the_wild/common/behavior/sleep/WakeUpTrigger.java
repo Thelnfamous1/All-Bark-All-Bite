@@ -17,7 +17,7 @@ public class WakeUpTrigger<E extends LivingEntity> extends Behavior<E> {
 
     public WakeUpTrigger(Predicate<E> wantsToWakeUp) {
         super(ImmutableMap.of(
-                ABABMemoryModuleTypes.IS_SLEEPING.get(), MemoryStatus.VALUE_PRESENT
+                ABABMemoryModuleTypes.IS_SLEEPING.get(), MemoryStatus.REGISTERED
         ));
         this.wantsToWakeUp = wantsToWakeUp;
     }

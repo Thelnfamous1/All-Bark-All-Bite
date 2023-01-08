@@ -8,6 +8,7 @@ import com.infamous.call_of_the_wild.common.entity.dog.Dog;
 import com.infamous.call_of_the_wild.common.entity.wolf.WolfAi;
 import com.infamous.call_of_the_wild.common.event.BrainEvent;
 import com.infamous.call_of_the_wild.common.registry.ABABEntityTypes;
+import com.infamous.call_of_the_wild.common.util.AiUtil;
 import com.infamous.call_of_the_wild.common.util.BrainUtil;
 import com.infamous.call_of_the_wild.common.util.DebugUtil;
 import net.minecraft.resources.ResourceKey;
@@ -25,15 +26,18 @@ import net.minecraft.world.entity.animal.Rabbit;
 import net.minecraft.world.entity.animal.Wolf;
 import net.minecraft.world.entity.monster.AbstractSkeleton;
 import net.minecraft.world.entity.npc.Villager;
+import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.entity.schedule.Activity;
 import net.minecraft.world.level.CustomSpawner;
 import net.minecraft.world.level.Level;
 import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.event.entity.EntityEvent;
 import net.minecraftforge.event.entity.EntityJoinLevelEvent;
+import net.minecraftforge.event.entity.living.BabyEntitySpawnEvent;
 import net.minecraftforge.event.entity.living.LivingChangeTargetEvent;
 import net.minecraftforge.event.entity.living.LivingEvent;
 import net.minecraftforge.event.entity.living.LivingFallEvent;
+import net.minecraftforge.event.entity.player.PlayerInteractEvent;
 import net.minecraftforge.event.entity.player.SleepingLocationCheckEvent;
 import net.minecraftforge.eventbus.api.Event;
 import net.minecraftforge.eventbus.api.EventPriority;
@@ -219,6 +223,26 @@ public class ForgeEventHandler {
                 && event.getEntity() instanceof NeutralMob neutralMob
                 && event.getEntity().getType() == EntityType.WOLF){
             neutralMob.setTarget(event.getNewTarget());
+        }
+    }
+
+    @SubscribeEvent
+    static void onEntityInteract(PlayerInteractEvent.EntityInteract event){
+        Entity target = event.getTarget();
+        if(target instanceof Wolf wolf && target.getType() == EntityType.WOLF){
+            event.setCanceled(true);
+            event.setCancellationResult(AiUtil.interactOn(event.getEntity(), wolf, event.getHand(), WolfAi::mobInteract));
+        }
+    }
+
+    @SubscribeEvent
+    static void onBabySpawn(BabyEntitySpawnEvent event){
+        AgeableMob child = event.getChild();
+        if(child instanceof Wolf wolf && child.getType() == EntityType.WOLF){
+            Player player = event.getCausedByPlayer();
+            if(player != null){
+                wolf.tame(player);
+            }
         }
     }
 

@@ -1,6 +1,7 @@
 package com.infamous.call_of_the_wild.common.entity;
 
-import com.infamous.call_of_the_wild.common.entity.dog.Dog;
+import com.google.common.collect.ImmutableList;
+import com.infamous.call_of_the_wild.common.behavior.MoveToNonSkySeeingSpot;
 import com.infamous.call_of_the_wild.common.registry.ABABGameEvents;
 import com.infamous.call_of_the_wild.common.registry.ABABMemoryModuleTypes;
 import com.infamous.call_of_the_wild.common.util.AiUtil;
@@ -9,26 +10,20 @@ import com.infamous.call_of_the_wild.common.util.GenericAi;
 import com.infamous.call_of_the_wild.common.util.HunterAi;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.GlobalPos;
-import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.tags.TagKey;
 import net.minecraft.util.RandomSource;
 import net.minecraft.util.TimeUtil;
 import net.minecraft.util.valueproviders.UniformInt;
-import net.minecraft.world.entity.EntityType;
-import net.minecraft.world.entity.LivingEntity;
-import net.minecraft.world.entity.Pose;
-import net.minecraft.world.entity.TamableAnimal;
+import net.minecraft.world.entity.*;
 import net.minecraft.world.entity.ai.Brain;
 import net.minecraft.world.entity.ai.behavior.*;
 import net.minecraft.world.entity.ai.memory.MemoryModuleType;
 import net.minecraft.world.entity.ai.sensing.Sensor;
-import net.minecraft.world.entity.animal.Animal;
-import net.minecraft.world.entity.animal.Wolf;
-import net.minecraft.world.entity.monster.Monster;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.entity.schedule.Activity;
 
+import java.util.List;
 import java.util.Optional;
 
 public class SharedWolfAi {
@@ -62,6 +57,8 @@ public class SharedWolfAi {
     public static final int CLOSE_ENOUGH_TO_FOLLOW_TARGET = 2;
     public static final int TOO_FAR_TO_SWITCH_TARGETS = 4;
     public static final int TOO_FAR_FROM_FOLLOW_TARGET = 10;
+    public static final int MAX_ALERTABLE_XZ = 12;
+    public static final int MAX_ALERTABLE_Y = 6;
     private static final int HOWL_VOLUME = 4;
 
     public static void initMemories(TamableAnimal wolf, RandomSource randomSource) {
@@ -133,43 +130,16 @@ public class SharedWolfAi {
         return wolf.wantsToAttack(attacker, owner);
     }
 
-    /**
-     * Called by {@link com.infamous.call_of_the_wild.common.sensor.WolfSpecificSensor#doTick(ServerLevel, Wolf)}
-     * and {@link com.infamous.call_of_the_wild.common.sensor.DogSpecificSensor#doTick(ServerLevel, Dog)}
-     */
     public static boolean isDisliked(LivingEntity target, TagKey<EntityType<?>> disliked) {
         return target.getType().is(disliked); //|| target instanceof Llama llama && llama.getStrength() >= wolf.getRandom().nextInt(LLAMA_MAX_STRENGTH);
     }
 
-    /**
-     * Called by {@link com.infamous.call_of_the_wild.common.sensor.WolfSpecificSensor#doTick(ServerLevel, Wolf)}
-     * and {@link com.infamous.call_of_the_wild.common.sensor.DogSpecificSensor#doTick(ServerLevel, Dog)}
-     */
     public static boolean isHuntable(TamableAnimal wolf, LivingEntity livingEntity, int closeEnough, TagKey<EntityType<?>> huntTargets, boolean requireLineOfSight) {
         return AiUtil.isHuntable(wolf, livingEntity, closeEnough, huntTargets, requireLineOfSight) || AiUtil.isHuntableBabyTurtle(wolf, livingEntity, closeEnough, requireLineOfSight);
     }
 
     public static void setHowledRecently(LivingEntity wolf, int howlCooldownInTicks) {
         wolf.getBrain().setMemoryWithExpiry(ABABMemoryModuleTypes.HOWLED_RECENTLY.get(), true, howlCooldownInTicks);
-    }
-
-    public static boolean canBeAlertedBy(TamableAnimal wolf, LivingEntity target){
-        if (!(target instanceof Animal) && !(target instanceof Monster)) {
-            if (!(target instanceof Player player) || !target.isSpectator() && !player.isCreative()) {
-                if (wolf.isOwnedBy(target)) {
-                    return false;
-                } else {
-                    return !target.isSleeping() && !target.isDiscrete();
-                }
-            } else {
-                return false;
-            }
-        } else if (target instanceof TamableAnimal tamableAnimal) {
-            LivingEntity owner = wolf.getOwner();
-            return owner != null ? wolf.wantsToAttack(tamableAnimal, target) : !tamableAnimal.isTame();
-        } else {
-            return true;
-        }
     }
 
     public static boolean canMove(TamableAnimal wolf) {
@@ -223,10 +193,12 @@ public class SharedWolfAi {
 
     public static boolean canSleep(TamableAnimal wolf) {
         return wolf.level.isDay()
-                && wolf.getBrain().hasMemoryValue(ABABMemoryModuleTypes.HAS_SHELTER.get())
-                && !wolf.getBrain().hasMemoryValue(ABABMemoryModuleTypes.IS_ALERT.get())
+                && hasShelter(wolf)
+                && !alertable(wolf)
                 && !wolf.isInPowderSnow;
     }
+
+
 
     public static void followHowl(TamableAnimal wolf, BlockPos blockPos) {
         GlobalPos howlPos = GlobalPos.of(wolf.getLevel().dimension(), blockPos);
@@ -267,5 +239,39 @@ public class SharedWolfAi {
 
     public static boolean hasHowledRecently(LivingEntity wolf) {
         return wolf.getBrain().hasMemoryValue(ABABMemoryModuleTypes.HOWLED_RECENTLY.get());
+    }
+
+    @SuppressWarnings("BooleanMethodIsAlwaysInverted")
+    public static boolean alertable(TamableAnimal wolf) {
+        List<LivingEntity> livingEntities = wolf.getBrain().getMemory(MemoryModuleType.NEAREST_LIVING_ENTITIES).orElse(ImmutableList.of());
+        for(LivingEntity livingEntity : livingEntities){
+            if(livingEntity.closerThan(wolf, MAX_ALERTABLE_XZ, MAX_ALERTABLE_Y)
+                    && Sensor.isEntityAttackableIgnoringLineOfSight(wolf, livingEntity)
+                    && canBeAlertedBy(wolf, livingEntity)){
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public static boolean canBeAlertedBy(TamableAnimal wolf, LivingEntity target){
+        if (AiUtil.canBeConsideredAnAlly(wolf, target)) {
+            return false;
+        } else {
+            if (EntitySelector.NO_CREATIVE_OR_SPECTATOR.test(target)) {
+                if (wolf.isOwnedBy(target)) {
+                    return false;
+                } else {
+                    return !target.isSleeping() && !target.isDiscrete();
+                }
+            } else {
+                return false;
+            }
+        }
+    }
+
+    public static boolean hasShelter(TamableAnimal wolf) {
+        BlockPos topOfBodyPos = new BlockPos(wolf.getX(), wolf.getBoundingBox().maxY, wolf.getZ());
+        return MoveToNonSkySeeingSpot.hasBlocksAbove(wolf.level, wolf, topOfBodyPos);
     }
 }

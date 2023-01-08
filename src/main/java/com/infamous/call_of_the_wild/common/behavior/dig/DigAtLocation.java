@@ -35,7 +35,7 @@ public class DigAtLocation<E extends LivingEntity> extends Behavior<E> {
 
    @SuppressWarnings("OptionalGetWithoutIsPresent")
    protected boolean checkExtraStartConditions(ServerLevel level, E mob) {
-      if (level.getGameTime() - this.lastCheckTimestamp < CHECK_COOLDOWN) {
+      if (this.lastCheckTimestamp != 0 && level.getGameTime() - this.lastCheckTimestamp < CHECK_COOLDOWN) {
          return false;
       } else {
          this.lastCheckTimestamp = level.getGameTime();

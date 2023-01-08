@@ -41,7 +41,7 @@ public class DogSpecificSensor extends Sensor<Dog> {
         Optional<LivingEntity> nearestDisliked = Optional.empty();
         Optional<LivingEntity> nearestHuntable = Optional.empty();
         Optional<LivingEntity> nearestAttackable = Optional.empty();
-        Optional<Player> nearestPlayerHoldingLovedItem = Optional.empty();
+        Optional<Player> nearestPlayerHoldingWantedItem = Optional.empty();
 
         NearestVisibleLivingEntities nvle = brain.getMemory(MemoryModuleType.NEAREST_VISIBLE_LIVING_ENTITIES).orElse(NearestVisibleLivingEntities.empty());
 
@@ -52,16 +52,16 @@ public class DogSpecificSensor extends Sensor<Dog> {
                 nearestDisliked = Optional.of(livingEntity);
             } else if(nearestHuntable.isEmpty()
                     && !tame
-                    && SharedWolfAi.isHuntable(dog, livingEntity, TARGET_DETECTION_DISTANCE, ABABTags.DOG_HUNT_TARGETS, true)){
+                    && isHuntable(dog, livingEntity)){
                 nearestHuntable = Optional.of(livingEntity);
             } else if(nearestAttackable.isEmpty()
-                    && AiUtil.isHostile(dog, livingEntity, TARGET_DETECTION_DISTANCE, ABABTags.DOG_ALWAYS_HOSTILES, true)){
+                    && isAttackable(dog, livingEntity)){
                 nearestAttackable = Optional.of(livingEntity);
             } else if (livingEntity instanceof Player player) {
-                if (nearestPlayerHoldingLovedItem.isEmpty()
+                if (nearestPlayerHoldingWantedItem.isEmpty()
                         && !player.isSpectator()
                         && player.isHolding(is -> DogGoalPackages.isInteresting(dog, is))) {
-                    nearestPlayerHoldingLovedItem = Optional.of(player);
+                    nearestPlayerHoldingWantedItem = Optional.of(player);
                 }
             }
         }
@@ -69,7 +69,15 @@ public class DogSpecificSensor extends Sensor<Dog> {
         brain.setMemory(ABABMemoryModuleTypes.NEAREST_VISIBLE_DISLIKED.get(), nearestDisliked);
         brain.setMemory(ABABMemoryModuleTypes.NEAREST_VISIBLE_HUNTABLE.get(), nearestHuntable);
         brain.setMemory(MemoryModuleType.NEAREST_ATTACKABLE, nearestAttackable);
-        brain.setMemory(MemoryModuleType.NEAREST_PLAYER_HOLDING_WANTED_ITEM, nearestPlayerHoldingLovedItem);
+        brain.setMemory(MemoryModuleType.NEAREST_PLAYER_HOLDING_WANTED_ITEM, nearestPlayerHoldingWantedItem);
+    }
+
+    private static boolean isAttackable(Dog dog, LivingEntity livingEntity) {
+        return AiUtil.isHostile(dog, livingEntity, TARGET_DETECTION_DISTANCE, ABABTags.DOG_ALWAYS_HOSTILES, true);
+    }
+
+    private static boolean isHuntable(Dog dog, LivingEntity livingEntity) {
+        return SharedWolfAi.isHuntable(dog, livingEntity, TARGET_DETECTION_DISTANCE, ABABTags.DOG_HUNT_TARGETS, true);
     }
 
 }

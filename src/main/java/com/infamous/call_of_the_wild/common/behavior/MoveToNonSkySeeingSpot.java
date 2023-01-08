@@ -11,26 +11,30 @@ import net.minecraft.world.entity.ai.behavior.Behavior;
 import net.minecraft.world.entity.ai.memory.MemoryModuleType;
 import net.minecraft.world.entity.ai.memory.MemoryStatus;
 import net.minecraft.world.entity.ai.memory.WalkTarget;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.levelgen.Heightmap;
 import net.minecraft.world.phys.Vec3;
 
 @SuppressWarnings("NullableProblems")
-public class SeekShelter extends Behavior<LivingEntity> {
+public class MoveToNonSkySeeingSpot extends Behavior<LivingEntity> {
    private final float speedModifier;
 
-   public SeekShelter(float speedModifier) {
+   public MoveToNonSkySeeingSpot(float speedModifier) {
       super(ImmutableMap.of(MemoryModuleType.WALK_TARGET, MemoryStatus.VALUE_ABSENT));
       this.speedModifier = speedModifier;
    }
 
+   @Override
+   protected boolean checkExtraStartConditions(ServerLevel level, LivingEntity entity) {
+      return level.canSeeSky(entity.blockPosition());
+   }
+
+   @Override
    protected void start(ServerLevel level, LivingEntity entity, long gameTime) {
       Optional<Vec3> shelterPosition = Optional.ofNullable(this.getShelterPosition(level, entity));
       if (shelterPosition.isPresent()) {
          entity.getBrain().setMemory(MemoryModuleType.WALK_TARGET, shelterPosition.map((vec3) -> new WalkTarget(vec3, this.speedModifier, 0)));
       }
-   }
-
-   protected boolean checkExtraStartConditions(ServerLevel level, LivingEntity entity) {
-      return (level.isThundering() || level.isDay()) && level.canSeeSky(entity.blockPosition());
    }
 
    @Nullable
@@ -43,11 +47,15 @@ public class SeekShelter extends Behavior<LivingEntity> {
                  random.nextInt(20) - 10,
                  random.nextInt(6) - 3,
                  random.nextInt(20) - 10);
-         if (!level.canSeeSky(offset)) {
+         if (hasBlocksAbove(level, entity, offset)) {
             return Vec3.atBottomCenterOf(offset);
          }
       }
       return null;
+   }
+
+   public static boolean hasBlocksAbove(Level level, LivingEntity entity, BlockPos blockPos) {
+      return !level.canSeeSky(blockPos) && (double)level.getHeightmapPos(Heightmap.Types.MOTION_BLOCKING, blockPos).getY() > entity.getY();
    }
 
 }
