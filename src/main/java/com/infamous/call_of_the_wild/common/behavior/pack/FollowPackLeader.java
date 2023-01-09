@@ -2,6 +2,7 @@ package com.infamous.call_of_the_wild.common.behavior.pack;
 
 import com.google.common.collect.ImmutableMap;
 import com.infamous.call_of_the_wild.common.registry.ABABMemoryModuleTypes;
+import com.infamous.call_of_the_wild.common.util.AiUtil;
 import com.infamous.call_of_the_wild.common.util.GenericAi;
 import com.infamous.call_of_the_wild.common.util.MiscUtil;
 import com.infamous.call_of_the_wild.common.util.PackAi;
@@ -43,7 +44,7 @@ public class FollowPackLeader<E extends LivingEntity> extends Behavior<E> {
             return false;
         } else if (PackAi.isFollower(mob)) {
             return this.wantsToFollowLeader(mob);
-        } else if (this.lastCheckTimestamp != 0 && level.getGameTime() - this.lastCheckTimestamp < INTERVAL_TICKS) {
+        } else if (AiUtil.onCheckCooldown(level, this.lastCheckTimestamp, INTERVAL_TICKS)) {
             return false;
         } else {
             this.lastCheckTimestamp = level.getGameTime();
@@ -66,7 +67,7 @@ public class FollowPackLeader<E extends LivingEntity> extends Behavior<E> {
         LivingEntity leader = this.findLeader(level, mob, nearbyVisibleAdults.stream());
 
         // Tell nearby allies to follow leader
-        this.addFollowers(level, leader, nearbyVisibleAdults.stream());
+        this.addFollowers(leader, nearbyVisibleAdults.stream());
     }
 
     private LivingEntity findLeader(ServerLevel level, E mob, Stream<LivingEntity> stream) {
@@ -78,18 +79,14 @@ public class FollowPackLeader<E extends LivingEntity> extends Behavior<E> {
         MiscUtil.sendParticlesAroundSelf(level, leader, ParticleTypes.FLAME, leader.getEyeHeight(),  10, 0.2D);
         if(leader != mob){
             PackAi.startFollowing(mob, leader);
-            MiscUtil.sendParticlesAroundSelf(level, mob, ParticleTypes.SOUL_FIRE_FLAME, mob.getEyeHeight(),  10, 0.2D);
         }
         return leader;
     }
 
-    private void addFollowers(ServerLevel level, LivingEntity leader, Stream<LivingEntity> stream) {
+    private void addFollowers(LivingEntity leader, Stream<LivingEntity> stream) {
         stream.filter(le -> le != leader && PackAi.canLead(leader, le))
                 .limit(Math.max(PackAi.getMaxPackSize(leader) - PackAi.getPackSize(leader), 0))
-                .forEach(le -> {
-                    PackAi.startFollowing(le, leader);
-                    MiscUtil.sendParticlesAroundSelf(level, le, ParticleTypes.SOUL_FIRE_FLAME, le.getEyeHeight(),  10, 0.2D);
-                });
+                .forEach(le -> PackAi.startFollowing(le, leader));
     }
 
     @Override

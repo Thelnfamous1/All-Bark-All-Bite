@@ -120,7 +120,7 @@ public class WolfAi {
                         Pair.of(ABABMemoryModuleTypes.LONG_JUMP_TARGET.get(), MemoryStatus.VALUE_ABSENT),
                         Pair.of(MemoryModuleType.LONG_JUMP_MID_JUMP, MemoryStatus.VALUE_ABSENT)
                 ),
-                ImmutableSet.of(MemoryModuleType.ATTACK_TARGET));
+                ImmutableSet.of()); // don't erase the attack target if we are simply in the middle of a pounce
     }
 
     private static void initRetreatActivity(Brain<Wolf> brain) {
@@ -186,7 +186,7 @@ public class WolfAi {
         Activity current = brain.getActiveNonCoreActivity().orElse(null);
 
         if (previous != current) {
-            getSoundForCurrentActivity(wolf).ifPresent(se -> AiUtil.playSoundEvent(wolf, se));
+            getSoundForCurrentActivity(wolf).ifPresent(se -> AiUtil.playSoundEvent(wolf, se, AiUtil.getSoundVolume(wolf)));
         }
 
         if(GenericAi.getAttackTarget(wolf).isEmpty() && wolf.getTarget() != null) wolf.setTarget(null);
@@ -296,7 +296,7 @@ public class WolfAi {
         if (!wolf.level.isClientSide) {
             if (wolf.isTame() && wolf.isOwnedBy(player)) {
                 if (wolf.isFood(itemInHand) && AiUtil.isInjured(wolf)) {
-                    AiUtil.animalEat(wolf, itemInHand);
+                    AiUtil.animalEat(wolf, itemInHand, AiUtil.getSoundVolume(wolf));
                     AnimalAccessor.cast(wolf).takeItemFromPlayer(player, hand, itemInHand);
                     return InteractionResult.SUCCESS;
                 }
@@ -305,7 +305,7 @@ public class WolfAi {
                     ItemStack copy = itemInHand.copy(); // retain a copy of the item before it is potentially consumed during animalInteract
                     InteractionResult animalInteractionResult = AnimalAccessor.cast(wolf).animalInteract(player, hand);
                     if(animalInteractionResult.consumesAction()){
-                        AiUtil.animalEat(wolf, copy);
+                        AiUtil.animalEat(wolf, copy, AiUtil.getSoundVolume(wolf));
                     }
                     return animalInteractionResult;
                 }

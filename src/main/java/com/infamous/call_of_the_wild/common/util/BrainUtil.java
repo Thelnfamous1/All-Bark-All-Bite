@@ -19,6 +19,7 @@ public class BrainUtil {
 
     private static final String GATE_BEHAVIOR_BEHAVIORS = "f_22871_";
     private static final String BRAIN_AVAILABLE_BEHAVIORS_BY_PRIORITY = "f_21845_";
+    private static final String BRAIN_SENSORS = "f_21844_";
 
     @SuppressWarnings("unchecked")
     public static <T extends LivingEntity> Brain<T> getTypedBrain(T mob) {
@@ -54,6 +55,6 @@ public class BrainUtil {
     }
 
     public static <E extends LivingEntity> Map<SensorType<? extends Sensor<? super E>>, Sensor<? super E>> getSensors(Brain<E> brain){
-        return ReflectionUtil.getField("f_21844_", Brain.class, brain);
+        return ReflectionUtil.getField(BRAIN_SENSORS, Brain.class, brain);
     }
 }

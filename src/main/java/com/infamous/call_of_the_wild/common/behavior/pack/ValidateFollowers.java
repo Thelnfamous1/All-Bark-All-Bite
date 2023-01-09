@@ -31,7 +31,7 @@ public class ValidateFollowers extends Behavior<LivingEntity> {
     @Override
     protected boolean checkExtraStartConditions(ServerLevel level, LivingEntity leader) {
         if(PackAi.hasFollowers(leader)){
-            if (this.lastCheckTimestamp != 0 && level.getGameTime() - this.lastCheckTimestamp < FollowPackLeader.INTERVAL_TICKS) {
+            if (AiUtil.onCheckCooldown(level, this.lastCheckTimestamp, FollowPackLeader.INTERVAL_TICKS)) {
                 return false;
             } else {
                 this.lastCheckTimestamp = level.getGameTime();

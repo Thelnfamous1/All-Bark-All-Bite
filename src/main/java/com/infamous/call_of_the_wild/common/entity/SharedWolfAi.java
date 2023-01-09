@@ -54,9 +54,9 @@ public class SharedWolfAi {
     public static final byte SUCCESSFUL_TAME_ID = 7;
     public static final byte FAILED_TAME_ID = 6;
     //public static final int LLAMA_MAX_STRENGTH = 5;
-    public static final int CLOSE_ENOUGH_TO_FOLLOW_TARGET = 2;
+    public static final int CLOSE_ENOUGH_TO_OWNER = 2;
     public static final int TOO_FAR_TO_SWITCH_TARGETS = 4;
-    public static final int TOO_FAR_FROM_FOLLOW_TARGET = 10;
+    public static final int TOO_FAR_FROM_OWNER = 10;
     public static final int MAX_ALERTABLE_XZ = 12;
     public static final int MAX_ALERTABLE_Y = 6;
     private static final int HOWL_VOLUME = 4;
@@ -220,12 +220,8 @@ public class SharedWolfAi {
         return Optional.empty();
     }
 
-    public static Optional<PositionTracker> getOwnerPositionTracker(LivingEntity wolf) {
-        return getOwner((TamableAnimal) wolf).map((owner) -> new EntityTracker(owner, true));
-    }
-
-    public static Optional<LivingEntity> getOwner(TamableAnimal wolf) {
-        return Optional.ofNullable(wolf.getOwner()).filter(le -> !le.isSpectator());
+    public static Optional<LivingEntity> getOwner(TamableAnimal tamableAnimal) {
+        return Optional.ofNullable(tamableAnimal.getOwner());
     }
 
     public static Optional<GlobalPos> getHowlLocation(LivingEntity wolf) {

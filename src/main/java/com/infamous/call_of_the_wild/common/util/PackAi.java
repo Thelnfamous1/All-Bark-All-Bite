@@ -77,7 +77,7 @@ public class PackAi {
     }
 
     public static void pathToLeader(LivingEntity mob, float speedModifier, int closeEnough) {
-        getLeader(mob).ifPresent(leader -> BehaviorUtils.setWalkAndLookTargetMemories(mob, leader, speedModifier, closeEnough));
+        getLeader(mob).ifPresent(leader -> AiUtil.setWalkAndLookTargetMemories(mob, leader, speedModifier, closeEnough));
     }
 
     public static int getMaxPackSize(LivingEntity wolf) {

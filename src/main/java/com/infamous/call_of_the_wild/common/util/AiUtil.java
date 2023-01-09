@@ -11,7 +11,10 @@ import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.entity.*;
 import net.minecraft.world.entity.ai.Brain;
 import net.minecraft.world.entity.ai.attributes.Attributes;
+import net.minecraft.world.entity.ai.behavior.EntityTracker;
+import net.minecraft.world.entity.ai.behavior.PositionTracker;
 import net.minecraft.world.entity.ai.memory.MemoryModuleType;
+import net.minecraft.world.entity.ai.memory.WalkTarget;
 import net.minecraft.world.entity.ai.sensing.Sensor;
 import net.minecraft.world.entity.animal.Animal;
 import net.minecraft.world.entity.animal.Turtle;
@@ -28,7 +31,6 @@ import java.util.UUID;
 
 public class AiUtil {
 
-    private static final String LIVING_ENTITY_JUMPING = "f_20899_";
     private static final String LIVING_ENTITY_GET_SOUND_VOLUME = "m_6121_";
 
     public static int reducedTickDelay(int ticks) {
@@ -96,16 +98,8 @@ public class AiUtil {
     }
 
     public static boolean canBeConsideredAnAlly(LivingEntity mob, LivingEntity other) {
-        return (mob instanceof OwnableEntity ownable && other instanceof OwnableEntity ownableOther)
-                    && ownable.getOwner() == ownableOther.getOwner()
-                || mob.isAlliedTo(other)
-                || (mob.getType() == other.getType() || mob.getMobType() == other.getMobType())
-                    && mob.getTeam() == null && other.getTeam() == null;
-    }
-
-    @SuppressWarnings("unused")
-    public static boolean isJumping(LivingEntity livingEntity) {
-        return ReflectionUtil.getField(LIVING_ENTITY_JUMPING, LivingEntity.class, livingEntity);
+        return mob.isAlliedTo(other)
+                || mob.getType() == other.getType() && mob.getTeam() == null && other.getTeam() == null;
     }
 
     public static Optional<LivingEntity> getLivingEntityFromUUID(ServerLevel level, UUID uuid) {
@@ -160,9 +154,9 @@ public class AiUtil {
         return livingEntity.getHealth() < livingEntity.getMaxHealth();
     }
 
-    public static void animalEat(Animal animal, ItemStack stack) {
+    public static void animalEat(Animal animal, ItemStack stack, float soundVolume) {
         if (animal.isFood(stack) && !animal.level.isClientSide) {
-            playSoundEvent(animal, animal.getEatingSound(stack));
+            playSoundEvent(animal, animal.getEatingSound(stack), soundVolume);
 
             float healAmount = 1.0F;
             FoodProperties foodProperties = stack.getFoodProperties(animal);
@@ -176,11 +170,24 @@ public class AiUtil {
         }
     }
 
-    public static void playSoundEvent(LivingEntity livingEntity, SoundEvent soundEvent) {
-        livingEntity.playSound(soundEvent, getSoundVolume(livingEntity), livingEntity.getVoicePitch());
+    public static void playSoundEvent(LivingEntity livingEntity, SoundEvent soundEvent, float soundVolume) {
+        livingEntity.playSound(soundEvent, soundVolume, livingEntity.getVoicePitch());
     }
 
-    private static float getSoundVolume(LivingEntity livingEntity) {
+    @SuppressWarnings("ConstantConditions")
+    public static float getSoundVolume(LivingEntity livingEntity) {
         return ReflectionUtil.callMethod(LIVING_ENTITY_GET_SOUND_VOLUME, livingEntity);
+    }
+
+    public static void setWalkAndLookTargetMemories(LivingEntity mob, Entity target, float speedModifier, int closeEnough) {
+        PositionTracker lookTarget = new EntityTracker(target, true);
+        WalkTarget walkTarget = new WalkTarget(target, speedModifier, closeEnough);
+        mob.getBrain().setMemory(MemoryModuleType.LOOK_TARGET, lookTarget);
+        mob.getBrain().setMemory(MemoryModuleType.WALK_TARGET, walkTarget);
+    }
+
+    public static boolean onCheckCooldown(ServerLevel level, long lastCheckTimestamp, long checkCooldown) {
+        long ticksSinceLastCheck = level.getGameTime() - lastCheckTimestamp;
+        return lastCheckTimestamp != 0 && ticksSinceLastCheck > 0 && ticksSinceLastCheck < checkCooldown;
     }
 }

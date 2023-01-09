@@ -159,7 +159,7 @@ public class StalkPrey<E extends PathfinderMob> extends Behavior<E> {
     private void setWalkAndLookTarget(E mob, LivingEntity target) {
         Brain<?> brain = mob.getBrain();
         this.lookAtTarget(mob, target);
-        WalkTarget walkTarget = new WalkTarget(new EntityTracker(target, true), this.speedModifier, this.closeEnough - 1);
+        WalkTarget walkTarget = new WalkTarget(target, this.speedModifier, this.closeEnough - 1);
         brain.setMemory(MemoryModuleType.WALK_TARGET, walkTarget);
     }
 

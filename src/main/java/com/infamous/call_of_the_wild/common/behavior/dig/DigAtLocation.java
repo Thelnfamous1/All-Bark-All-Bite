@@ -2,6 +2,7 @@ package com.infamous.call_of_the_wild.common.behavior.dig;
 
 import com.google.common.collect.ImmutableMap;
 import com.infamous.call_of_the_wild.common.registry.ABABMemoryModuleTypes;
+import com.infamous.call_of_the_wild.common.util.AiUtil;
 import com.infamous.call_of_the_wild.common.util.DigAi;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.GlobalPos;
@@ -35,7 +36,7 @@ public class DigAtLocation<E extends LivingEntity> extends Behavior<E> {
 
    @SuppressWarnings("OptionalGetWithoutIsPresent")
    protected boolean checkExtraStartConditions(ServerLevel level, E mob) {
-      if (this.lastCheckTimestamp != 0 && level.getGameTime() - this.lastCheckTimestamp < CHECK_COOLDOWN) {
+      if (AiUtil.onCheckCooldown(level, this.lastCheckTimestamp, CHECK_COOLDOWN)) {
          return false;
       } else {
          this.lastCheckTimestamp = level.getGameTime();

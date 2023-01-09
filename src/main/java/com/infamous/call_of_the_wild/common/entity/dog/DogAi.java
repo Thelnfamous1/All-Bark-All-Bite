@@ -169,7 +169,7 @@ public class DogAi {
                 ABABMemoryModuleTypes.DIG_LOCATION.get());
     }
 
-    private static void holdInMouth(Dog dog, ItemStack stack) {
+    public static void holdInMouth(Dog dog, ItemStack stack) {
         if (dog.hasItemInMouth()) {
             DogGoalPackages.stopHoldingItemInMouth(dog);
         }

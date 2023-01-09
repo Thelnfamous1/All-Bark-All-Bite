@@ -34,7 +34,7 @@ public class StartHowling<E extends LivingEntity> extends Behavior<E> {
     @SuppressWarnings("OptionalGetWithoutIsPresent")
     @Override
     protected boolean checkExtraStartConditions(ServerLevel level, E mob) {
-        if(this.lastCheckTimestamp != 0 && level.getGameTime() - this.lastCheckTimestamp < FollowPackLeader.INTERVAL_TICKS){
+        if(AiUtil.onCheckCooldown(level, this.lastCheckTimestamp, FollowPackLeader.INTERVAL_TICKS)){
             return false;
         } else{
             if(PackAi.isFollower(mob)){

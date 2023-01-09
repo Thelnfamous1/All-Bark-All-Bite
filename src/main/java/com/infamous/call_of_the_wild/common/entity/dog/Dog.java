@@ -6,6 +6,7 @@ import com.infamous.call_of_the_wild.common.entity.*;
 import com.infamous.call_of_the_wild.common.registry.*;
 import com.infamous.call_of_the_wild.common.util.AiUtil;
 import com.infamous.call_of_the_wild.common.entity.AnimalAccessor;
+import com.infamous.call_of_the_wild.common.util.DebugUtil;
 import com.infamous.call_of_the_wild.common.util.MiscUtil;
 import com.mojang.serialization.Dynamic;
 import net.minecraft.core.BlockPos;
@@ -367,7 +368,7 @@ public class Dog extends TamableAnimal implements InterestedMob, ShakingMob, Var
 
     @Override
     protected void usePlayerItem(Player player, InteractionHand hand, ItemStack stack) {
-        AiUtil.animalEat(this, stack);
+        AiUtil.animalEat(this, stack, this.getSoundVolume());
         super.usePlayerItem(player, hand, stack);
     }
 
@@ -565,11 +566,9 @@ public class Dog extends TamableAnimal implements InterestedMob, ShakingMob, Var
     protected void sendDebugPackets() {
         super.sendDebugPackets();
         DebugPackets.sendEntityBrain(this);
-        /*
-        if(this.level instanceof  ServerLevel serverLevel){
+        if(this.level instanceof ServerLevel serverLevel){
             DebugUtil.sendEntityBrain(this, serverLevel);
         }
-         */
     }
 
     @SuppressWarnings("ConstantConditions")
