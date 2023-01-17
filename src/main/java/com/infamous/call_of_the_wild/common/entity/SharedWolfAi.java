@@ -1,13 +1,12 @@
 package com.infamous.call_of_the_wild.common.entity;
 
-import com.google.common.collect.ImmutableList;
 import com.infamous.call_of_the_wild.common.behavior.MoveToNonSkySeeingSpot;
 import com.infamous.call_of_the_wild.common.registry.ABABGameEvents;
 import com.infamous.call_of_the_wild.common.registry.ABABMemoryModuleTypes;
-import com.infamous.call_of_the_wild.common.util.AiUtil;
-import com.infamous.call_of_the_wild.common.util.AngerAi;
-import com.infamous.call_of_the_wild.common.util.GenericAi;
-import com.infamous.call_of_the_wild.common.util.HunterAi;
+import com.infamous.call_of_the_wild.common.ai.AiUtil;
+import com.infamous.call_of_the_wild.common.ai.AngerAi;
+import com.infamous.call_of_the_wild.common.ai.GenericAi;
+import com.infamous.call_of_the_wild.common.ai.HunterAi;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.GlobalPos;
 import net.minecraft.sounds.SoundEvents;
@@ -220,10 +219,6 @@ public class SharedWolfAi {
         return Optional.empty();
     }
 
-    public static Optional<LivingEntity> getOwner(TamableAnimal tamableAnimal) {
-        return Optional.ofNullable(tamableAnimal.getOwner());
-    }
-
     public static Optional<GlobalPos> getHowlLocation(LivingEntity wolf) {
         return wolf.getBrain().getMemory(ABABMemoryModuleTypes.HOWL_LOCATION.get());
     }
@@ -239,7 +234,7 @@ public class SharedWolfAi {
 
     @SuppressWarnings("BooleanMethodIsAlwaysInverted")
     public static boolean alertable(TamableAnimal wolf) {
-        List<LivingEntity> livingEntities = wolf.getBrain().getMemory(MemoryModuleType.NEAREST_LIVING_ENTITIES).orElse(ImmutableList.of());
+        List<LivingEntity> livingEntities = GenericAi.getNearestLivingEntities(wolf);
         for(LivingEntity livingEntity : livingEntities){
             if(livingEntity.closerThan(wolf, MAX_ALERTABLE_XZ, MAX_ALERTABLE_Y)
                     && Sensor.isEntityAttackableIgnoringLineOfSight(wolf, livingEntity)

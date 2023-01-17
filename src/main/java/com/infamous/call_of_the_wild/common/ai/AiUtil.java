@@ -1,5 +1,7 @@
-package com.infamous.call_of_the_wild.common.util;
+package com.infamous.call_of_the_wild.common.ai;
 
+import com.infamous.call_of_the_wild.common.entity.HasOwner;
+import com.infamous.call_of_the_wild.common.util.ReflectionUtil;
 import com.mojang.datafixers.util.Pair;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundEvent;
@@ -32,14 +34,6 @@ import java.util.UUID;
 public class AiUtil {
 
     private static final String LIVING_ENTITY_GET_SOUND_VOLUME = "m_6121_";
-
-    public static int reducedTickDelay(int ticks) {
-        return Mth.positiveCeilDiv(ticks, 2);
-    }
-
-    public static double getFollowRange(Mob mob) {
-        return mob.getAttributeValue(Attributes.FOLLOW_RANGE);
-    }
 
     public static void addEatEffect(LivingEntity eater, Level level, FoodProperties foodProperties) {
         for(Pair<MobEffectInstance, Float> pair : foodProperties.getEffects()) {
@@ -189,5 +183,26 @@ public class AiUtil {
     public static boolean onCheckCooldown(ServerLevel level, long lastCheckTimestamp, long checkCooldown) {
         long ticksSinceLastCheck = level.getGameTime() - lastCheckTimestamp;
         return lastCheckTimestamp != 0 && ticksSinceLastCheck > 0 && ticksSinceLastCheck < checkCooldown;
+    }
+
+    public static void setItemPickupCooldown(LivingEntity mob, int itemPickupCooldownTicks) {
+        mob.getBrain().setMemory(MemoryModuleType.ITEM_PICKUP_COOLDOWN_TICKS, itemPickupCooldownTicks);
+    }
+
+    public static Optional<LivingEntity> getLivingEntityFromId(Level level, int id) {
+        return Optional.ofNullable(level.getEntity(id)).filter(LivingEntity.class::isInstance).map(LivingEntity.class::cast);
+    }
+
+    public static Optional<LivingEntity> getOwner(OwnableEntity ownableEntity) {
+        if(ownableEntity instanceof TamableAnimal tamableAnimal) return Optional.ofNullable(tamableAnimal.getOwner());
+        else if(ownableEntity instanceof HasOwner hasOwner) return Optional.ofNullable(hasOwner.getOwner());
+
+        return Optional.ofNullable(ownableEntity.getOwner()).filter(LivingEntity.class::isInstance).map(LivingEntity.class::cast);
+    }
+
+    public static Optional<LivingEntity> getTarget(LivingEntity livingEntity){
+        return livingEntity.getBrain().hasMemoryValue(MemoryModuleType.ATTACK_TARGET) ?
+                livingEntity.getBrain().getMemory(MemoryModuleType.ATTACK_TARGET) :
+                Optional.ofNullable(livingEntity instanceof Mob mob ? mob.getTarget() : null);
     }
 }

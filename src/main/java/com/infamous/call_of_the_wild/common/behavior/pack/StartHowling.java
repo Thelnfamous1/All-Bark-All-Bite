@@ -1,19 +1,19 @@
 package com.infamous.call_of_the_wild.common.behavior.pack;
 
 import com.google.common.collect.ImmutableMap;
+import com.infamous.call_of_the_wild.common.util.MultiEntityManager;
 import com.infamous.call_of_the_wild.common.entity.SharedWolfAi;
 import com.infamous.call_of_the_wild.common.registry.ABABMemoryModuleTypes;
-import com.infamous.call_of_the_wild.common.util.AiUtil;
-import com.infamous.call_of_the_wild.common.util.PackAi;
+import com.infamous.call_of_the_wild.common.ai.AiUtil;
+import com.infamous.call_of_the_wild.common.ai.PackAi;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.util.valueproviders.UniformInt;
+import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.behavior.Behavior;
 import net.minecraft.world.entity.ai.memory.MemoryStatus;
 
 import java.util.Optional;
-import java.util.Set;
-import java.util.UUID;
 
 @SuppressWarnings({"NullableProblems", "unused"})
 public class StartHowling<E extends LivingEntity> extends Behavior<E> {
@@ -45,15 +45,8 @@ public class StartHowling<E extends LivingEntity> extends Behavior<E> {
             } else if(PackAi.hasFollowers(mob)){
                 this.timestampLastCheck(level.getGameTime());
 
-                Set<UUID> followerUUIDs = PackAi.getFollowerUUIDs(mob).get();
-                for(UUID followerUUID : followerUUIDs){
-                    if(followerUUID.equals(mob.getUUID())) continue; // ignore self
-                    Optional<LivingEntity> follower = AiUtil.getLivingEntityFromUUID(level, followerUUID);
-                    if(follower.isPresent() && this.followerTooFar(mob, follower.get())){
-                        return true;
-                    }
-                }
-                return false;
+                MultiEntityManager followers = PackAi.getFollowerManager(mob).get();
+                return followers.stream().anyMatch(e -> this.followerTooFar(mob, e));
             }
             return true;
         }
@@ -63,7 +56,7 @@ public class StartHowling<E extends LivingEntity> extends Behavior<E> {
         this.lastCheckTimestamp = gameTime;
     }
 
-    private boolean followerTooFar(LivingEntity leader, LivingEntity follower) {
+    private boolean followerTooFar(LivingEntity leader, Entity follower) {
         return !follower.closerThan(leader, this.tooFar);
     }
 

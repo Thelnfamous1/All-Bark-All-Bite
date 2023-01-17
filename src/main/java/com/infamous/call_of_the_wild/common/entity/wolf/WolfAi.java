@@ -3,6 +3,10 @@ package com.infamous.call_of_the_wild.common.entity.wolf;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.infamous.call_of_the_wild.common.ABABTags;
+import com.infamous.call_of_the_wild.common.ai.AiUtil;
+import com.infamous.call_of_the_wild.common.ai.BrainUtil;
+import com.infamous.call_of_the_wild.common.ai.GenericAi;
+import com.infamous.call_of_the_wild.common.ai.PackAi;
 import com.infamous.call_of_the_wild.common.entity.SharedWolfAi;
 import com.infamous.call_of_the_wild.common.registry.ABABMemoryModuleTypes;
 import com.infamous.call_of_the_wild.common.registry.ABABSensorTypes;
@@ -245,7 +249,7 @@ public class WolfAi {
             return GenericAi.isNearAvoidTarget(wolf, SharedWolfAi.DESIRED_DISTANCE_FROM_DISLIKED) ? SoundEvents.WOLF_HURT : null;
         } else if (activity == Activity.REST) {
             return SoundEvents.FOX_SLEEP;
-        } else if (wolf.getRandom().nextInt(3) == 0) {
+        } else if (MiscUtil.oneInChance(wolf.getRandom(), 3)) {
             return wolf.isTame() && wolf.getHealth() < wolf.getMaxHealth() * 0.5F ? SoundEvents.WOLF_WHINE : SoundEvents.WOLF_PANT;
         } else {
             return SoundEvents.WOLF_AMBIENT;

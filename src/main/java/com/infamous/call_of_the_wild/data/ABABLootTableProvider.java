@@ -22,7 +22,8 @@ import java.util.function.Supplier;
 public class ABABLootTableProvider extends LootTableProvider {
     private final List<Pair<Supplier<Consumer<BiConsumer<ResourceLocation, LootTable.Builder>>>, LootContextParamSet>> subProviders =
             ImmutableList.of(
-                    Pair.of(ABABGiftLoot::new, LootContextParamSets.GIFT));
+                    Pair.of(ABABGiftLoot::new, LootContextParamSets.GIFT),
+                    Pair.of(ABABEntityLoot::new, LootContextParamSets.ENTITY));
 
     public ABABLootTableProvider(DataGenerator generator) {
         super(generator);

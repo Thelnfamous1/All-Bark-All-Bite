@@ -1,9 +1,8 @@
 package com.infamous.call_of_the_wild.common.behavior.pet;
 
 import com.google.common.collect.ImmutableMap;
-import com.infamous.call_of_the_wild.common.entity.SharedWolfAi;
-import com.infamous.call_of_the_wild.common.util.AiUtil;
-import com.infamous.call_of_the_wild.common.util.GenericAi;
+import com.infamous.call_of_the_wild.common.ai.AiUtil;
+import com.infamous.call_of_the_wild.common.ai.GenericAi;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.util.Mth;
@@ -62,7 +61,7 @@ public class FollowOwner<E extends TamableAnimal> extends Behavior<E> {
     }
 
     private Optional<LivingEntity> getOwner(E tamable) {
-        return SharedWolfAi.getOwner(tamable);
+        return AiUtil.getOwner(tamable);
     }
 
     @Override

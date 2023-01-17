@@ -2,7 +2,7 @@ package com.infamous.call_of_the_wild.common.behavior.long_jump;
 
 import com.google.common.collect.ImmutableMap;
 import com.infamous.call_of_the_wild.common.registry.ABABMemoryModuleTypes;
-import com.infamous.call_of_the_wild.common.util.LongJumpAi;
+import com.infamous.call_of_the_wild.common.ai.LongJumpAi;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundEvent;

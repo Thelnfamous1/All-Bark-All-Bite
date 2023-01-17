@@ -2,6 +2,7 @@ package com.infamous.call_of_the_wild.data;
 
 import com.infamous.call_of_the_wild.common.ABABTags;
 import com.infamous.call_of_the_wild.AllBarkAllBite;
+import com.infamous.call_of_the_wild.common.registry.ABABEntityTypes;
 import net.minecraft.data.DataGenerator;
 import net.minecraft.data.tags.EntityTypeTagsProvider;
 import net.minecraft.tags.EntityTypeTags;
@@ -27,5 +28,7 @@ public class ABABEntityTypeTagProvider extends EntityTypeTagsProvider {
         this.tag(ABABTags.WOLF_ALWAYS_HOSTILES).addTag(EntityTypeTags.SKELETONS).add(EntityType.FOX);
         this.tag(ABABTags.WOLF_HUNT_TARGETS).add(EntityType.SHEEP, EntityType.GOAT, EntityType.PIG, EntityType.RABBIT, EntityType.CHICKEN);
         this.tag(ABABTags.WOLF_DISLIKED).add(EntityType.LLAMA).add(EntityType.TRADER_LLAMA);
+
+        this.tag(ABABTags.ILLAGER_HOUND_IGNORES).add(EntityType.CREEPER).add(ABABEntityTypes.ILLAGER_HOUND.get());
     }
 }

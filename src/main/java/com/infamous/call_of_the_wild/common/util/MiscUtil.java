@@ -1,14 +1,19 @@
 package com.infamous.call_of_the_wild.common.util;
 
 import com.google.common.collect.Iterables;
+import com.infamous.call_of_the_wild.AllBarkAllBite;
 import net.minecraft.core.particles.ParticleOptions;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.util.RandomSource;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.item.ItemStack;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.Collection;
+import java.util.Optional;
 
 public class MiscUtil {
 
@@ -60,5 +65,23 @@ public class MiscUtil {
 
     public static void sendParticlesAroundSelf(ServerLevel serverLevel, LivingEntity livingEntity, ParticleOptions particleOptions, double yOffset, int numParticles, double speedMultiplier) {
         serverLevel.sendParticles(particleOptions, livingEntity.getX(), livingEntity.getY() + yOffset, livingEntity.getZ(), numParticles, 0.0D, 0.0D, 0.0D, speedMultiplier);
+    }
+
+    public static boolean oneInChance(RandomSource randomSource, int oneIn) {
+        return randomSource.nextInt(oneIn) == 0;
+    }
+
+    public static <T extends Entity> Optional<T> createEntity(@NotNull EntityType<T> entityType, ServerLevel level) {
+        T entity = entityType.create(level);
+
+        if(entity == null){
+            AllBarkAllBite.LOGGER.warn("Unable to create a new {} in level {}!", EntityType.getKey(entityType), level);
+            return Optional.empty();
+        }
+        return Optional.of(entity);
+    }
+
+    public static int seconds(double seconds){
+        return (int) (seconds * 20);
     }
 }

@@ -1,6 +1,7 @@
-package com.infamous.call_of_the_wild.common.util;
+package com.infamous.call_of_the_wild.common.ai;
 
 import com.google.common.collect.ImmutableList;
+import com.infamous.call_of_the_wild.common.util.ReflectionUtil;
 import com.mojang.datafixers.util.Pair;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.Brain;

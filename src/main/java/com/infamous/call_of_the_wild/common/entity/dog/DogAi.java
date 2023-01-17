@@ -3,13 +3,12 @@ package com.infamous.call_of_the_wild.common.entity.dog;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.infamous.call_of_the_wild.common.ABABTags;
-import com.infamous.call_of_the_wild.common.entity.AnimalAccessor;
 import com.infamous.call_of_the_wild.common.entity.SharedWolfAi;
 import com.infamous.call_of_the_wild.common.registry.ABABActivities;
 import com.infamous.call_of_the_wild.common.registry.ABABMemoryModuleTypes;
-import com.infamous.call_of_the_wild.common.util.AiUtil;
-import com.infamous.call_of_the_wild.common.util.DigAi;
-import com.infamous.call_of_the_wild.common.util.GenericAi;
+import com.infamous.call_of_the_wild.common.ai.AiUtil;
+import com.infamous.call_of_the_wild.common.ai.DigAi;
+import com.infamous.call_of_the_wild.common.ai.GenericAi;
 import com.infamous.call_of_the_wild.common.util.MiscUtil;
 import com.mojang.datafixers.util.Pair;
 import net.minecraft.core.BlockPos;
@@ -123,7 +122,7 @@ public class DogAi {
                     return InteractionResult.CONSUME;
                 }
 
-                InteractionResult animalInteractResult = AnimalAccessor.cast(dog).animalInteract(player, hand);
+                InteractionResult animalInteractResult = dog.animalInteract(player, hand);
                 boolean willNotBreed = !animalInteractResult.consumesAction() || dog.isBaby();
                 if (willNotBreed && dog.isOwnedBy(player)) {
                     dog.setOrderedToSit(!dog.isOrderedToSit());
@@ -144,7 +143,7 @@ public class DogAi {
             }
         } else if(dog.isFood(stack) && !dog.isAggressive()){
             dog.usePlayerItem(player, hand, stack);
-            if (dog.getRandom().nextInt(3) == 0 && !ForgeEventFactory.onAnimalTame(dog, player)) {
+            if (MiscUtil.oneInChance(dog.getRandom(), 3) && !ForgeEventFactory.onAnimalTame(dog, player)) {
                 dog.tame(player);
                 yieldAsPet(dog);
                 dog.setOrderedToSit(true);
@@ -160,7 +159,7 @@ public class DogAi {
     private static void yieldAsPet(Dog dog) {
         GenericAi.stopWalking(dog);
 
-        DogGoalPackages.setItemPickupCooldown(dog);
+        AiUtil.setItemPickupCooldown(dog, DogGoalPackages.ITEM_PICKUP_COOLDOWN);
 
         AiUtil.eraseAllMemories(dog,
                 MemoryModuleType.ATTACK_TARGET,
@@ -212,7 +211,7 @@ public class DogAi {
             return SoundEvents.WOLF_GROWL;
         } else if (activity == Activity.AVOID && GenericAi.isNearAvoidTarget(dog, SharedWolfAi.DESIRED_DISTANCE_FROM_DISLIKED)) {
             return SoundEvents.WOLF_HURT;
-        } else if (dog.getRandom().nextInt(3) == 0) {
+        } else if (MiscUtil.oneInChance(dog.getRandom(), 3)) {
             return dog.isTame() && dog.getHealth() < dog.getMaxHealth() * 0.5F ? SoundEvents.WOLF_WHINE : SoundEvents.WOLF_PANT;
         } else {
             return SoundEvents.WOLF_AMBIENT;

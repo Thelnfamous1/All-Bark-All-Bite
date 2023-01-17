@@ -2,25 +2,18 @@ package com.infamous.call_of_the_wild.common.behavior.pack;
 
 import com.google.common.collect.ImmutableMap;
 import com.infamous.call_of_the_wild.common.registry.ABABMemoryModuleTypes;
-import com.infamous.call_of_the_wild.common.util.AiUtil;
-import com.infamous.call_of_the_wild.common.util.MiscUtil;
-import com.infamous.call_of_the_wild.common.util.PackAi;
-import net.minecraft.core.particles.ParticleTypes;
+import com.infamous.call_of_the_wild.common.ai.AiUtil;
+import com.infamous.call_of_the_wild.common.ai.PackAi;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.behavior.Behavior;
 import net.minecraft.world.entity.ai.memory.MemoryStatus;
-
-import java.util.Iterator;
-import java.util.Optional;
-import java.util.Set;
-import java.util.UUID;
 
 @SuppressWarnings("NullableProblems")
 public class ValidateFollowers extends Behavior<LivingEntity> {
 
     private static final int CLOSE_ENOUGH_TO_RECALL = 64;
-    private long lastCheckTimestamp;
 
     public ValidateFollowers() {
         super(ImmutableMap.of(
@@ -30,35 +23,30 @@ public class ValidateFollowers extends Behavior<LivingEntity> {
 
     @Override
     protected boolean checkExtraStartConditions(ServerLevel level, LivingEntity leader) {
-        if(PackAi.hasFollowers(leader)){
-            if (AiUtil.onCheckCooldown(level, this.lastCheckTimestamp, FollowPackLeader.INTERVAL_TICKS)) {
-                return false;
-            } else {
-                this.lastCheckTimestamp = level.getGameTime();
-                return true;
-            }
-        } else {
-            return false;
-        }
+        return PackAi.hasFollowers(leader);
     }
 
     @SuppressWarnings("OptionalGetWithoutIsPresent")
     @Override
     protected void start(ServerLevel level, LivingEntity leader, long gameTime) {
-        Set<UUID> followers = PackAi.getFollowerUUIDs(leader).get();
-        for (Iterator<UUID> itr = followers.iterator(); itr.hasNext();) {
-            UUID followerUUID = itr.next();
-            if(followerUUID.equals(leader.getUUID())) continue; // ignore self
-            Optional<LivingEntity> follower = AiUtil.getLivingEntityFromUUID(level, followerUUID);
-            if(follower.isPresent()){
-                LivingEntity f = follower.get();
-                if(!f.isAlive() || f.level != leader.level || !AiUtil.canBeConsideredAnAlly(leader, f) || !f.closerThan(leader, CLOSE_ENOUGH_TO_RECALL)){
-                    PackAi.stopFollowing(f, leader);
-                    MiscUtil.sendParticlesAroundSelf((ServerLevel) f.level, f, ParticleTypes.SMOKE, f.getEyeHeight(),  10, 0.2D);
-                }
-            } else{
-                itr.remove();
-            }
+        PackAi.getFollowerManager(leader).get().tick(level, e -> this.isValidFollower(e, leader), this::onFollowerInvalid);
+    }
+
+    private boolean isValidFollower(Entity entity, LivingEntity leader){
+        if(entity instanceof LivingEntity follower){
+            return !follower.isDeadOrDying()
+                    && follower.level == leader.level
+                    && PackAi.isFollower(follower)
+                    && AiUtil.canBeConsideredAnAlly(leader, follower)
+                    && follower.closerThan(leader, CLOSE_ENOUGH_TO_RECALL)
+                    && leader.level.getWorldBorder().isWithinBounds(follower.getBoundingBox());
+        }
+        return false;
+    }
+
+    private void onFollowerInvalid(Entity entity){
+        if(entity instanceof LivingEntity follower){
+            PackAi.eraseLeader(follower);
         }
     }
 }

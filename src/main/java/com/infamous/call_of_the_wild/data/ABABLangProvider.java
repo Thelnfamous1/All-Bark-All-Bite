@@ -19,5 +19,9 @@ public class ABABLangProvider extends LanguageProvider {
     protected void addTranslations() {
         this.add(ABABEntityTypes.DOG.get(), "Dog");
         this.add(ABABItems.DOG_SPAWN_EGG.get(), "Dog Spawn Egg");
+        this.add(ABABEntityTypes.ILLAGER_HOUND.get(), "Scavenger");
+        this.add(ABABItems.ILLAGER_HOUND_SPAWN_EGG.get(), "Scavenger Spawn Egg");
+        this.add(ABABEntityTypes.HOUNDMASTER.get(), "Houndmaster");
+        this.add(ABABItems.HOUNDMASTER_SPAWN_EGG.get(), "Houndmaster Spawn Egg");
     }
 }

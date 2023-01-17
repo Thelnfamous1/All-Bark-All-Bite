@@ -8,8 +8,8 @@ import com.infamous.call_of_the_wild.common.entity.dog.Dog;
 import com.infamous.call_of_the_wild.common.entity.wolf.WolfAi;
 import com.infamous.call_of_the_wild.common.event.BrainEvent;
 import com.infamous.call_of_the_wild.common.registry.ABABEntityTypes;
-import com.infamous.call_of_the_wild.common.util.AiUtil;
-import com.infamous.call_of_the_wild.common.util.BrainUtil;
+import com.infamous.call_of_the_wild.common.ai.AiUtil;
+import com.infamous.call_of_the_wild.common.ai.BrainUtil;
 import com.infamous.call_of_the_wild.common.util.DebugUtil;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.server.MinecraftServer;
@@ -245,5 +245,4 @@ public class ForgeEventHandler {
             }
         }
     }
-
 }

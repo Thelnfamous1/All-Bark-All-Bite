@@ -1,5 +1,9 @@
-package com.infamous.call_of_the_wild.client;
+package com.infamous.call_of_the_wild.client.renderer;
 
+import com.infamous.call_of_the_wild.client.ABABModelLayers;
+import com.infamous.call_of_the_wild.client.renderer.model.AndreDogModel;
+import com.infamous.call_of_the_wild.client.renderer.model.DogCollarLayer;
+import com.infamous.call_of_the_wild.client.renderer.model.DogHeldItemLayer;
 import com.infamous.call_of_the_wild.common.entity.dog.Dog;
 import com.mojang.blaze3d.vertex.PoseStack;
 import net.minecraft.client.renderer.MultiBufferSource;
@@ -13,7 +17,7 @@ public class DogRenderer extends MobRenderer<Dog, AndreDogModel<Dog>> {
    private static final float DEFAULT_SHADOW_RADIUS = 0.5F;
 
    public DogRenderer(EntityRendererProvider.Context context) {
-      super(context, new AndreDogModel<>(context.bakeLayer(COTWModelLayers.DOG)), DEFAULT_SHADOW_RADIUS);
+      super(context, new AndreDogModel<>(context.bakeLayer(ABABModelLayers.DOG)), DEFAULT_SHADOW_RADIUS);
       this.addLayer(new DogCollarLayer(this));
       this.addLayer(new DogHeldItemLayer(this, context.getItemInHandRenderer()));
    }

@@ -1,10 +1,13 @@
-package com.infamous.call_of_the_wild.common.util;
+package com.infamous.call_of_the_wild.common.ai;
 
 import com.google.common.collect.ImmutableList;
 import com.infamous.call_of_the_wild.common.registry.ABABMemoryModuleTypes;
-import net.minecraft.world.entity.*;
+import com.infamous.call_of_the_wild.common.util.ReflectionUtil;
+import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.PathfinderMob;
 import net.minecraft.world.entity.ai.Brain;
 import net.minecraft.world.entity.ai.memory.MemoryModuleType;
+import net.minecraft.world.entity.ai.memory.NearestVisibleLivingEntities;
 import net.minecraft.world.entity.ai.util.LandRandomPos;
 import net.minecraft.world.entity.animal.Fox;
 import net.minecraft.world.entity.player.Player;
@@ -93,5 +96,15 @@ public class GenericAi {
         mob.getBrain().setMemory(MemoryModuleType.LAST_SLEPT, mob.level.getGameTime());
         mob.getBrain().eraseMemory(MemoryModuleType.WALK_TARGET);
         mob.getBrain().eraseMemory(MemoryModuleType.CANT_REACH_WALK_TARGET_SINCE);
+    }
+
+    public static NearestVisibleLivingEntities getNearestVisibleLivingEntities(LivingEntity livingEntity) {
+        return livingEntity.getBrain().getMemory(MemoryModuleType.NEAREST_VISIBLE_LIVING_ENTITIES)
+                .orElse(NearestVisibleLivingEntities.empty());
+    }
+
+    public static List<LivingEntity> getNearestLivingEntities(LivingEntity livingEntity) {
+        return livingEntity.getBrain().getMemory(MemoryModuleType.NEAREST_LIVING_ENTITIES)
+                .orElse(ImmutableList.of());
     }
 }

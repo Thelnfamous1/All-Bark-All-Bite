@@ -1,4 +1,4 @@
-package com.infamous.call_of_the_wild.common.util;
+package com.infamous.call_of_the_wild.common.ai;
 
 import com.infamous.call_of_the_wild.common.registry.ABABMemoryModuleTypes;
 import net.minecraft.core.BlockPos;

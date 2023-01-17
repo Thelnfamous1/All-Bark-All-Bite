@@ -1,4 +1,4 @@
-package com.infamous.call_of_the_wild.client;
+package com.infamous.call_of_the_wild.client.renderer.model;
 
 import com.infamous.call_of_the_wild.common.entity.dog.Dog;
 import com.mojang.blaze3d.vertex.PoseStack;

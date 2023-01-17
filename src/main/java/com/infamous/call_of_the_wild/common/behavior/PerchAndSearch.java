@@ -1,8 +1,7 @@
 package com.infamous.call_of_the_wild.common.behavior;
 
 import com.google.common.collect.ImmutableMap;
-import com.infamous.call_of_the_wild.common.util.AiUtil;
-import com.infamous.call_of_the_wild.common.util.GenericAi;
+import com.infamous.call_of_the_wild.common.ai.GenericAi;
 import com.infamous.call_of_the_wild.common.util.PositionTrackerImpl;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.util.RandomSource;
@@ -50,7 +49,7 @@ public class PerchAndSearch<E extends PathfinderMob> extends Behavior<E> {
         double randomLookAngle = (Math.PI * 2D) * random.nextDouble();
         double relX = Math.cos(randomLookAngle);
         double relZ = Math.sin(randomLookAngle);
-        this.lookTime = AiUtil.reducedTickDelay(80 + random.nextInt(20));
+        this.lookTime = 80 + random.nextInt(20);
         Vec3 lookAtPos = new Vec3(mob.getX() + relX, mob.getEyeY(), mob.getZ() + relZ);
         mob.getBrain().setMemory(MemoryModuleType.LOOK_TARGET, new PositionTrackerImpl(lookAtPos));
     }

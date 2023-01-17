@@ -2,6 +2,7 @@ package com.infamous.call_of_the_wild.common.entity.dog;
 
 import com.google.common.collect.ImmutableList;
 import com.infamous.call_of_the_wild.common.ABABTags;
+import com.infamous.call_of_the_wild.common.ai.*;
 import com.infamous.call_of_the_wild.common.behavior.Beg;
 import com.infamous.call_of_the_wild.common.behavior.HurtByTrigger;
 import com.infamous.call_of_the_wild.common.behavior.LeapAtTarget;
@@ -16,7 +17,6 @@ import com.infamous.call_of_the_wild.common.behavior.pet.SitWhenOrderedTo;
 import com.infamous.call_of_the_wild.common.entity.SharedWolfAi;
 import com.infamous.call_of_the_wild.common.registry.ABABEntityTypes;
 import com.infamous.call_of_the_wild.common.registry.ABABMemoryModuleTypes;
-import com.infamous.call_of_the_wild.common.util.*;
 import com.infamous.call_of_the_wild.data.ABABBuiltInLootTables;
 import com.mojang.datafixers.util.Pair;
 import net.minecraft.core.BlockPos;
@@ -51,6 +51,7 @@ public class DogGoalPackages {
         return BrainUtil.createPriorityPairs(0,
                 ImmutableList.of(
                         new Swim(SharedWolfAi.JUMP_CHANCE_IN_WATER),
+                        new HurtByTrigger<>(DogGoalPackages::wasHurtBy),
                         new RunIf<>(SharedWolfAi::shouldPanic, new AnimalPanic(SharedWolfAi.SPEED_MODIFIER_PANICKING), true),
                         new LookAtTargetSink(45, 90),
                         new MoveToTargetSink(),
@@ -66,7 +67,6 @@ public class DogGoalPackages {
                         new RunIf<>(DogGoalPackages::canFetch, new StartItemActivityWithItemIfSeen<>(DogGoalPackages::canFetch, ABABMemoryModuleTypes.FETCHING_ITEM.get(), ABABMemoryModuleTypes.FETCHING_DISABLED.get(), ABABMemoryModuleTypes.DISABLE_WALK_TO_FETCH_ITEM.get())),
                         new CountDownCooldownTicks(MemoryModuleType.TEMPTATION_COOLDOWN_TICKS),
                         new CountDownCooldownTicks(MemoryModuleType.ITEM_PICKUP_COOLDOWN_TICKS),
-                        new HurtByTrigger<>(DogGoalPackages::wasHurtBy),
                         new StopBeingAngryIfTargetDead<>()));
     }
 
@@ -111,11 +111,7 @@ public class DogGoalPackages {
 
     static void onThrown(Dog dog){
         dog.playSoundEvent(SoundEvents.FOX_SPIT);
-        setItemPickupCooldown(dog);
-    }
-
-    static void setItemPickupCooldown(Dog dog) {
-        dog.getBrain().setMemory(MemoryModuleType.ITEM_PICKUP_COOLDOWN_TICKS, ITEM_PICKUP_COOLDOWN);
+        AiUtil.setItemPickupCooldown(dog, ITEM_PICKUP_COOLDOWN);
     }
 
     @NotNull
@@ -260,7 +256,7 @@ public class DogGoalPackages {
         return BrainUtil.createPriorityPairs(0,
                 ImmutableList.of(
                         new RunIf<>(DogGoalPackages::canFetch, new GoToWantedItem<>(DogGoalPackages::isNotHoldingItem, SPEED_MODIFIER_FETCHING, true, MAX_FETCH_DISTANCE)),
-                        new RunIf<>(DogGoalPackages::canFetch, new GiveItemToTarget<>(Dog::getItemInMouth, SharedWolfAi::getOwner, SharedWolfAi.CLOSE_ENOUGH_TO_OWNER, DogGoalPackages::onThrown), true),
+                        new RunIf<>(DogGoalPackages::canFetch, new GiveItemToTarget<>(Dog::getItemInMouth, AiUtil::getOwner, SharedWolfAi.CLOSE_ENOUGH_TO_OWNER, DogGoalPackages::onThrown), true),
                         new RunIf<>(DogGoalPackages::canReturnToOwner, new FollowOwner<>(SPEED_MODIFIER_FETCHING, SharedWolfAi.CLOSE_ENOUGH_TO_OWNER, SharedWolfAi.CLOSE_ENOUGH_TO_OWNER), true),
                         new StopItemActivityIfItemTooFarAway<>(DogGoalPackages::canStopFetchingIfItemTooFar, MAX_FETCH_DISTANCE, ABABMemoryModuleTypes.FETCHING_ITEM.get()),
                         new StopItemActivityIfTiredOfTryingToReachItem<>(DogGoalPackages::canGetTiredTryingToReachItem, MAX_TIME_TO_REACH_ITEM, DISABLE_FETCH_TIME, ABABMemoryModuleTypes.FETCHING_ITEM.get(), ABABMemoryModuleTypes.TIME_TRYING_TO_REACH_FETCH_ITEM.get(), ABABMemoryModuleTypes.DISABLE_WALK_TO_FETCH_ITEM.get()),

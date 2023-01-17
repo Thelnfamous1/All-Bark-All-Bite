@@ -1,4 +1,4 @@
-package com.infamous.call_of_the_wild.common.util;
+package com.infamous.call_of_the_wild.common.ai;
 
 import net.minecraft.util.valueproviders.UniformInt;
 import net.minecraft.world.entity.EntityType;

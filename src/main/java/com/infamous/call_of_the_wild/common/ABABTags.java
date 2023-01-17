@@ -1,6 +1,7 @@
 package com.infamous.call_of_the_wild.common;
 
 import com.infamous.call_of_the_wild.AllBarkAllBite;
+import com.infamous.call_of_the_wild.common.registry.ABABEntityTypes;
 import net.minecraft.core.Registry;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.tags.BlockTags;
@@ -33,6 +34,7 @@ public class ABABTags {
     public static final TagKey<GameEvent> WOLF_CAN_LISTEN = createGameEventTag("wolf_can_listen");
 
     public static final TagKey<GameEvent> DOG_CAN_LISTEN = createGameEventTag("dog_can_listen");
+    public static final TagKey<EntityType<?>> ILLAGER_HOUND_IGNORES = createEntityTypeTag(String.format("%s_ignores", ABABEntityTypes.ILLAGER_HOUND_NAME));
 
     private static TagKey<EntityType<?>> createEntityTypeTag(String path) {
         return TagKey.create(Registry.ENTITY_TYPE_REGISTRY, new ResourceLocation(AllBarkAllBite.MODID, path));

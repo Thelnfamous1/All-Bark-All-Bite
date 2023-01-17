@@ -2,7 +2,7 @@ package com.infamous.call_of_the_wild.common.sensor.vibration;
 
 import com.google.common.collect.ImmutableSet;
 import com.infamous.call_of_the_wild.AllBarkAllBite;
-import com.infamous.call_of_the_wild.common.util.BrainUtil;
+import com.infamous.call_of_the_wild.common.ai.BrainUtil;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;

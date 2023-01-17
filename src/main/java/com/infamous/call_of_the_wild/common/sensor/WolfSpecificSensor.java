@@ -5,7 +5,7 @@ import com.infamous.call_of_the_wild.common.ABABTags;
 import com.infamous.call_of_the_wild.common.entity.SharedWolfAi;
 import com.infamous.call_of_the_wild.common.entity.wolf.WolfAi;
 import com.infamous.call_of_the_wild.common.registry.ABABMemoryModuleTypes;
-import com.infamous.call_of_the_wild.common.util.AiUtil;
+import com.infamous.call_of_the_wild.common.ai.AiUtil;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.Brain;
@@ -20,7 +20,7 @@ import java.util.Set;
 @SuppressWarnings("NullableProblems")
 public class WolfSpecificSensor extends Sensor<Wolf> {
 
-    private static final int TARGET_DETECTION_DISTANCE = 10;
+    private static final int TARGET_DETECTION_DISTANCE = 16;
 
     @Override
     public Set<MemoryModuleType<?>> requires() {

@@ -1,5 +1,6 @@
-package com.infamous.call_of_the_wild.client;
+package com.infamous.call_of_the_wild.client.renderer.model.animation;
 
+import com.infamous.call_of_the_wild.client.renderer.model.AndreDogModel;
 import net.minecraft.client.animation.AnimationChannel;
 import net.minecraft.client.animation.AnimationDefinition;
 import net.minecraft.client.animation.Keyframe;

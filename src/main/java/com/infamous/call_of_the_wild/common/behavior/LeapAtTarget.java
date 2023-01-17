@@ -1,8 +1,8 @@
 package com.infamous.call_of_the_wild.common.behavior;
 
 import com.google.common.collect.ImmutableMap;
-import com.infamous.call_of_the_wild.common.util.AiUtil;
-import com.infamous.call_of_the_wild.common.util.GenericAi;
+import com.infamous.call_of_the_wild.common.ai.GenericAi;
+import com.infamous.call_of_the_wild.common.util.MiscUtil;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.Mob;
@@ -37,7 +37,7 @@ public class LeapAtTarget extends Behavior<Mob> {
                     if (this.isFloating(mob)) {
                         return false;
                     } else {
-                        return mob.getRandom().nextInt(AiUtil.reducedTickDelay(5)) == 0;
+                        return MiscUtil.oneInChance(mob.getRandom(), 5);
                     }
                 } else {
                     return false;

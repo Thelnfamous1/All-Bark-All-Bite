@@ -1,4 +1,4 @@
-package com.infamous.call_of_the_wild.client;
+package com.infamous.call_of_the_wild.client.renderer;
 
 import com.infamous.call_of_the_wild.common.entity.wolf.WolfAi;
 import com.mojang.blaze3d.vertex.PoseStack;
@@ -7,9 +7,9 @@ import net.minecraft.client.renderer.entity.WolfRenderer;
 import net.minecraft.world.entity.animal.Wolf;
 
 @SuppressWarnings("NullableProblems")
-class COTWWolfRenderer extends WolfRenderer {
+public class ABABWolfRenderer extends WolfRenderer {
 
-    public COTWWolfRenderer(EntityRendererProvider.Context context) {
+    public ABABWolfRenderer(EntityRendererProvider.Context context) {
         super(context);
     }
 

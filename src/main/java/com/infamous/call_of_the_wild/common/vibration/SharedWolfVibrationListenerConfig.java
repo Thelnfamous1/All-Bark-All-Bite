@@ -3,7 +3,7 @@ package com.infamous.call_of_the_wild.common.vibration;
 import com.infamous.call_of_the_wild.common.entity.SharedWolfAi;
 import com.infamous.call_of_the_wild.common.registry.ABABGameEvents;
 import com.infamous.call_of_the_wild.common.sensor.vibration.EntityVibrationListenerConfig;
-import com.infamous.call_of_the_wild.common.util.PackAi;
+import com.infamous.call_of_the_wild.common.ai.PackAi;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.GlobalPos;
 import net.minecraft.server.level.ServerLevel;
@@ -76,9 +76,13 @@ public abstract class SharedWolfVibrationListenerConfig<T extends TamableAnimal>
         return PackAi.isFollower(this.entity) && PackAi.getLeaderUUID(this.entity).get().equals(other.getUUID());
     }
 
-    @SuppressWarnings("OptionalGetWithoutIsPresent")
     private boolean canTreatAsFollower(LivingEntity other) {
-        return PackAi.hasFollowers(this.entity) && (PackAi.getFollowerUUIDs(this.entity).get().contains(other.getUUID()) || PackAi.canAddToFollowers(this.entity, other));
+        return PackAi.hasFollowers(this.entity) && (this.isLeaderOf(other) || PackAi.canAddToFollowers(this.entity, other));
+    }
+
+    @SuppressWarnings("OptionalGetWithoutIsPresent")
+    private boolean isLeaderOf(LivingEntity other) {
+        return PackAi.isFollower(other) && PackAi.getLeaderUUID(other).get().equals(this.entity.getUUID());
     }
 
     private void respondToHowl(boolean ignoreCooldown) {

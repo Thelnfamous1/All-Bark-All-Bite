@@ -4,7 +4,7 @@ import com.google.common.collect.ImmutableList;
 import com.infamous.call_of_the_wild.common.ABABTags;
 import com.infamous.call_of_the_wild.common.entity.*;
 import com.infamous.call_of_the_wild.common.registry.*;
-import com.infamous.call_of_the_wild.common.util.AiUtil;
+import com.infamous.call_of_the_wild.common.ai.AiUtil;
 import com.infamous.call_of_the_wild.common.entity.AnimalAccessor;
 import com.infamous.call_of_the_wild.common.util.DebugUtil;
 import com.infamous.call_of_the_wild.common.util.MiscUtil;
@@ -34,7 +34,6 @@ import net.minecraft.world.entity.ai.memory.MemoryModuleType;
 import net.minecraft.world.entity.ai.sensing.Sensor;
 import net.minecraft.world.entity.ai.sensing.SensorType;
 import net.minecraft.world.entity.animal.Animal;
-import net.minecraft.world.entity.animal.Wolf;
 import net.minecraft.world.entity.animal.horse.AbstractHorse;
 import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.entity.monster.Creeper;
@@ -438,16 +437,12 @@ public class Dog extends TamableAnimal implements InterestedMob, ShakingMob, Var
     @Override
     public boolean wantsToAttack(LivingEntity target, LivingEntity owner) {
         if (!(target instanceof Creeper) && !(target instanceof Ghast)) {
-            if (target instanceof Dog dog) {
-                return !dog.isTame() || dog.getOwner() != owner;
-            } else if (target instanceof Wolf wolf) {
-                return !wolf.isTame() || wolf.getOwner() != owner;
-            } else if (target instanceof Player targetPlayer && owner instanceof Player ownerPlayer && !ownerPlayer.canHarmPlayer(targetPlayer)) {
-                return false;
-            } else if (target instanceof AbstractHorse horse && horse.isTamed()) {
-                return false;
+            if (target instanceof TamableAnimal tamableAnimal) {
+                return !tamableAnimal.isTame() || tamableAnimal.getOwner() != owner;
             } else {
-                return !(target instanceof TamableAnimal tamable) || !tamable.isTame();
+                if (target instanceof Player targetPlayer && owner instanceof Player ownerPlayer && !ownerPlayer.canHarmPlayer(targetPlayer)) {
+                    return false;
+                } else return !(target instanceof AbstractHorse horse) || !horse.isTamed();
             }
         } else {
             return false;

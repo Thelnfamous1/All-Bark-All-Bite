@@ -1,14 +1,14 @@
 package com.infamous.call_of_the_wild.common.registry;
 
 import com.infamous.call_of_the_wild.AllBarkAllBite;
+import com.infamous.call_of_the_wild.common.util.SingleEntityManager;
+import com.infamous.call_of_the_wild.common.util.MultiEntityManager;
 import com.infamous.call_of_the_wild.common.entity.dog.Dog;
 import com.infamous.call_of_the_wild.common.vibration.DogVibrationListenerConfig;
 import com.infamous.call_of_the_wild.common.vibration.WolfVibrationListenerConfig;
 import com.infamous.call_of_the_wild.common.sensor.vibration.EntityVibrationListener;
-import com.infamous.call_of_the_wild.common.util.codec.MutableSetCodec;
 import com.mojang.serialization.Codec;
 import net.minecraft.core.GlobalPos;
-import net.minecraft.core.UUIDUtil;
 import net.minecraft.util.Unit;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.behavior.PositionTracker;
@@ -75,13 +75,13 @@ public class ABABMemoryModuleTypes {
             "howled_recently",
             () -> new MemoryModuleType<>(Optional.of(Codec.BOOL)));
 
-    public static RegistryObject<MemoryModuleType<UUID>> LEADER = MEMORY_MODULE_TYPES.register(
+    public static RegistryObject<MemoryModuleType<SingleEntityManager>> LEADER = MEMORY_MODULE_TYPES.register(
             "leader",
-            () -> new MemoryModuleType<>(Optional.of(UUIDUtil.CODEC)));
+            () -> new MemoryModuleType<>(Optional.of(SingleEntityManager.codec())));
 
-    public static RegistryObject<MemoryModuleType<Set<UUID>>> FOLLOWERS = MEMORY_MODULE_TYPES.register(
+    public static RegistryObject<MemoryModuleType<MultiEntityManager>> FOLLOWERS = MEMORY_MODULE_TYPES.register(
             "followers",
-            () -> new MemoryModuleType<>(Optional.of(new MutableSetCodec<>(UUIDUtil.CODEC))));
+            () -> new MemoryModuleType<>(Optional.of(MultiEntityManager.codec())));
 
     public static final RegistryObject<MemoryModuleType<List<LivingEntity>>> NEAREST_ALLIES = MEMORY_MODULE_TYPES.register("nearest_allies",
             () -> new MemoryModuleType<>(Optional.empty()));
@@ -97,14 +97,6 @@ public class ABABMemoryModuleTypes {
 
     public static final RegistryObject<MemoryModuleType<PositionTracker>> LONG_JUMP_TARGET = MEMORY_MODULE_TYPES.register("long_jump_target",
             () -> new MemoryModuleType<>(Optional.empty()));
-
-    public static RegistryObject<MemoryModuleType<Unit>> IS_ALERT = MEMORY_MODULE_TYPES.register(
-            "is_alert",
-            () -> new MemoryModuleType<>(Optional.of(Codec.unit(Unit.INSTANCE))));
-
-    public static RegistryObject<MemoryModuleType<Unit>> HAS_SHELTER = MEMORY_MODULE_TYPES.register(
-            "has_shelter",
-            () -> new MemoryModuleType<>(Optional.of(Codec.unit(Unit.INSTANCE))));
 
     public static RegistryObject<MemoryModuleType<Unit>> IS_STALKING = MEMORY_MODULE_TYPES.register(
             "is_stalking",

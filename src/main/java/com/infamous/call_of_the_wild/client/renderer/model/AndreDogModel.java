@@ -1,8 +1,9 @@
-package com.infamous.call_of_the_wild.client;// Made with Blockbench 4.3.1
+package com.infamous.call_of_the_wild.client.renderer.model;// Made with Blockbench 4.3.1
 // Exported for Minecraft version 1.17 - 1.18 with Mojang mappings
 // Paste this class into your mod and generate all required imports
 
 
+import com.infamous.call_of_the_wild.client.renderer.model.animation.DogAnimation;
 import com.infamous.call_of_the_wild.common.entity.dog.Dog;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;

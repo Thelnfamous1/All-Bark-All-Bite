@@ -1,4 +1,8 @@
 {
   "entity.all_bark_all_bite.dog": "Dog",
-  "item.all_bark_all_bite.dog_spawn_egg": "Dog Spawn Egg"
+  "entity.all_bark_all_bite.houndmaster": "Houndmaster",
+  "entity.all_bark_all_bite.scavenger": "Scavenger",
+  "item.all_bark_all_bite.dog_spawn_egg": "Dog Spawn Egg",
+  "item.all_bark_all_bite.houndmaster_spawn_egg": "Houndmaster Spawn Egg",
+  "item.all_bark_all_bite.scavenger_spawn_egg": "Scavenger Spawn Egg"
 }
