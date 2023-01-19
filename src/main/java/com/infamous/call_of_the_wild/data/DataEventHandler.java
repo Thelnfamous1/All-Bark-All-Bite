@@ -25,9 +25,10 @@ public class DataEventHandler {
 
         ABABBlockTagProvider blockTagProvider = new ABABBlockTagProvider(generator, existingFileHelper);
         generator.addProvider(isServer, blockTagProvider);
+        generator.addProvider(isServer, ABABInstrumentTagsProvider.create(generator, existingFileHelper));
         generator.addProvider(isServer, ABABItemTagProvider.create(generator, blockTagProvider, existingFileHelper));
         generator.addProvider(isServer, ABABGameEventTagsProvider.create(generator, existingFileHelper));
 
-        generator.addProvider(isServer, new ABABLootTableProvider(generator));
+        generator.addProvider(isServer,ABABLootTableProvider.create(generator));
     }
 }

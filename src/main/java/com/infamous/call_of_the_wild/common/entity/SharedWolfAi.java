@@ -52,7 +52,6 @@ public class SharedWolfAi {
     public static final int MAX_LOOK_DIST = 8;
     public static final byte SUCCESSFUL_TAME_ID = 7;
     public static final byte FAILED_TAME_ID = 6;
-    //public static final int LLAMA_MAX_STRENGTH = 5;
     public static final int CLOSE_ENOUGH_TO_OWNER = 2;
     public static final int TOO_FAR_TO_SWITCH_TARGETS = 4;
     public static final int TOO_FAR_FROM_OWNER = 10;
@@ -85,10 +84,6 @@ public class SharedWolfAi {
         return !wolf.isTame();
     }
 
-    public static boolean canFollowOwner(LivingEntity wolf) {
-        return !BehaviorUtils.isBreeding(wolf);
-    }
-
     public static boolean canMakeLove(TamableAnimal wolf){
         return canMove(wolf);
     }
@@ -100,10 +95,6 @@ public class SharedWolfAi {
     @SuppressWarnings("unused")
     public static float getSpeedModifierTempted(LivingEntity wolf) {
         return SPEED_MODIFIER_TEMPTED;
-    }
-
-    public static boolean canWander(TamableAnimal wolf){
-        return canMove(wolf);
     }
 
     public static Optional<? extends LivingEntity> findNearestValidAttackTarget(TamableAnimal wolf) {
@@ -154,17 +145,15 @@ public class SharedWolfAi {
         HunterAi.broadcastHuntedRecently(TIME_BETWEEN_HUNTS, GenericAi.getNearbyVisibleAdults(wolf));
     }
 
-    public static void clearStates(TamableAnimal wolf) {
-        //wolf.setIsInterested(false);
-        if(wolf.hasPose(Pose.CROUCHING)){
-            wolf.setPose(Pose.STANDING);
+    public static void clearStates(TamableAnimal tamableAnimal) {
+        if(tamableAnimal.hasPose(Pose.CROUCHING)){
+            tamableAnimal.setPose(Pose.STANDING);
         }
-        if(wolf.isOrderedToSit() || wolf.isInSittingPose()){
-            wolf.setOrderedToSit(false);
-            wolf.setInSittingPose(false);
+        if(tamableAnimal.isInSittingPose()){
+            tamableAnimal.setInSittingPose(false);
         }
-        if(wolf.isSleeping()){
-            GenericAi.wakeUp(wolf);
+        if(tamableAnimal.isSleeping()){
+            GenericAi.wakeUp(tamableAnimal);
         }
     }
 
@@ -265,4 +254,5 @@ public class SharedWolfAi {
         BlockPos topOfBodyPos = new BlockPos(wolf.getX(), wolf.getBoundingBox().maxY, wolf.getZ());
         return MoveToNonSkySeeingSpot.hasBlocksAbove(wolf.level, wolf, topOfBodyPos);
     }
+
 }

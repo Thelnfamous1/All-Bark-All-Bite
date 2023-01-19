@@ -117,4 +117,9 @@ public class ABABMemoryModuleTypes {
     public static RegistryObject<MemoryModuleType<GlobalPos>> HOWL_LOCATION = MEMORY_MODULE_TYPES.register(
             "howl_location",
             () -> new MemoryModuleType<>(Optional.of(GlobalPos.CODEC)));
+
+    public static RegistryObject<MemoryModuleType<Unit>> IS_FOLLOWING = MEMORY_MODULE_TYPES.register(
+            "is_following",
+            () -> new MemoryModuleType<>(Optional.of(Codec.unit(Unit.INSTANCE))));
+
 }

@@ -10,19 +10,21 @@ import com.infamous.call_of_the_wild.common.behavior.dig.DigAtLocation;
 import com.infamous.call_of_the_wild.common.behavior.hunter.RememberIfHuntTargetWasKilled;
 import com.infamous.call_of_the_wild.common.behavior.hunter.StartHunting;
 import com.infamous.call_of_the_wild.common.behavior.item.*;
-import com.infamous.call_of_the_wild.common.behavior.pet.FollowOwner;
+import com.infamous.call_of_the_wild.common.behavior.pet.FollowEntity;
 import com.infamous.call_of_the_wild.common.behavior.pet.OwnerHurtByTarget;
 import com.infamous.call_of_the_wild.common.behavior.pet.OwnerHurtTarget;
 import com.infamous.call_of_the_wild.common.behavior.pet.SitWhenOrderedTo;
 import com.infamous.call_of_the_wild.common.entity.SharedWolfAi;
 import com.infamous.call_of_the_wild.common.registry.ABABEntityTypes;
 import com.infamous.call_of_the_wild.common.registry.ABABMemoryModuleTypes;
+import com.infamous.call_of_the_wild.common.util.MiscUtil;
 import com.infamous.call_of_the_wild.data.ABABBuiltInLootTables;
 import com.mojang.datafixers.util.Pair;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.GlobalPos;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundEvents;
+import net.minecraft.util.valueproviders.UniformInt;
 import net.minecraft.world.entity.*;
 import net.minecraft.world.entity.ai.Brain;
 import net.minecraft.world.entity.ai.behavior.*;
@@ -39,6 +41,10 @@ import org.jetbrains.annotations.NotNull;
 import java.util.Optional;
 
 public class DogGoalPackages {
+
+    public static final UniformInt FETCH_FOLLOW_RANGE = MiscUtil.constant(SharedWolfAi.CLOSE_ENOUGH_TO_OWNER);
+    public static final UniformInt OWNER_FOLLOW_RANGE = UniformInt.of(SharedWolfAi.CLOSE_ENOUGH_TO_OWNER, SharedWolfAi.TOO_FAR_FROM_OWNER);
+    public static final int TELEPORT_TO_OWNER_BUFFER = 2;
     public static final int ITEM_PICKUP_COOLDOWN = 60;
     public static final int MAX_FETCH_DISTANCE = 16;
     public static final int DISABLE_FETCH_TIME = 200;
@@ -98,8 +104,7 @@ public class DogGoalPackages {
             stopHoldingItemInMouth(dog);
         }
 
-        dog.setIsInterested(false);
-        SharedWolfAi.clearStates(dog);
+        dog.setOrderedToSit(false);
 
         AiUtil.eraseAllMemories(dog,
                 MemoryModuleType.BREED_TARGET,
@@ -136,7 +141,7 @@ public class DogGoalPackages {
                 ImmutableList.of(
                         new RunIf<>(SharedWolfAi::canAvoid, SetWalkTargetAwayFrom.entity(MemoryModuleType.AVOID_TARGET, SharedWolfAi.SPEED_MODIFIER_RETREATING, SharedWolfAi.DESIRED_DISTANCE_FROM_ENTITY_WHEN_AVOIDING, true)),
                         createIdleLookBehaviors(),
-                        new RunIf<>(SharedWolfAi::canWander, createIdleMovementBehaviors(), true),
+                        new RunIf<>(DogGoalPackages::canWander, createIdleMovementBehaviors(), true),
                         new EraseMemoryIf<>(DogGoalPackages::wantsToStopFleeing, MemoryModuleType.AVOID_TARGET)));
     }
 
@@ -183,7 +188,6 @@ public class DogGoalPackages {
         return entityType.is(ABABTags.DOG_DISLIKED);
     }
 
-    @NotNull
     static ImmutableList<? extends Pair<Integer, ? extends Behavior<? super Dog>>> getDigPackage() {
         return BrainUtil.createPriorityPairs(0,
                 ImmutableList.of(
@@ -251,16 +255,23 @@ public class DogGoalPackages {
         brain.setMemory(ABABMemoryModuleTypes.FETCHING_ITEM.get(), true);
     }
 
-    @NotNull
     static ImmutableList<? extends Pair<Integer, ? extends Behavior<? super Dog>>> getFetchPackage() {
         return BrainUtil.createPriorityPairs(0,
                 ImmutableList.of(
                         new RunIf<>(DogGoalPackages::canFetch, new GoToWantedItem<>(DogGoalPackages::isNotHoldingItem, SPEED_MODIFIER_FETCHING, true, MAX_FETCH_DISTANCE)),
                         new RunIf<>(DogGoalPackages::canFetch, new GiveItemToTarget<>(Dog::getItemInMouth, AiUtil::getOwner, SharedWolfAi.CLOSE_ENOUGH_TO_OWNER, DogGoalPackages::onThrown), true),
-                        new RunIf<>(DogGoalPackages::canReturnToOwner, new FollowOwner<>(SPEED_MODIFIER_FETCHING, SharedWolfAi.CLOSE_ENOUGH_TO_OWNER, SharedWolfAi.CLOSE_ENOUGH_TO_OWNER), true),
+                        new RunIf<>(DogGoalPackages::canReturnToOwner, createFollowOwner(SPEED_MODIFIER_FETCHING, FETCH_FOLLOW_RANGE), true),
                         new StopItemActivityIfItemTooFarAway<>(DogGoalPackages::canStopFetchingIfItemTooFar, MAX_FETCH_DISTANCE, ABABMemoryModuleTypes.FETCHING_ITEM.get()),
                         new StopItemActivityIfTiredOfTryingToReachItem<>(DogGoalPackages::canGetTiredTryingToReachItem, MAX_TIME_TO_REACH_ITEM, DISABLE_FETCH_TIME, ABABMemoryModuleTypes.FETCHING_ITEM.get(), ABABMemoryModuleTypes.TIME_TRYING_TO_REACH_FETCH_ITEM.get(), ABABMemoryModuleTypes.DISABLE_WALK_TO_FETCH_ITEM.get()),
                         new EraseMemoryIf<>(DogGoalPackages::wantsToStopFetching, ABABMemoryModuleTypes.FETCHING_ITEM.get())));
+    }
+
+    private static FollowEntity<Dog> createFollowOwner(float speedModifier, UniformInt followRange) {
+        return new FollowEntity<>(DogGoalPackages::dontFollowIf, AiUtil::getOwner, speedModifier, followRange, TELEPORT_TO_OWNER_BUFFER);
+    }
+
+    private static boolean dontFollowIf(Dog dog){
+        return dog.isOrderedToSit();
     }
 
     private static boolean canReturnToOwner(Dog dog){
@@ -283,11 +294,10 @@ public class DogGoalPackages {
         return !dog.isTame() || (!dog.hasItemInMouth() && dog.isOnPickupCooldown());
     }
 
-    @NotNull
     static ImmutableList<? extends Pair<Integer, ? extends Behavior<? super Dog>>> getIdlePackage() {
         return BrainUtil.createPriorityPairs(0,
                 ImmutableList.of(
-                        new RunIf<>(SharedWolfAi::canFollowOwner, new FollowOwner<>(SharedWolfAi.SPEED_MODIFIER_WALKING, SharedWolfAi.CLOSE_ENOUGH_TO_OWNER, SharedWolfAi.TOO_FAR_FROM_OWNER), true),
+                        new RunIf<>(DogGoalPackages::canFollowOwner, createFollowOwner(SharedWolfAi.SPEED_MODIFIER_WALKING, OWNER_FOLLOW_RANGE), true),
                         new RunIf<>(SharedWolfAi::canMakeLove, new AnimalMakeLove(ABABEntityTypes.DOG.get(), SharedWolfAi.SPEED_MODIFIER_BREEDING), true),
                         new RunIf<>(SharedWolfAi::canFollowNonOwner, new FollowTemptation(SharedWolfAi::getSpeedModifierTempted), true),
                         new RunIf<>(SharedWolfAi::canFollowNonOwner, new BabyFollowAdult<>(SharedWolfAi.ADULT_FOLLOW_RANGE, SharedWolfAi.SPEED_MODIFIER_FOLLOWING_ADULT)),
@@ -295,7 +305,7 @@ public class DogGoalPackages {
                         new StartAttacking<>(SharedWolfAi::canStartAttacking, SharedWolfAi::findNearestValidAttackTarget),
                         new StartHunting<>(DogGoalPackages::canHunt, SharedWolfAi::startHunting, SharedWolfAi.TIME_BETWEEN_HUNTS),
                         createIdleLookBehaviors(),
-                        new RunIf<>(SharedWolfAi::canWander, createIdleMovementBehaviors(), true))
+                        new RunIf<>(DogGoalPackages::canWander, createIdleMovementBehaviors(), true))
         );
     }
 
@@ -313,5 +323,13 @@ public class DogGoalPackages {
 
     private static boolean canBeg(Dog dog){
         return dog.isTame();
+    }
+
+    public static boolean canFollowOwner(Dog dog) {
+        return !BehaviorUtils.isBreeding(dog) && dog.getBrain().hasMemoryValue(ABABMemoryModuleTypes.IS_FOLLOWING.get());
+    }
+
+    public static boolean canWander(TamableAnimal wolf){
+        return SharedWolfAi.canMove(wolf) && !wolf.getBrain().hasMemoryValue(ABABMemoryModuleTypes.IS_FOLLOWING.get());
     }
 }

@@ -5,6 +5,7 @@ import com.infamous.call_of_the_wild.AllBarkAllBite;
 import net.minecraft.core.particles.ParticleOptions;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.util.RandomSource;
+import net.minecraft.util.valueproviders.UniformInt;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
@@ -83,5 +84,9 @@ public class MiscUtil {
 
     public static int seconds(double seconds){
         return (int) (seconds * 20);
+    }
+
+    public static UniformInt constant(int constant){
+        return UniformInt.of(constant, constant);
     }
 }

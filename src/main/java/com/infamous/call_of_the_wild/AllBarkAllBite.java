@@ -24,6 +24,7 @@ public class AllBarkAllBite
         ABABEntityDataSerializers.ENTITY_DATA_SERIALIZERS.register(modEventBus);
         ABABEntityTypes.ENTITY_TYPES.register(modEventBus);
         ABABGameEvents.GAME_EVENTS.register(modEventBus);
+        ABABInstruments.INSTRUMENTS.register(modEventBus);
         ABABItems.ITEMS.register(modEventBus);
         ABABMemoryModuleTypes.MEMORY_MODULE_TYPES.register(modEventBus);
         ABABSensorTypes.SENSOR_TYPES.register(modEventBus);

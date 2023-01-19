@@ -29,6 +29,10 @@ public class ABABLootTableProvider extends LootTableProvider {
         super(generator);
     }
 
+    public static ABABLootTableProvider create(DataGenerator generator){
+        return new ABABLootTableProvider(generator);
+    }
+
     @Override
     protected List<Pair<Supplier<Consumer<BiConsumer<ResourceLocation, LootTable.Builder>>>, LootContextParamSet>> getTables() {
         return this.subProviders;

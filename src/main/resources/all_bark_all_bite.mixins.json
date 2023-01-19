@@ -5,6 +5,7 @@
   "refmap": "call_of_the_wild.refmap.json",
   "mixins": [
     "LivingEntityMixin",
+    "TamableAnimalMixin",
     "VillagerMixin",
     "WolfMixin"
   ],

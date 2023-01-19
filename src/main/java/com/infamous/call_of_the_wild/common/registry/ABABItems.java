@@ -1,6 +1,8 @@
 package com.infamous.call_of_the_wild.common.registry;
 
 import com.infamous.call_of_the_wild.AllBarkAllBite;
+import com.infamous.call_of_the_wild.common.ABABTags;
+import com.infamous.call_of_the_wild.common.item.CyclableInstrumentItem;
 import net.minecraft.world.item.CreativeModeTab;
 import net.minecraft.world.item.Item;
 import net.minecraftforge.common.ForgeSpawnEggItem;
@@ -20,4 +22,8 @@ public class ABABItems {
 
     public static final RegistryObject<Item> HOUNDMASTER_SPAWN_EGG = ITEMS.register(String.format("%s_spawn_egg", ABABEntityTypes.HOUNDMASTER_NAME),
             () -> new ForgeSpawnEggItem(ABABEntityTypes.HOUNDMASTER, 9804699, 1973274, new Item.Properties().tab(CreativeModeTab.TAB_MISC)));
+
+    public static final String WHISTLE_NAME = "whistle";
+    public static final RegistryObject<CyclableInstrumentItem> WHISTLE = ITEMS.register(WHISTLE_NAME,
+            () -> new CyclableInstrumentItem(new Item.Properties().tab(CreativeModeTab.TAB_MISC).stacksTo(1), ABABTags.WHISTLES_INSTRUMENT));
 }

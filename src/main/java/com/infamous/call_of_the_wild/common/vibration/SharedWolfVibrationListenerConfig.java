@@ -22,7 +22,6 @@ public abstract class SharedWolfVibrationListenerConfig<T extends TamableAnimal>
     protected boolean shouldEntityListen(ServerLevel level, GameEventListener gameEventListener, BlockPos blockPos, GameEvent gameEvent, GameEvent.Context context) {
         if(!this.entity.isNoAi()
                 && !this.entity.isDeadOrDying()
-                //&& !this.entity.getBrain().hasMemoryValue(MemoryModuleType.VIBRATION_COOLDOWN)
                 && level.getWorldBorder().isWithinBounds(blockPos)
                 && !this.entity.isRemoved()
                 && this.entity.getLevel() == level){
@@ -39,8 +38,6 @@ public abstract class SharedWolfVibrationListenerConfig<T extends TamableAnimal>
 
     @Override
     protected void onEntityReceiveSignal(ServerLevel level, GameEventListener gameEventListener, BlockPos signalPos, GameEvent signalEvent, @Nullable Entity signalSender, @Nullable Entity signalSenderOwner, float signalDistance) {
-        //this.entity.getBrain().setMemoryWithExpiry(MemoryModuleType.VIBRATION_COOLDOWN, Unit.INSTANCE, 40L);
-
         if (signalEvent == ABABGameEvents.ENTITY_HOWL.get()
                 && signalSender != this.entity
                 && signalSender instanceof LivingEntity howler) {

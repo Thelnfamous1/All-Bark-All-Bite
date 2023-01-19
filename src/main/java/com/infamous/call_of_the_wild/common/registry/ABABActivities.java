@@ -12,4 +12,5 @@ public class ABABActivities {
 
     private static final String FETCH_NAME = "fetch";
     public static RegistryObject<Activity> FETCH = ACTIVITIES.register(FETCH_NAME, () -> new Activity(FETCH_NAME));
+
 }

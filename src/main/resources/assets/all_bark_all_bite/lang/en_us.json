@@ -2,7 +2,12 @@
   "entity.all_bark_all_bite.dog": "Dog",
   "entity.all_bark_all_bite.houndmaster": "Houndmaster",
   "entity.all_bark_all_bite.scavenger": "Scavenger",
+  "instrument.all_bark_all_bite.come_whistle": "Come",
+  "instrument.all_bark_all_bite.go_whistle": "Go",
+  "instrument.all_bark_all_bite.sit_whistle": "Sit",
+  "item.all_bark_all_bite.cyclable_instrument.secondary_use": "Sneak & Use to Cycle Instrument",
   "item.all_bark_all_bite.dog_spawn_egg": "Dog Spawn Egg",
   "item.all_bark_all_bite.houndmaster_spawn_egg": "Houndmaster Spawn Egg",
-  "item.all_bark_all_bite.scavenger_spawn_egg": "Scavenger Spawn Egg"
+  "item.all_bark_all_bite.scavenger_spawn_egg": "Scavenger Spawn Egg",
+  "item.all_bark_all_bite.whistle": "Whistle"
 }

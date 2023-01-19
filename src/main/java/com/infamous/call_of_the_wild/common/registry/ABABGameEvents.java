@@ -12,4 +12,5 @@ public class ABABGameEvents {
 
     private static final String ENTITY_HOWL_NAME = "entity_howl";
     public static RegistryObject<GameEvent> ENTITY_HOWL = GAME_EVENTS.register(ENTITY_HOWL_NAME, () -> new GameEvent(ENTITY_HOWL_NAME, 64));
+
 }

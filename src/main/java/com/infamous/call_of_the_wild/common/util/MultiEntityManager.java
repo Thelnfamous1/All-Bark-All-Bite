@@ -15,9 +15,9 @@ import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-public class MultiEntityManager {
-   private static final int CONVERSION_DELAY = 2;
-   private int conversionDelay = Mth.randomBetweenInclusive(RandomSource.create(), 0, 2);
+public class MultiEntityManager implements TickableEntityManager {
+   private static final int CONVERSION_DELAY = MiscUtil.seconds(2);
+   private int conversionDelay = Mth.randomBetweenInclusive(RandomSource.create(), 0, CONVERSION_DELAY);
    private final Set<Entity> entities;
    private final Set<UUID> entityUuids;
 
@@ -42,6 +42,7 @@ public class MultiEntityManager {
               .collect(Collectors.toList());
    }
 
+   @Override
    public void tick(ServerLevel level, Predicate<Entity> isValid, Consumer<Entity> onInvalid) {
       --this.conversionDelay;
       if (this.conversionDelay <= 0) {

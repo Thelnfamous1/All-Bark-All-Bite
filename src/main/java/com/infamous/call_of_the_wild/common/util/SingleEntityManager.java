@@ -14,9 +14,9 @@ import java.util.UUID;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
 
-public class SingleEntityManager {
-    private static final int CONVERSION_DELAY = 2;
-    private int conversionDelay = Mth.randomBetweenInclusive(RandomSource.create(), 0, 2);
+public class SingleEntityManager implements TickableEntityManager{
+    private static final int CONVERSION_DELAY = MiscUtil.seconds(2);
+    private int conversionDelay = Mth.randomBetweenInclusive(RandomSource.create(), 0, CONVERSION_DELAY);
     @Nullable
     private Entity entity;
     @Nullable
@@ -41,6 +41,7 @@ public class SingleEntityManager {
         return Optional.ofNullable(this.entity != null ? this.entity.getUUID() : this.entityUuid);
     }
 
+    @Override
     public void tick(ServerLevel level, Predicate<Entity> isValid, Consumer<Entity> onInvalid) {
         --this.conversionDelay;
         if (this.conversionDelay <= 0) {

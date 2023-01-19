@@ -20,7 +20,7 @@ public class ABABGameEventTagsProvider extends GameEventTagsProvider {
 
     @Override
     protected void addTags() {
-        this.tag(ABABTags.DOG_CAN_LISTEN).add(ABABGameEvents.ENTITY_HOWL.get());
+        this.tag(ABABTags.DOG_CAN_LISTEN);
         this.tag(ABABTags.WOLF_CAN_LISTEN).add(ABABGameEvents.ENTITY_HOWL.get());
         this.tag(GameEventTags.VIBRATIONS).add(ABABGameEvents.ENTITY_HOWL.get());
         this.tag(GameEventTags.WARDEN_CAN_LISTEN).add(ABABGameEvents.ENTITY_HOWL.get());

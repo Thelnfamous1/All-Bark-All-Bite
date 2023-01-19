@@ -3,14 +3,20 @@ package com.infamous.call_of_the_wild.common;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Maps;
 import com.infamous.call_of_the_wild.AllBarkAllBite;
+import com.infamous.call_of_the_wild.common.ai.AiUtil;
+import com.infamous.call_of_the_wild.common.ai.BrainUtil;
 import com.infamous.call_of_the_wild.common.entity.DogSpawner;
 import com.infamous.call_of_the_wild.common.entity.dog.Dog;
+import com.infamous.call_of_the_wild.common.entity.dog.DogAi;
 import com.infamous.call_of_the_wild.common.entity.wolf.WolfAi;
 import com.infamous.call_of_the_wild.common.event.BrainEvent;
 import com.infamous.call_of_the_wild.common.registry.ABABEntityTypes;
-import com.infamous.call_of_the_wild.common.ai.AiUtil;
-import com.infamous.call_of_the_wild.common.ai.BrainUtil;
+import com.infamous.call_of_the_wild.common.registry.ABABInstruments;
+import com.infamous.call_of_the_wild.common.registry.ABABItems;
 import com.infamous.call_of_the_wild.common.util.DebugUtil;
+import com.infamous.call_of_the_wild.common.util.MultiEntityManager;
+import com.infamous.call_of_the_wild.common.util.PetManagement;
+import net.minecraft.core.Holder;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
@@ -28,9 +34,13 @@ import net.minecraft.world.entity.monster.AbstractSkeleton;
 import net.minecraft.world.entity.npc.Villager;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.entity.schedule.Activity;
+import net.minecraft.world.item.Instrument;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.CustomSpawner;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.gameevent.GameEvent;
 import net.minecraftforge.event.TickEvent;
+import net.minecraftforge.event.VanillaGameEvent;
 import net.minecraftforge.event.entity.EntityEvent;
 import net.minecraftforge.event.entity.EntityJoinLevelEvent;
 import net.minecraftforge.event.entity.living.BabyEntitySpawnEvent;
@@ -45,10 +55,7 @@ import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
 import org.apache.commons.compress.utils.Lists;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 @Mod.EventBusSubscriber(bus = Mod.EventBusSubscriber.Bus.FORGE, modid = AllBarkAllBite.MODID)
 public class ForgeEventHandler {
@@ -242,6 +249,41 @@ public class ForgeEventHandler {
             Player player = event.getCausedByPlayer();
             if(player != null){
                 wolf.tame(player);
+            }
+        }
+    }
+
+    @SubscribeEvent
+    static void onVanillaGameEvent(VanillaGameEvent event){
+        if(event.getVanillaEvent() == GameEvent.INSTRUMENT_PLAY && event.getCause() instanceof Player player){
+            ItemStack useItem = player.getUseItem();
+            if(useItem.is(ABABItems.WHISTLE.get())){
+                Optional<Holder<Instrument>> instrumentHolder = ABABItems.WHISTLE.get().getInstrument(useItem);
+                if(instrumentHolder.isPresent()){
+                    Instrument instrument = instrumentHolder.get().value();
+                    MultiEntityManager petManager = PetManagement.getPetManager(event.getLevel().dimension(), player.getUUID());
+                    if(instrument == ABABInstruments.SIT_WHISTLE.get()){
+                        petManager.stream().forEach(entity -> {
+                            if(entity instanceof Dog dog){
+                                DogAi.commandSit(dog);
+                            }
+                        });
+                    }
+                    if(instrument == ABABInstruments.COME_WHISTLE.get()){
+                        petManager.stream().forEach(entity -> {
+                            if(entity instanceof Dog dog){
+                                DogAi.commandCome(dog);
+                            }
+                        });
+                    }
+                    if(instrument == ABABInstruments.GO_WHISTLE.get()){
+                        petManager.stream().forEach(entity -> {
+                            if(entity instanceof Dog dog){
+                                DogAi.commandGo(dog);
+                            }
+                        });
+                    }
+                }
             }
         }
     }

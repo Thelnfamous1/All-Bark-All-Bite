@@ -22,6 +22,8 @@ public class ABABItemModelProvider extends ItemModelProvider {
         this.spawnEgg(ABABItems.DOG_SPAWN_EGG);
         this.spawnEgg(ABABItems.ILLAGER_HOUND_SPAWN_EGG);
         this.spawnEgg(ABABItems.HOUNDMASTER_SPAWN_EGG);
+
+        this.basicItem(ABABItems.WHISTLE.get());
     }
 
     private void spawnEgg(RegistryObject<Item> item) {

@@ -1,6 +1,5 @@
 package com.infamous.call_of_the_wild.common.ai;
 
-import com.infamous.call_of_the_wild.common.entity.HasOwner;
 import com.infamous.call_of_the_wild.common.util.ReflectionUtil;
 import com.mojang.datafixers.util.Pair;
 import net.minecraft.server.level.ServerLevel;
@@ -12,7 +11,6 @@ import net.minecraft.world.InteractionResult;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.entity.*;
 import net.minecraft.world.entity.ai.Brain;
-import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.ai.behavior.EntityTracker;
 import net.minecraft.world.entity.ai.behavior.PositionTracker;
 import net.minecraft.world.entity.ai.memory.MemoryModuleType;
@@ -194,9 +192,6 @@ public class AiUtil {
     }
 
     public static Optional<LivingEntity> getOwner(OwnableEntity ownableEntity) {
-        if(ownableEntity instanceof TamableAnimal tamableAnimal) return Optional.ofNullable(tamableAnimal.getOwner());
-        else if(ownableEntity instanceof HasOwner hasOwner) return Optional.ofNullable(hasOwner.getOwner());
-
         return Optional.ofNullable(ownableEntity.getOwner()).filter(LivingEntity.class::isInstance).map(LivingEntity.class::cast);
     }
 

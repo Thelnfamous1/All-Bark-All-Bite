@@ -1,8 +1,6 @@
 package com.infamous.call_of_the_wild.mixin;
 
-import com.infamous.call_of_the_wild.common.entity.wolf.WolfAi;
 import com.infamous.call_of_the_wild.common.entity.AnimalAccessor;
-import net.minecraft.sounds.SoundEvent;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.EntityType;
@@ -22,11 +20,6 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 public abstract class WolfMixin extends TamableAnimal implements AnimalAccessor {
     protected WolfMixin(EntityType<? extends TamableAnimal> type, Level level) {
         super(type, level);
-    }
-
-    @Inject(method = "getAmbientSound", at = @At("RETURN"), cancellable = true)
-    private void handleGetAmbientSound(CallbackInfoReturnable<SoundEvent> cir){
-        cir.setReturnValue(this.level.isClientSide ? null : WolfAi.getSoundForCurrentActivity(this.cast()).orElse(null));
     }
 
     @Inject(method = "setTame", at = @At("HEAD"), cancellable = true)

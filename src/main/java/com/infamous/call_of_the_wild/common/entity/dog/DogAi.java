@@ -9,16 +9,20 @@ import com.infamous.call_of_the_wild.common.registry.ABABMemoryModuleTypes;
 import com.infamous.call_of_the_wild.common.ai.AiUtil;
 import com.infamous.call_of_the_wild.common.ai.DigAi;
 import com.infamous.call_of_the_wild.common.ai.GenericAi;
+import com.infamous.call_of_the_wild.common.registry.ABABSensorTypes;
 import com.infamous.call_of_the_wild.common.util.MiscUtil;
 import com.mojang.datafixers.util.Pair;
 import net.minecraft.core.BlockPos;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.sounds.SoundEvents;
+import net.minecraft.util.Unit;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.ai.Brain;
 import net.minecraft.world.entity.ai.memory.MemoryModuleType;
 import net.minecraft.world.entity.ai.memory.MemoryStatus;
+import net.minecraft.world.entity.ai.sensing.Sensor;
+import net.minecraft.world.entity.ai.sensing.SensorType;
 import net.minecraft.world.entity.ai.util.LandRandomPos;
 import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.entity.player.Player;
@@ -31,9 +35,75 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.event.ForgeEventFactory;
 
+import java.util.Collection;
 import java.util.Optional;
 
 public class DogAi {
+
+    public static final Collection<? extends MemoryModuleType<?>> MEMORY_TYPES = ImmutableList.of(
+            MemoryModuleType.ANGRY_AT,
+            MemoryModuleType.ATTACK_COOLING_DOWN,
+            MemoryModuleType.ATTACK_TARGET,
+            MemoryModuleType.AVOID_TARGET,
+            MemoryModuleType.BREED_TARGET,
+            MemoryModuleType.CANT_REACH_WALK_TARGET_SINCE,
+            MemoryModuleType.DIG_COOLDOWN,
+            ABABMemoryModuleTypes.DIG_LOCATION.get(),
+            ABABMemoryModuleTypes.DISABLE_WALK_TO_FETCH_ITEM.get(),
+            ABABMemoryModuleTypes.DISABLE_WALK_TO_PLAY_ITEM.get(),
+            ABABMemoryModuleTypes.DOG_VIBRATION_LISTENER.get(),
+            ABABMemoryModuleTypes.FETCHING_DISABLED.get(),
+            ABABMemoryModuleTypes.FETCHING_ITEM.get(),
+            //MemoryModuleType.HAS_HUNTING_COOLDOWN,
+            MemoryModuleType.HUNTED_RECENTLY,
+            MemoryModuleType.HURT_BY,
+            MemoryModuleType.HURT_BY_ENTITY,
+            MemoryModuleType.INTERACTION_TARGET,
+            ABABMemoryModuleTypes.IS_FOLLOWING.get(),
+            MemoryModuleType.IS_PANICKING,
+            MemoryModuleType.IS_TEMPTED,
+            MemoryModuleType.ITEM_PICKUP_COOLDOWN_TICKS,
+            MemoryModuleType.LOOK_TARGET,
+            ABABMemoryModuleTypes.NEAREST_ADULTS.get(),
+            ABABMemoryModuleTypes.NEAREST_BABIES.get(),
+            ABABMemoryModuleTypes.NEAREST_ALLIES.get(),
+            MemoryModuleType.NEAREST_ATTACKABLE,
+            MemoryModuleType.NEAREST_LIVING_ENTITIES,
+            MemoryModuleType.NEAREST_PLAYERS,
+            MemoryModuleType.NEAREST_PLAYER_HOLDING_WANTED_ITEM,
+            MemoryModuleType.NEAREST_VISIBLE_ADULT,
+            ABABMemoryModuleTypes.NEAREST_VISIBLE_ADULTS.get(),
+            MemoryModuleType.NEAREST_VISIBLE_ATTACKABLE_PLAYER,
+            ABABMemoryModuleTypes.NEAREST_VISIBLE_BABIES.get(),
+            ABABMemoryModuleTypes.NEAREST_VISIBLE_HUNTABLE.get(),
+            ABABMemoryModuleTypes.NEAREST_VISIBLE_ALLIES.get(),
+            MemoryModuleType.NEAREST_VISIBLE_LIVING_ENTITIES,
+            MemoryModuleType.NEAREST_VISIBLE_PLAYER,
+            MemoryModuleType.NEAREST_VISIBLE_WANTED_ITEM,
+            MemoryModuleType.PATH,
+            ABABMemoryModuleTypes.PLAYING_DISABLED.get(),
+            ABABMemoryModuleTypes.PLAYING_WITH_ITEM.get(),
+            MemoryModuleType.TEMPTING_PLAYER,
+            MemoryModuleType.TEMPTATION_COOLDOWN_TICKS,
+            ABABMemoryModuleTypes.TIME_TRYING_TO_REACH_FETCH_ITEM.get(),
+            ABABMemoryModuleTypes.TIME_TRYING_TO_REACH_PLAY_ITEM.get(),
+            MemoryModuleType.UNIVERSAL_ANGER,
+            MemoryModuleType.WALK_TARGET
+    );
+    public static final Collection<? extends SensorType<? extends Sensor<? super Dog>>> SENSOR_TYPES = ImmutableList.of(
+            ABABSensorTypes.ANIMAL_TEMPTATIONS.get(),
+            SensorType.HURT_BY,
+
+            // dependent on NEAREST_VISIBLE_LIVING_ENTITIES
+            SensorType.NEAREST_LIVING_ENTITIES,
+            SensorType.NEAREST_ADULT,
+            ABABSensorTypes.NEAREST_ALLIES.get(),
+            ABABSensorTypes.DOG_SPECIFIC_SENSOR.get(),
+            ABABSensorTypes.DOG_VIBRATION_SENSOR.get(),
+
+            SensorType.NEAREST_ITEMS,
+            SensorType.NEAREST_PLAYERS
+    );
 
     public static Brain<?> makeBrain(Brain<Dog> brain) {
         initCoreActivity(brain);
@@ -128,6 +198,7 @@ public class DogAi {
                     dog.setOrderedToSit(!dog.isOrderedToSit());
                     dog.setJumping(false);
                     yieldAsPet(dog);
+                    setFollowing(dog);
                     return InteractionResult.CONSUME;
                 }
 
@@ -145,8 +216,9 @@ public class DogAi {
             dog.usePlayerItem(player, hand, stack);
             if (MiscUtil.oneInChance(dog.getRandom(), 3) && !ForgeEventFactory.onAnimalTame(dog, player)) {
                 dog.tame(player);
-                yieldAsPet(dog);
                 dog.setOrderedToSit(true);
+                yieldAsPet(dog);
+                setFollowing(dog);
                 level.broadcastEntityEvent(dog, SharedWolfAi.SUCCESSFUL_TAME_ID);
             } else {
                 level.broadcastEntityEvent(dog, SharedWolfAi.FAILED_TAME_ID);
@@ -156,13 +228,19 @@ public class DogAi {
         return InteractionResult.PASS;
     }
 
-    private static void yieldAsPet(Dog dog) {
+    private static void setFollowing(Dog dog) {
+        dog.getBrain().setMemory(ABABMemoryModuleTypes.IS_FOLLOWING.get(), Unit.INSTANCE);
+    }
+
+    public static void yieldAsPet(Dog dog) {
         GenericAi.stopWalking(dog);
 
         AiUtil.setItemPickupCooldown(dog, DogGoalPackages.ITEM_PICKUP_COOLDOWN);
 
         AiUtil.eraseAllMemories(dog,
                 MemoryModuleType.ATTACK_TARGET,
+                MemoryModuleType.ANGRY_AT,
+                MemoryModuleType.UNIVERSAL_ANGER,
                 MemoryModuleType.AVOID_TARGET,
                 ABABMemoryModuleTypes.FETCHING_ITEM.get(),
                 ABABMemoryModuleTypes.DIG_LOCATION.get());
@@ -249,5 +327,26 @@ public class DogAi {
 
         BlockPos blockPos = new BlockPos(randomPos);
         return Optional.of(blockPos).filter(bp -> dog.level.getBlockState(bp.below()).is(ABABTags.DOG_CAN_DIG));
+    }
+
+    public static void commandCome(Dog dog) {
+        dog.setOrderedToSit(false);
+        DogAi.yieldAsPet(dog);
+        setFollowing(dog);
+    }
+
+    public static void commandGo(Dog dog) {
+        dog.setOrderedToSit(false);
+        stopFollowing(dog);
+    }
+
+    private static void stopFollowing(Dog dog) {
+        dog.getBrain().eraseMemory(ABABMemoryModuleTypes.IS_FOLLOWING.get());
+    }
+
+    public static void commandSit(Dog dog) {
+        dog.setOrderedToSit(true);
+        dog.setJumping(false);
+        DogAi.yieldAsPet(dog);
     }
 }

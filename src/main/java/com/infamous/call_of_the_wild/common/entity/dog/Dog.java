@@ -1,6 +1,5 @@
 package com.infamous.call_of_the_wild.common.entity.dog;
 
-import com.google.common.collect.ImmutableList;
 import com.infamous.call_of_the_wild.common.ABABTags;
 import com.infamous.call_of_the_wild.common.entity.*;
 import com.infamous.call_of_the_wild.common.registry.*;
@@ -31,8 +30,6 @@ import net.minecraft.world.entity.ai.Brain;
 import net.minecraft.world.entity.ai.attributes.AttributeSupplier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.ai.memory.MemoryModuleType;
-import net.minecraft.world.entity.ai.sensing.Sensor;
-import net.minecraft.world.entity.ai.sensing.SensorType;
 import net.minecraft.world.entity.animal.Animal;
 import net.minecraft.world.entity.animal.horse.AbstractHorse;
 import net.minecraft.world.entity.item.ItemEntity;
@@ -59,67 +56,6 @@ import java.util.Collection;
 
 @SuppressWarnings("NullableProblems")
 public class Dog extends TamableAnimal implements InterestedMob, ShakingMob, VariantMob, CollaredMob, AnimalAccessor {
-    public static final Collection<? extends MemoryModuleType<?>> MEMORY_TYPES = ImmutableList.of(
-            MemoryModuleType.ANGRY_AT,
-            MemoryModuleType.ATTACK_COOLING_DOWN,
-            MemoryModuleType.ATTACK_TARGET,
-            MemoryModuleType.AVOID_TARGET,
-            MemoryModuleType.BREED_TARGET,
-            MemoryModuleType.CANT_REACH_WALK_TARGET_SINCE,
-            MemoryModuleType.DIG_COOLDOWN,
-            ABABMemoryModuleTypes.DIG_LOCATION.get(),
-            ABABMemoryModuleTypes.DISABLE_WALK_TO_FETCH_ITEM.get(),
-            ABABMemoryModuleTypes.DISABLE_WALK_TO_PLAY_ITEM.get(),
-            ABABMemoryModuleTypes.FETCHING_DISABLED.get(),
-            ABABMemoryModuleTypes.FETCHING_ITEM.get(),
-            //MemoryModuleType.HAS_HUNTING_COOLDOWN,
-            MemoryModuleType.HUNTED_RECENTLY,
-            MemoryModuleType.HURT_BY,
-            MemoryModuleType.HURT_BY_ENTITY,
-            MemoryModuleType.INTERACTION_TARGET,
-            MemoryModuleType.IS_PANICKING,
-            MemoryModuleType.IS_TEMPTED,
-            MemoryModuleType.ITEM_PICKUP_COOLDOWN_TICKS,
-            MemoryModuleType.LOOK_TARGET,
-            ABABMemoryModuleTypes.NEAREST_ADULTS.get(),
-            ABABMemoryModuleTypes.NEAREST_BABIES.get(),
-            ABABMemoryModuleTypes.NEAREST_ALLIES.get(),
-            MemoryModuleType.NEAREST_ATTACKABLE,
-            MemoryModuleType.NEAREST_LIVING_ENTITIES,
-            MemoryModuleType.NEAREST_PLAYERS,
-            MemoryModuleType.NEAREST_PLAYER_HOLDING_WANTED_ITEM,
-            MemoryModuleType.NEAREST_VISIBLE_ADULT,
-            ABABMemoryModuleTypes.NEAREST_VISIBLE_ADULTS.get(),
-            MemoryModuleType.NEAREST_VISIBLE_ATTACKABLE_PLAYER,
-            ABABMemoryModuleTypes.NEAREST_VISIBLE_BABIES.get(),
-            ABABMemoryModuleTypes.NEAREST_VISIBLE_HUNTABLE.get(),
-            ABABMemoryModuleTypes.NEAREST_VISIBLE_ALLIES.get(),
-            MemoryModuleType.NEAREST_VISIBLE_LIVING_ENTITIES,
-            MemoryModuleType.NEAREST_VISIBLE_PLAYER,
-            MemoryModuleType.NEAREST_VISIBLE_WANTED_ITEM,
-            MemoryModuleType.PATH,
-            ABABMemoryModuleTypes.PLAYING_DISABLED.get(),
-            ABABMemoryModuleTypes.PLAYING_WITH_ITEM.get(),
-            MemoryModuleType.TEMPTING_PLAYER,
-            MemoryModuleType.TEMPTATION_COOLDOWN_TICKS,
-            ABABMemoryModuleTypes.TIME_TRYING_TO_REACH_FETCH_ITEM.get(),
-            ABABMemoryModuleTypes.TIME_TRYING_TO_REACH_PLAY_ITEM.get(),
-            MemoryModuleType.UNIVERSAL_ANGER,
-            MemoryModuleType.WALK_TARGET
-    );
-    public static final Collection<? extends SensorType<? extends Sensor<? super Dog>>> SENSOR_TYPES = ImmutableList.of(
-            ABABSensorTypes.ANIMAL_TEMPTATIONS.get(),
-            SensorType.HURT_BY,
-
-            // dependent on NEAREST_VISIBLE_LIVING_ENTITIES
-            SensorType.NEAREST_LIVING_ENTITIES,
-            SensorType.NEAREST_ADULT,
-            ABABSensorTypes.NEAREST_ALLIES.get(),
-            ABABSensorTypes.DOG_SPECIFIC_SENSOR.get(),
-
-            SensorType.NEAREST_ITEMS,
-            SensorType.NEAREST_PLAYERS
-    );
     @SuppressWarnings("unused")
     private static final int FLAG_SITTING = 1; // Used by TamableAnimal
     @SuppressWarnings("unused")
@@ -155,7 +91,7 @@ public class Dog extends TamableAnimal implements InterestedMob, ShakingMob, Var
     public static AttributeSupplier.Builder createAttributes() {
         return Mob.createMobAttributes()
                 .add(Attributes.MOVEMENT_SPEED, 0.3D)
-                .add(Attributes.MAX_HEALTH, 15.0D)
+                .add(Attributes.MAX_HEALTH, 20.0D)
                 .add(Attributes.ATTACK_DAMAGE, 4.0D);
     }
 
@@ -480,7 +416,7 @@ public class Dog extends TamableAnimal implements InterestedMob, ShakingMob, Var
 
     @Override
     protected Brain.Provider<Dog> brainProvider() {
-        return Brain.provider(MEMORY_TYPES, SENSOR_TYPES);
+        return Brain.provider(DogAi.MEMORY_TYPES, DogAi.SENSOR_TYPES);
     }
 
     @Override
