@@ -5,6 +5,7 @@ import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.TamableAnimal;
+import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.animal.Animal;
 import net.minecraft.world.entity.animal.Wolf;
 import net.minecraft.world.entity.player.Player;
@@ -25,6 +26,7 @@ public abstract class WolfMixin extends TamableAnimal implements AnimalAccessor 
     @Inject(method = "setTame", at = @At("HEAD"), cancellable = true)
     private void handleSetTame(boolean tame, CallbackInfo ci){
         super.setTame(tame);
+        this.setHealth((float) this.getAttributeBaseValue(Attributes.MAX_HEALTH));
         ci.cancel(); // don't change the wolf's health and attack damage
     }
 
@@ -35,10 +37,6 @@ public abstract class WolfMixin extends TamableAnimal implements AnimalAccessor 
                     && !this.isInSittingPose() && !mate.isInSittingPose()
                     && this.isInLove() && mate.isInLove());
         }
-    }
-
-    private Wolf cast(){
-        return (Wolf) (Object) this;
     }
 
     @Override

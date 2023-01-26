@@ -19,9 +19,12 @@ public class ABABInstrumentTagsProvider extends InstrumentTagsProvider {
 
     @Override
     protected void addTags() {
-        this.tag(ABABTags.WHISTLES_INSTRUMENT)
-                .add(ABABInstruments.SIT_WHISTLE.get())
+        this.tag(ABABTags.WHISTLES)
+                .add(ABABInstruments.ATTACK_WHISTLE.get())
                 .add(ABABInstruments.COME_WHISTLE.get())
-                .add(ABABInstruments.GO_WHISTLE.get());
+                .add(ABABInstruments.FREE_WHISTLE.get())
+                .add(ABABInstruments.GO_WHISTLE.get())
+                .add(ABABInstruments.HEEL_WHISTLE.get())
+                .add(ABABInstruments.SIT_WHISTLE.get());
     }
 }

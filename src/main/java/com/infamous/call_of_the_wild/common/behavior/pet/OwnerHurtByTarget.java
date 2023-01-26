@@ -1,27 +1,38 @@
 package com.infamous.call_of_the_wild.common.behavior.pet;
 
-import com.infamous.call_of_the_wild.common.behavior.TargetBehavior;
 import com.infamous.call_of_the_wild.common.ai.AiUtil;
+import com.infamous.call_of_the_wild.common.behavior.TargetBehavior;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.LivingEntity;
-import net.minecraft.world.entity.TamableAnimal;
+import net.minecraft.world.entity.Mob;
+import net.minecraft.world.entity.OwnableEntity;
 import net.minecraft.world.entity.ai.behavior.StartAttacking;
 import net.minecraft.world.entity.ai.targeting.TargetingConditions;
+import net.minecraftforge.common.util.TriPredicate;
 
 import java.util.Optional;
+import java.util.function.Predicate;
 
 @SuppressWarnings("NullableProblems")
-public class OwnerHurtByTarget extends TargetBehavior<TamableAnimal> {
+public class OwnerHurtByTarget<M extends Mob & OwnableEntity> extends TargetBehavior<M> {
     private LivingEntity ownerLastHurtBy;
     private int timestamp;
+    private final Predicate<M> canCheck;
+    private final TriPredicate<M, LivingEntity, LivingEntity> wantsToAttack;
 
-    public OwnerHurtByTarget() {
+    public OwnerHurtByTarget(){
+        this(mob -> true, (mob, target, owner) -> true);
+    }
+
+    public OwnerHurtByTarget(Predicate<M> canCheck, TriPredicate<M, LivingEntity, LivingEntity> wantsToAttack) {
         super(false);
+        this.canCheck = canCheck;
+        this.wantsToAttack = wantsToAttack;
     }
 
     @Override
-    protected boolean checkExtraStartConditions(ServerLevel level, TamableAnimal tamable) {
-        if (tamable.isTame() && !tamable.isOrderedToSit()) {
+    protected boolean checkExtraStartConditions(ServerLevel level, M tamable) {
+        if (this.canCheck.test(tamable)) {
             Optional<LivingEntity> maybeOwner = AiUtil.getOwner(tamable);
             if (maybeOwner.isEmpty()) {
                 return false;
@@ -31,7 +42,7 @@ public class OwnerHurtByTarget extends TargetBehavior<TamableAnimal> {
                 int lastHurtByMobTimestamp = owner.getLastHurtByMobTimestamp();
                 return lastHurtByMobTimestamp != this.timestamp
                         && this.canAttack(tamable, this.ownerLastHurtBy, TargetingConditions.DEFAULT)
-                        && tamable.wantsToAttack(this.ownerLastHurtBy, owner);
+                        && this.wantsToAttack.test(tamable, this.ownerLastHurtBy, owner);
             }
         } else {
             return false;
@@ -39,7 +50,7 @@ public class OwnerHurtByTarget extends TargetBehavior<TamableAnimal> {
     }
 
     @Override
-    protected void start(ServerLevel level, TamableAnimal tamable, long gameTime) {
+    protected void start(ServerLevel level, M tamable, long gameTime) {
         StartAttacking.setAttackTarget(tamable, this.ownerLastHurtBy);
         AiUtil.getOwner(tamable).ifPresent(owner -> this.timestamp = owner.getLastHurtByMobTimestamp());
         super.start(level, tamable, gameTime);

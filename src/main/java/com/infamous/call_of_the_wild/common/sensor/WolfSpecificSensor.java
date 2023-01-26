@@ -2,12 +2,12 @@ package com.infamous.call_of_the_wild.common.sensor;
 
 import com.google.common.collect.ImmutableSet;
 import com.infamous.call_of_the_wild.common.ABABTags;
-import com.infamous.call_of_the_wild.common.entity.SharedWolfAi;
 import com.infamous.call_of_the_wild.common.entity.wolf.WolfAi;
 import com.infamous.call_of_the_wild.common.registry.ABABMemoryModuleTypes;
 import com.infamous.call_of_the_wild.common.ai.AiUtil;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.Mob;
 import net.minecraft.world.entity.ai.Brain;
 import net.minecraft.world.entity.ai.memory.MemoryModuleType;
 import net.minecraft.world.entity.ai.memory.NearestVisibleLivingEntities;
@@ -57,11 +57,13 @@ public class WolfSpecificSensor extends Sensor<Wolf> {
     }
 
     private static boolean isAttackable(Wolf wolf, LivingEntity livingEntity) {
-        return AiUtil.isHostile(wolf, livingEntity, TARGET_DETECTION_DISTANCE, ABABTags.WOLF_ALWAYS_HOSTILES, true);
+        return livingEntity.getType().is(ABABTags.WOLF_ALWAYS_HOSTILES) && AiUtil.isClose(wolf, livingEntity, TARGET_DETECTION_DISTANCE)
+                && AiUtil.isAttackable(wolf, livingEntity, true);
     }
 
     private static boolean isHuntable(Wolf wolf, LivingEntity livingEntity) {
-        return SharedWolfAi.isHuntable(wolf, livingEntity, TARGET_DETECTION_DISTANCE, ABABTags.WOLF_HUNT_TARGETS, true);
+        return livingEntity.getType().is(ABABTags.WOLF_HUNT_TARGETS) && AiUtil.isClose(wolf, livingEntity, TARGET_DETECTION_DISTANCE)
+                && AiUtil.isAttackable(wolf, livingEntity, true);
     }
 
 }

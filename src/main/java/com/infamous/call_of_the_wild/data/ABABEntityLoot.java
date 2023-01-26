@@ -29,7 +29,7 @@ public class ABABEntityLoot extends EntityLoot {
         this.add(ABABEntityTypes.HOUNDMASTER.get(), LootTable.lootTable()
                 .withPool(LootPool.lootPool().setRolls(ConstantValue.exactly(1.0F))
                         .add(LootItem.lootTableItem(ABABItems.WHISTLE.get()))
-                        .apply(SetInstrumentFunction.setInstrumentOptions(ABABTags.WHISTLES_INSTRUMENT)))
+                        .apply(SetInstrumentFunction.setInstrumentOptions(ABABTags.WHISTLES)))
                 .withPool(LootPool.lootPool().setRolls(ConstantValue.exactly(1.0F))
                         .add(LootItem.lootTableItem(Items.EMERALD)
                                 .apply(SetItemCountFunction.setCount(UniformGenerator.between(0.0F, 1.0F)))

@@ -35,9 +35,9 @@ public class ABABTags {
     public static final TagKey<GameEvent> WOLF_CAN_LISTEN = createGameEventTag("wolf_can_listen");
 
     public static final TagKey<GameEvent> DOG_CAN_LISTEN = createGameEventTag("dog_can_listen");
-    public static final TagKey<EntityType<?>> ILLAGER_HOUND_IGNORES = createEntityTypeTag(String.format("%s_ignores", ABABEntityTypes.ILLAGER_HOUND_NAME));
+    public static final TagKey<EntityType<?>> ILLAGER_HOUND_ALWAYS_HOSTILES = createEntityTypeTag(String.format("%s_always_hostiles", ABABEntityTypes.ILLAGER_HOUND_NAME));
 
-    public static final TagKey<Instrument> WHISTLES_INSTRUMENT = createInstrumentTag("whistles");
+    public static final TagKey<Instrument> WHISTLES = createInstrumentTag("whistles");
 
     private static TagKey<EntityType<?>> createEntityTypeTag(String path) {
         return TagKey.create(Registry.ENTITY_TYPE_REGISTRY, new ResourceLocation(AllBarkAllBite.MODID, path));

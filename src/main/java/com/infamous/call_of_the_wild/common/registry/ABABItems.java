@@ -25,5 +25,5 @@ public class ABABItems {
 
     public static final String WHISTLE_NAME = "whistle";
     public static final RegistryObject<CyclableInstrumentItem> WHISTLE = ITEMS.register(WHISTLE_NAME,
-            () -> new CyclableInstrumentItem(new Item.Properties().tab(CreativeModeTab.TAB_MISC).stacksTo(1), ABABTags.WHISTLES_INSTRUMENT));
+            () -> new CyclableInstrumentItem(new Item.Properties().tab(CreativeModeTab.TAB_MISC).stacksTo(1), ABABTags.WHISTLES));
 }

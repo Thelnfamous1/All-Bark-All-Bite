@@ -5,9 +5,9 @@ import com.google.common.collect.Maps;
 import com.infamous.call_of_the_wild.AllBarkAllBite;
 import com.infamous.call_of_the_wild.common.ai.AiUtil;
 import com.infamous.call_of_the_wild.common.ai.BrainUtil;
+import com.infamous.call_of_the_wild.common.ai.CommandAi;
 import com.infamous.call_of_the_wild.common.entity.DogSpawner;
 import com.infamous.call_of_the_wild.common.entity.dog.Dog;
-import com.infamous.call_of_the_wild.common.entity.dog.DogAi;
 import com.infamous.call_of_the_wild.common.entity.wolf.WolfAi;
 import com.infamous.call_of_the_wild.common.event.BrainEvent;
 import com.infamous.call_of_the_wild.common.registry.ABABEntityTypes;
@@ -38,15 +38,11 @@ import net.minecraft.world.item.Instrument;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.CustomSpawner;
 import net.minecraft.world.level.Level;
-import net.minecraft.world.level.gameevent.GameEvent;
+import net.minecraft.world.phys.HitResult;
 import net.minecraftforge.event.TickEvent;
-import net.minecraftforge.event.VanillaGameEvent;
 import net.minecraftforge.event.entity.EntityEvent;
 import net.minecraftforge.event.entity.EntityJoinLevelEvent;
-import net.minecraftforge.event.entity.living.BabyEntitySpawnEvent;
-import net.minecraftforge.event.entity.living.LivingChangeTargetEvent;
-import net.minecraftforge.event.entity.living.LivingEvent;
-import net.minecraftforge.event.entity.living.LivingFallEvent;
+import net.minecraftforge.event.entity.living.*;
 import net.minecraftforge.event.entity.player.PlayerInteractEvent;
 import net.minecraftforge.event.entity.player.SleepingLocationCheckEvent;
 import net.minecraftforge.eventbus.api.Event;
@@ -56,6 +52,7 @@ import net.minecraftforge.fml.common.Mod;
 import org.apache.commons.compress.utils.Lists;
 
 import java.util.*;
+import java.util.function.Consumer;
 
 @Mod.EventBusSubscriber(bus = Mod.EventBusSubscriber.Bus.FORGE, modid = AllBarkAllBite.MODID)
 public class ForgeEventHandler {
@@ -254,37 +251,47 @@ public class ForgeEventHandler {
     }
 
     @SubscribeEvent
-    static void onVanillaGameEvent(VanillaGameEvent event){
-        if(event.getVanillaEvent() == GameEvent.INSTRUMENT_PLAY && event.getCause() instanceof Player player){
-            ItemStack useItem = player.getUseItem();
-            if(useItem.is(ABABItems.WHISTLE.get())){
-                Optional<Holder<Instrument>> instrumentHolder = ABABItems.WHISTLE.get().getInstrument(useItem);
-                if(instrumentHolder.isPresent()){
-                    Instrument instrument = instrumentHolder.get().value();
-                    MultiEntityManager petManager = PetManagement.getPetManager(event.getLevel().dimension(), player.getUUID());
-                    if(instrument == ABABInstruments.SIT_WHISTLE.get()){
-                        petManager.stream().forEach(entity -> {
-                            if(entity instanceof Dog dog){
-                                DogAi.commandSit(dog);
-                            }
-                        });
+    static void onItemUseStart(LivingEntityUseItemEvent.Start event){
+        if(event.getEntity().getLevel() instanceof ServerLevel serverLevel && event.getItem().is(ABABItems.WHISTLE.get())){
+            LivingEntity user = event.getEntity();
+            ItemStack useItem = event.getItem();
+            Optional<Holder<Instrument>> instrumentHolder = ABABItems.WHISTLE.get().getInstrument(useItem);
+            if(instrumentHolder.isPresent()){
+                Instrument instrument = instrumentHolder.get().value();
+                MultiEntityManager petManager = PetManagement.getPetManager(user.getLevel().dimension(), user.getUUID());
+                if(instrument == ABABInstruments.ATTACK_WHISTLE.get()){
+                    AiUtil.getTargetedEntity(user, 16)
+                            .filter(LivingEntity.class::isInstance)
+                            .map(LivingEntity.class::cast)
+                            .ifPresent(target -> commandPet(petManager, dog -> CommandAi.commandAttack(dog, target, user)));
+                }
+                if(instrument == ABABInstruments.COME_WHISTLE.get()){
+                    commandPet(petManager, dog -> CommandAi.commandCome(dog, user, serverLevel));
+                }
+                if(instrument == ABABInstruments.FREE_WHISTLE.get()){
+                    commandPet(petManager, CommandAi::commandFree);
+                }
+                if(instrument == ABABInstruments.GO_WHISTLE.get()){
+                    HitResult hitResult = AiUtil.getHitResult(user, 16);
+                    if(hitResult.getType() != HitResult.Type.MISS){
+                        commandPet(petManager, dog -> CommandAi.commandGo(dog, hitResult));
                     }
-                    if(instrument == ABABInstruments.COME_WHISTLE.get()){
-                        petManager.stream().forEach(entity -> {
-                            if(entity instanceof Dog dog){
-                                DogAi.commandCome(dog);
-                            }
-                        });
-                    }
-                    if(instrument == ABABInstruments.GO_WHISTLE.get()){
-                        petManager.stream().forEach(entity -> {
-                            if(entity instanceof Dog dog){
-                                DogAi.commandGo(dog);
-                            }
-                        });
-                    }
+                }
+                if(instrument == ABABInstruments.HEEL_WHISTLE.get()){
+                    commandPet(petManager, CommandAi::commandHeel);
+                }
+                if(instrument == ABABInstruments.SIT_WHISTLE.get()){
+                    commandPet(petManager, CommandAi::commandSit);
                 }
             }
         }
+    }
+
+    private static void commandPet(MultiEntityManager petManager, Consumer<Dog> command) {
+        petManager.stream().forEach(pet -> {
+            if(pet instanceof Dog dog){
+                command.accept(dog);
+            }
+        });
     }
 }

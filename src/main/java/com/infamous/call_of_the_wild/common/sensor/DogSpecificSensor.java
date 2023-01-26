@@ -73,11 +73,13 @@ public class DogSpecificSensor extends Sensor<Dog> {
     }
 
     private static boolean isAttackable(Dog dog, LivingEntity livingEntity) {
-        return AiUtil.isHostile(dog, livingEntity, TARGET_DETECTION_DISTANCE, ABABTags.DOG_ALWAYS_HOSTILES, true);
+        return livingEntity.getType().is(ABABTags.DOG_ALWAYS_HOSTILES) && AiUtil.isClose(dog, livingEntity, TARGET_DETECTION_DISTANCE)
+                && AiUtil.isAttackable(dog, livingEntity, true);
     }
 
     private static boolean isHuntable(Dog dog, LivingEntity livingEntity) {
-        return SharedWolfAi.isHuntable(dog, livingEntity, TARGET_DETECTION_DISTANCE, ABABTags.DOG_HUNT_TARGETS, true);
+        return livingEntity.getType().is(ABABTags.DOG_HUNT_TARGETS) && AiUtil.isClose(dog, livingEntity, TARGET_DETECTION_DISTANCE)
+                && AiUtil.isAttackable(dog, livingEntity, true);
     }
 
 }

@@ -68,8 +68,8 @@ public class MiscUtil {
         serverLevel.sendParticles(particleOptions, livingEntity.getX(), livingEntity.getY() + yOffset, livingEntity.getZ(), numParticles, 0.0D, 0.0D, 0.0D, speedMultiplier);
     }
 
-    public static boolean oneInChance(RandomSource randomSource, int oneIn) {
-        return randomSource.nextInt(oneIn) == 0;
+    public static boolean oneInChance(RandomSource randomSource, int chance) {
+        return randomSource.nextInt(chance) == 0;
     }
 
     public static <T extends Entity> Optional<T> createEntity(@NotNull EntityType<T> entityType, ServerLevel level) {
@@ -86,7 +86,4 @@ public class MiscUtil {
         return (int) (seconds * 20);
     }
 
-    public static UniformInt constant(int constant){
-        return UniformInt.of(constant, constant);
-    }
 }

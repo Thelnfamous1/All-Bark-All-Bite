@@ -60,9 +60,9 @@ public class WolfGoalPackages {
                         new MoveToTargetSink(),
 
                         new StopSittingToWalk(),
-                        new OwnerHurtByTarget(),
+                        new OwnerHurtByTarget<>(SharedWolfAi::canDefendOwner, SharedWolfAi::wantsToAttack),
                         new CopyMemoryWithExpiry<>(
-                                SharedWolfAi::isNearDisliked,
+                                wolf -> GenericAi.isNearDisliked(wolf, SharedWolfAi.DESIRED_DISTANCE_FROM_DISLIKED),
                                 ABABMemoryModuleTypes.NEAREST_VISIBLE_DISLIKED.get(),
                                 MemoryModuleType.AVOID_TARGET,
                                 SharedWolfAi.AVOID_DURATION),
@@ -84,7 +84,7 @@ public class WolfGoalPackages {
         wolf.setIsInterested(false);
         SharedWolfAi.clearStates(wolf);
 
-        AiUtil.eraseAllMemories(wolf,
+        AiUtil.eraseMemories(wolf,
                 MemoryModuleType.BREED_TARGET,
                 ABABMemoryModuleTypes.HOWL_LOCATION.get());
 
@@ -142,7 +142,7 @@ public class WolfGoalPackages {
     }
 
     private static boolean isHuntTarget(Wolf wolf, LivingEntity target) {
-        return AiUtil.isHuntTarget(wolf, target, ABABTags.WOLF_HUNT_TARGETS);
+        return target.getType().is(ABABTags.WOLF_HUNT_TARGETS);
     }
 
     @NotNull

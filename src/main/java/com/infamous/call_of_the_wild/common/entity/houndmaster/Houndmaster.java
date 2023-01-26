@@ -2,14 +2,15 @@ package com.infamous.call_of_the_wild.common.entity.houndmaster;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Maps;
-import com.infamous.call_of_the_wild.common.entity.illager_hound.IllagerHound;
 import com.infamous.call_of_the_wild.common.registry.ABABEntityTypes;
 import com.infamous.call_of_the_wild.common.util.DebugUtil;
-import com.infamous.call_of_the_wild.common.ai.GenericAi;
 import com.infamous.call_of_the_wild.common.util.MiscUtil;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.protocol.game.DebugPackets;
+import net.minecraft.network.syncher.EntityDataAccessor;
+import net.minecraft.network.syncher.EntityDataSerializers;
+import net.minecraft.network.syncher.SynchedEntityData;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.sounds.SoundEvents;
@@ -21,21 +22,16 @@ import net.minecraft.world.entity.*;
 import net.minecraft.world.entity.ai.Brain;
 import net.minecraft.world.entity.ai.attributes.AttributeSupplier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
-import net.minecraft.world.entity.ai.goal.FloatGoal;
-import net.minecraft.world.entity.ai.goal.LookAtPlayerGoal;
-import net.minecraft.world.entity.ai.goal.RandomStrollGoal;
-import net.minecraft.world.entity.ai.goal.RangedBowAttackGoal;
+import net.minecraft.world.entity.ai.goal.*;
 import net.minecraft.world.entity.ai.goal.target.HurtByTargetGoal;
 import net.minecraft.world.entity.ai.goal.target.NearestAttackableTargetGoal;
 import net.minecraft.world.entity.ai.memory.MemoryModuleType;
 import net.minecraft.world.entity.ai.sensing.Sensor;
 import net.minecraft.world.entity.ai.sensing.SensorType;
-import net.minecraft.world.entity.ai.targeting.TargetingConditions;
 import net.minecraft.world.entity.animal.IronGolem;
 import net.minecraft.world.entity.monster.AbstractIllager;
 import net.minecraft.world.entity.monster.Monster;
 import net.minecraft.world.entity.monster.RangedAttackMob;
-import net.minecraft.world.entity.monster.SpellcasterIllager;
 import net.minecraft.world.entity.npc.AbstractVillager;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.entity.projectile.AbstractArrow;
@@ -50,12 +46,14 @@ import net.minecraft.world.item.enchantment.EnchantmentHelper;
 import net.minecraft.world.item.enchantment.Enchantments;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.ServerLevelAccessor;
+import net.minecraftforge.common.ForgeSpawnEggItem;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Map;
 
 @SuppressWarnings("NullableProblems")
-public class Houndmaster extends SpellcasterIllager implements RangedAttackMob {
+public class Houndmaster extends AbstractIllager implements RangedAttackMob {
+    private static final EntityDataAccessor<Boolean> DATA_WHISTLING = SynchedEntityData.defineId(Houndmaster.class, EntityDataSerializers.BOOLEAN);
 
     protected static final ImmutableList<? extends SensorType<? extends Sensor<? super Houndmaster>>> SENSOR_TYPES =
             ImmutableList.of(
@@ -66,6 +64,9 @@ public class Houndmaster extends SpellcasterIllager implements RangedAttackMob {
                     MemoryModuleType.NEAREST_LIVING_ENTITIES,
                     MemoryModuleType.NEAREST_VISIBLE_LIVING_ENTITIES
             );
+    private static final String SUMMONED_HOUNDS_TAG = "summonedHounds";
+
+    private boolean summonedHounds;
 
     public Houndmaster(EntityType<? extends Houndmaster> type, Level level) {
         super(type, level);
@@ -76,12 +77,11 @@ public class Houndmaster extends SpellcasterIllager implements RangedAttackMob {
         super.registerGoals();
 
         this.goalSelector.addGoal(0, new FloatGoal(this));
-        this.goalSelector.addGoal(1, new SpellcasterIllager.SpellcasterCastingSpellGoal());
         this.goalSelector.addGoal(4, new Houndmaster.SummonHoundsGoal());
         this.goalSelector.addGoal(5, new RangedBowAttackGoal<>(this, 0.5D, 20, 15.0F));
         this.goalSelector.addGoal(8, new RandomStrollGoal(this, 0.6D));
-        this.goalSelector.addGoal(9, new LookAtPlayerGoal(this, Player.class, 15.0F, 1.0F));
-        this.goalSelector.addGoal(10, new LookAtPlayerGoal(this, Mob.class, 15.0F));
+        this.goalSelector.addGoal(9, new LookAtPlayerGoal(this, Player.class, 3.0F, 1.0F));
+        this.goalSelector.addGoal(10, new LookAtPlayerGoal(this, Mob.class, 8.0F));
 
         this.targetSelector.addGoal(1, (new HurtByTargetGoal(this, Raider.class)).setAlertOthers());
         this.targetSelector.addGoal(2, new NearestAttackableTargetGoal<>(this, Player.class, true));
@@ -92,9 +92,15 @@ public class Houndmaster extends SpellcasterIllager implements RangedAttackMob {
     public static AttributeSupplier.Builder createAttributes() {
         return Monster.createMonsterAttributes()
                 .add(Attributes.MOVEMENT_SPEED, 0.5D)
-                .add(Attributes.FOLLOW_RANGE, 32.0D)
-                .add(Attributes.MAX_HEALTH, 24.0D)
+                .add(Attributes.FOLLOW_RANGE, 18.0D)
+                .add(Attributes.MAX_HEALTH, 32.0D)
                 .add(Attributes.ATTACK_DAMAGE, 5.0D);
+    }
+
+    @Override
+    protected void defineSynchedData() {
+        super.defineSynchedData();
+        this.entityData.define(DATA_WHISTLING, false);
     }
 
     @Override
@@ -126,24 +132,27 @@ public class Houndmaster extends SpellcasterIllager implements RangedAttackMob {
     }
 
     @Override
-    public AbstractIllager.IllagerArmPose getArmPose() {
-        IllagerArmPose armPose = super.getArmPose();
-        if(armPose == IllagerArmPose.CROSSED){
-            if(this.isAggressive()){
-                if (this.isHolding(is -> is.getItem() instanceof BowItem)) {
-                    return AbstractIllager.IllagerArmPose.BOW_AND_ARROW;
-                } else {
-                    return AbstractIllager.IllagerArmPose.ATTACKING;
-                }
-            }
-            return AbstractIllager.IllagerArmPose.NEUTRAL;
-        }
-        return armPose;
+    public void addAdditionalSaveData(CompoundTag tag) {
+        super.addAdditionalSaveData(tag);
+        tag.putBoolean(SUMMONED_HOUNDS_TAG, this.summonedHounds);
     }
 
     @Override
-    protected SoundEvent getCastingSoundEvent() {
-        return SoundEvents.EVOKER_CAST_SPELL;
+    public void readAdditionalSaveData(CompoundTag tag) {
+        super.readAdditionalSaveData(tag);
+        this.summonedHounds = tag.getBoolean(SUMMONED_HOUNDS_TAG);
+    }
+
+    @Override
+    public AbstractIllager.IllagerArmPose getArmPose() {
+        if(this.isAggressive()){
+            if (this.isHolding(is -> is.getItem() instanceof BowItem)) {
+                return AbstractIllager.IllagerArmPose.BOW_AND_ARROW;
+            } else {
+                return AbstractIllager.IllagerArmPose.ATTACKING;
+            }
+        }
+        return AbstractIllager.IllagerArmPose.NEUTRAL;
     }
 
     @Nullable
@@ -182,8 +191,8 @@ public class Houndmaster extends SpellcasterIllager implements RangedAttackMob {
             return true;
         } else if (super.isAlliedTo(other)) {
             return true;
-        } else if (other instanceof IllagerHound illagerHound) {
-            return this.isAlliedTo(illagerHound.getOwner());
+        } else if (other instanceof OwnableEntity ownable) {
+            return this.isAlliedTo(ownable.getOwner());
         } else if (other instanceof LivingEntity livingEntity && livingEntity.getMobType() == MobType.ILLAGER) {
             return this.getTeam() == null && other.getTeam() == null;
         } else {
@@ -223,7 +232,7 @@ public class Houndmaster extends SpellcasterIllager implements RangedAttackMob {
         AbstractArrow arrow = ProjectileUtil.getMobArrow(this, projectile, power);
         if (this.getItemInHand(weaponHoldingHand).getItem() instanceof BowItem bowItem) arrow = bowItem.customArrow(arrow);
         double xDist = target.getX() - this.getX();
-        double yDist = target.getY(0.3333333333333333D) - arrow.getY();
+        double yDist = target.getY(1.0D / 3) - arrow.getY();
         double zDist = target.getZ() - this.getZ();
         double horizontalDist = Math.sqrt(xDist * xDist + zDist * zDist);
         arrow.shoot(xDist, yDist + horizontalDist * 0.2D, zDist, 1.6F, (float)(14 - this.level.getDifficulty().getId() * 4));
@@ -231,29 +240,42 @@ public class Houndmaster extends SpellcasterIllager implements RangedAttackMob {
         this.level.addFreshEntity(arrow);
     }
 
-    class SummonHoundsGoal extends SpellcasterUseSpellGoal{
-        private static final TargetingConditions HOUND_COUNT_TARGETING = TargetingConditions.forNonCombat().ignoreLineOfSight().ignoreInvisibilityTesting();
+    public void setWhistling(boolean whistling){
+        this.entityData.set(DATA_WHISTLING, whistling);
+    }
+
+    public boolean isWhistling() {
+        return this.entityData.get(DATA_WHISTLING);
+    }
+
+    class SummonHoundsGoal extends Goal {
+
+        private static final int HOUNDS_TO_SUMMON = 3;
+        private int whistleTicks;
 
         @Override
         public boolean canUse() {
-            if(!super.canUse()){
-                return false;
-            } else{
-                int houndCount = 0;
-                for(LivingEntity nle : GenericAi.getNearestLivingEntities(Houndmaster.this)){
-                    if(nle.getType() == ABABEntityTypes.ILLAGER_HOUND.get()
-                            && HOUND_COUNT_TARGETING.test(Houndmaster.this, nle))
-                        houndCount++;
-                }
-                return 8 > houndCount;
-            }
+            return !Houndmaster.this.summonedHounds;
         }
 
-        @Override
-        protected void performSpellCasting() {
+        public void start() {
+            this.whistleTicks = this.adjustedTickDelay(20);
+            Houndmaster.this.playSound(SoundEvents.NOTE_BLOCK_FLUTE, 1.0F, 1.0F);
+            Houndmaster.this.setWhistling(true);
+        }
+
+        public void tick() {
+            --this.whistleTicks;
+            if (this.whistleTicks == 0) {
+                this.summonHounds();
+                Houndmaster.this.summonedHounds = true;
+            }
+
+        }
+
+        protected void summonHounds() {
             ServerLevel serverlevel = (ServerLevel) Houndmaster.this.level;
-            final int numHounds = 3;
-            for(int i = 0; i < numHounds; ++i) {
+            for(int i = 0; i < HOUNDS_TO_SUMMON; ++i) {
                 BlockPos blockPos = Houndmaster.this.blockPosition().offset(
                         -2 + Houndmaster.this.random.nextInt(5),
                         0,
@@ -262,31 +284,22 @@ public class Houndmaster extends SpellcasterIllager implements RangedAttackMob {
                     hound.moveTo(blockPos, Houndmaster.this.getYRot(), 0.0F);
                     hound.finalizeSpawn(serverlevel, Houndmaster.this.level.getCurrentDifficultyAt(blockPos), MobSpawnType.MOB_SUMMONED, null, null);
                     hound.setOwner(Houndmaster.this);
-                    hound.setLeashedTo(Houndmaster.this, true);
+                    //hound.setLeashedTo(Houndmaster.this, true);
                     serverlevel.addFreshEntityWithPassengers(hound);
                 });
             }
         }
 
         @Override
-        protected int getCastingTime() {
-            return MiscUtil.seconds(5);
+        public void stop() {
+            Houndmaster.this.setWhistling(false);
         }
+    }
 
-        @Override
-        protected int getCastingInterval() {
-            return MiscUtil.seconds(17);
-        }
-
-        @Nullable
-        @Override
-        protected SoundEvent getSpellPrepareSound() {
-            return SoundEvents.EVOKER_PREPARE_SUMMON;
-        }
-
-        @Override
-        protected IllagerSpell getSpell() {
-            return SpellcasterIllager.IllagerSpell.SUMMON_VEX;
-        }
+    @SuppressWarnings("ConstantConditions")
+    @Nullable
+    @Override
+    public ItemStack getPickResult() {
+        return ForgeSpawnEggItem.fromEntityType(this.getType()).getDefaultInstance();
     }
 }

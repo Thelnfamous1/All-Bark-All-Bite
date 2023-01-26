@@ -30,11 +30,14 @@ public class ABABLangProvider extends LanguageProvider {
         this.add(ABABItems.HOUNDMASTER_SPAWN_EGG.get(), "Houndmaster Spawn Egg");
 
         this.add(ABABItems.WHISTLE.get(), "Whistle");
-        this.add(makeInstrumentDescriptionId(ABABInstruments.SIT_WHISTLE), "Sit");
+        this.add(makeInstrumentDescriptionId(ABABInstruments.ATTACK_WHISTLE), "Attack");
         this.add(makeInstrumentDescriptionId(ABABInstruments.COME_WHISTLE), "Come");
+        this.add(makeInstrumentDescriptionId(ABABInstruments.FREE_WHISTLE), "Free");
         this.add(makeInstrumentDescriptionId(ABABInstruments.GO_WHISTLE), "Go");
+        this.add(makeInstrumentDescriptionId(ABABInstruments.HEEL_WHISTLE), "Heel");
+        this.add(makeInstrumentDescriptionId(ABABInstruments.SIT_WHISTLE), "Sit");
 
-        this.add(CyclableInstrumentItem.SECONDARY_USE_TOOLTIP, "Sneak & Use to Cycle Instrument");
+        this.add(CyclableInstrumentItem.SECONDARY_USE_TOOLTIP, "Sneak & Use to Cycle");
     }
 
     @SuppressWarnings("SameParameterValue")

@@ -1,6 +1,5 @@
 package com.infamous.call_of_the_wild.common.entity.illager_hound;
 
-import com.google.common.collect.ImmutableList;
 import com.infamous.call_of_the_wild.common.entity.HasOwner;
 import com.infamous.call_of_the_wild.common.ai.AiUtil;
 import com.infamous.call_of_the_wild.common.util.DebugUtil;
@@ -24,13 +23,13 @@ import net.minecraft.world.entity.ai.Brain;
 import net.minecraft.world.entity.ai.attributes.AttributeSupplier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.ai.memory.MemoryModuleType;
-import net.minecraft.world.entity.ai.sensing.Sensor;
-import net.minecraft.world.entity.ai.sensing.SensorType;
 import net.minecraft.world.entity.monster.Enemy;
 import net.minecraft.world.entity.monster.Monster;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.scores.Team;
+import net.minecraftforge.common.ForgeSpawnEggItem;
 import net.minecraftforge.entity.IEntityAdditionalSpawnData;
 import net.minecraftforge.network.NetworkHooks;
 import org.jetbrains.annotations.Nullable;
@@ -42,24 +41,6 @@ import java.util.UUID;
 public class IllagerHound extends Monster implements HasOwner, IEntityAdditionalSpawnData {
     protected static final EntityDataAccessor<Optional<UUID>> DATA_OWNERUUID_ID = SynchedEntityData.defineId(IllagerHound.class, EntityDataSerializers.OPTIONAL_UUID);
 
-    protected static final ImmutableList<? extends SensorType<? extends Sensor<? super IllagerHound>>> SENSOR_TYPES =
-            ImmutableList.of(
-                    SensorType.NEAREST_LIVING_ENTITIES,
-                    SensorType.NEAREST_PLAYERS
-            );
-    protected static final ImmutableList<? extends MemoryModuleType<?>> MEMORY_TYPES =
-            ImmutableList.of(
-                    MemoryModuleType.NEAREST_LIVING_ENTITIES,
-                    MemoryModuleType.NEAREST_VISIBLE_LIVING_ENTITIES,
-                    MemoryModuleType.NEAREST_VISIBLE_PLAYER,
-                    MemoryModuleType.NEAREST_VISIBLE_ATTACKABLE_PLAYER,
-                    MemoryModuleType.LOOK_TARGET,
-                    MemoryModuleType.WALK_TARGET,
-                    MemoryModuleType.CANT_REACH_WALK_TARGET_SINCE,
-                    MemoryModuleType.PATH,
-                    MemoryModuleType.ATTACK_TARGET,
-                    MemoryModuleType.ATTACK_COOLING_DOWN
-            );
     @Nullable
     private LivingEntity cachedOwner;
 
@@ -115,7 +96,7 @@ public class IllagerHound extends Monster implements HasOwner, IEntityAdditional
 
     @Override
     protected Brain.Provider<IllagerHound> brainProvider() {
-        return Brain.provider(MEMORY_TYPES, SENSOR_TYPES);
+        return Brain.provider(IllagerHoundAi.MEMORY_TYPES, IllagerHoundAi.SENSOR_TYPES);
     }
 
     @Override
@@ -179,7 +160,15 @@ public class IllagerHound extends Monster implements HasOwner, IEntityAdditional
         this.playSound(SoundEvents.WOLF_GROWL, this.getSoundVolume(), this.getVoicePitch());
     }
 
-    // OwnableMob
+    public float getTailAngle() {
+        if (this.isAggressive()) {
+            return (float) (49F * Math.PI / 100F);
+        } else {
+            return ((float)Math.PI / 5F);
+        }
+    }
+
+    // HasOwner
 
     @Nullable
     public UUID getOwnerUUID() {
@@ -210,6 +199,13 @@ public class IllagerHound extends Monster implements HasOwner, IEntityAdditional
         }
     }
 
+    @SuppressWarnings("ConstantConditions")
+    @Nullable
+    @Override
+    public ItemStack getPickResult() {
+        return ForgeSpawnEggItem.fromEntityType(this.getType()).getDefaultInstance();
+    }
+
     // IEntityAdditionalSpawnData
 
     @Override
@@ -222,13 +218,5 @@ public class IllagerHound extends Monster implements HasOwner, IEntityAdditional
     public void readSpawnData(FriendlyByteBuf additionalData) {
         int ownerId = additionalData.readInt();
         this.cachedOwner = AiUtil.getLivingEntityFromId(this.level, ownerId).orElse(null);
-    }
-
-    public float getTailAngle() {
-        if (this.isAggressive()) {
-            return (float) (49F * Math.PI / 100F);
-        } else {
-            return ((float)Math.PI / 5F);
-        }
     }
 }

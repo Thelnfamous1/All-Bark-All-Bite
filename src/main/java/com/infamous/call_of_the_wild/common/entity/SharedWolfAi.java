@@ -70,10 +70,6 @@ public class SharedWolfAi {
         return wolf.isFreezing() || wolf.isOnFire();
     }
 
-    public static boolean isNearDisliked(TamableAnimal wolf) {
-        return GenericAi.isNearDisliked(wolf, DESIRED_DISTANCE_FROM_DISLIKED);
-    }
-
     public static boolean canStartAttacking(TamableAnimal wolf) {
         return !wolf.isBaby()
                 && canMove(wolf)
@@ -122,10 +118,6 @@ public class SharedWolfAi {
 
     public static boolean isDisliked(LivingEntity target, TagKey<EntityType<?>> disliked) {
         return target.getType().is(disliked); //|| target instanceof Llama llama && llama.getStrength() >= wolf.getRandom().nextInt(LLAMA_MAX_STRENGTH);
-    }
-
-    public static boolean isHuntable(TamableAnimal wolf, LivingEntity livingEntity, int closeEnough, TagKey<EntityType<?>> huntTargets, boolean requireLineOfSight) {
-        return AiUtil.isHuntable(wolf, livingEntity, closeEnough, huntTargets, requireLineOfSight) || AiUtil.isHuntableBabyTurtle(wolf, livingEntity, closeEnough, requireLineOfSight);
     }
 
     public static void setHowledRecently(LivingEntity wolf, int howlCooldownInTicks) {
@@ -255,4 +247,11 @@ public class SharedWolfAi {
         return MoveToNonSkySeeingSpot.hasBlocksAbove(wolf.level, wolf, topOfBodyPos);
     }
 
+    public static boolean canDefendOwner(TamableAnimal tamableAnimal){
+        return tamableAnimal.isTame() && !tamableAnimal.isOrderedToSit();
+    }
+
+    public static boolean wantsToAttack(TamableAnimal tamableAnimal, LivingEntity target, LivingEntity owner){
+        return tamableAnimal.wantsToAttack(target, owner);
+    }
 }

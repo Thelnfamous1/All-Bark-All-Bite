@@ -23,10 +23,7 @@ public interface HasOwner extends OwnableEntity {
     default void readOwnerNBT(CompoundTag tag) {
         if (tag.hasUUID(OWNER_TAG)) {
             UUID uuid = tag.getUUID(OWNER_TAG);
-            try {
-                this.setOwnerUUID(uuid);
-            } catch (Throwable ignored) {
-            }
+            this.setOwnerUUID(uuid);
         }
     }
 

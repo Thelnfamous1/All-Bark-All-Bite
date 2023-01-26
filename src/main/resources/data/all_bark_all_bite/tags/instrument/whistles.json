@@ -1,7 +1,10 @@
 {
   "values": [
-    "all_bark_all_bite:sit_whistle",
+    "all_bark_all_bite:attack_whistle",
     "all_bark_all_bite:come_whistle",
-    "all_bark_all_bite:go_whistle"
+    "all_bark_all_bite:free_whistle",
+    "all_bark_all_bite:go_whistle",
+    "all_bark_all_bite:heel_whistle",
+    "all_bark_all_bite:sit_whistle"
   ]
 }

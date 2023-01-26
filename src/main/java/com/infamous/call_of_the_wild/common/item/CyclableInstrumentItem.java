@@ -95,8 +95,8 @@ public class CyclableInstrumentItem extends InstrumentItem {
     }
 
     protected static void setSoundVariantId(ItemStack itemStack, Holder<Instrument> instrumentHolder) {
-        CompoundTag compoundtag = itemStack.getOrCreateTag();
-        compoundtag.putString(INSTRUMENT_TAG, getInstrumentLocation(instrumentHolder).toString());
+        CompoundTag tag = itemStack.getOrCreateTag();
+        tag.putString(INSTRUMENT_TAG, getInstrumentLocation(instrumentHolder).toString());
     }
 
     protected static ResourceLocation getInstrumentLocation(Holder<Instrument> instrumentHolder) {

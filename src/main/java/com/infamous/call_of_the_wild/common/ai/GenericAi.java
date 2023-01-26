@@ -48,7 +48,7 @@ public class GenericAi {
     }
 
     public static void setAvoidTarget(LivingEntity livingEntity, LivingEntity target, int avoidTimeInTicks) {
-        AiUtil.eraseAllMemories(livingEntity, MemoryModuleType.ATTACK_TARGET, MemoryModuleType.WALK_TARGET);
+        AiUtil.eraseMemories(livingEntity, MemoryModuleType.ATTACK_TARGET, MemoryModuleType.WALK_TARGET);
         livingEntity.getBrain().setMemoryWithExpiry(MemoryModuleType.AVOID_TARGET, target, avoidTimeInTicks);
     }
 

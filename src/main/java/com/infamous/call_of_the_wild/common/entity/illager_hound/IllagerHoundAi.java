@@ -2,13 +2,41 @@ package com.infamous.call_of_the_wild.common.entity.illager_hound;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
+import com.infamous.call_of_the_wild.common.registry.ABABMemoryModuleTypes;
+import com.infamous.call_of_the_wild.common.registry.ABABSensorTypes;
 import com.mojang.datafixers.util.Pair;
 import net.minecraft.world.entity.ai.Brain;
 import net.minecraft.world.entity.ai.memory.MemoryModuleType;
 import net.minecraft.world.entity.ai.memory.MemoryStatus;
+import net.minecraft.world.entity.ai.sensing.Sensor;
+import net.minecraft.world.entity.ai.sensing.SensorType;
 import net.minecraft.world.entity.schedule.Activity;
 
 public class IllagerHoundAi {
+    protected static final ImmutableList<? extends SensorType<? extends Sensor<? super IllagerHound>>> SENSOR_TYPES =
+            ImmutableList.of(
+                    SensorType.HURT_BY,
+                    SensorType.NEAREST_LIVING_ENTITIES,
+                    ABABSensorTypes.NEAREST_ALLIES.get(),
+                    SensorType.NEAREST_PLAYERS
+            );
+    protected static final ImmutableList<? extends MemoryModuleType<?>> MEMORY_TYPES =
+            ImmutableList.of(
+                    MemoryModuleType.ATTACK_TARGET,
+                    MemoryModuleType.ATTACK_COOLING_DOWN,
+                    MemoryModuleType.CANT_REACH_WALK_TARGET_SINCE,
+                    MemoryModuleType.HURT_BY,
+                    MemoryModuleType.HURT_BY_ENTITY,
+                    MemoryModuleType.LOOK_TARGET,
+                    MemoryModuleType.NEAREST_LIVING_ENTITIES,
+                    ABABMemoryModuleTypes.NEAREST_VISIBLE_ALLIES.get(),
+                    MemoryModuleType.NEAREST_VISIBLE_LIVING_ENTITIES,
+                    MemoryModuleType.NEAREST_VISIBLE_PLAYER,
+                    MemoryModuleType.NEAREST_VISIBLE_ATTACKABLE_PLAYER,
+                    MemoryModuleType.PATH,
+                    MemoryModuleType.WALK_TARGET
+            );
+
     public static void makeBrain(Brain<IllagerHound> brain) {
         initCoreActivity(brain);
         initIdleActivity(brain);

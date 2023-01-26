@@ -17,6 +17,7 @@ import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.sounds.SoundEvents;
+import net.minecraft.util.Mth;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
@@ -261,7 +262,7 @@ public class WolfAi {
         return wolf.getBrain().hasMemoryValue(ABABMemoryModuleTypes.IS_STALKING.get())
                 || attackTarget.isPresent()
                 && WolfGoalPackages.wantsToStalk(wolf, attackTarget.get())
-                && wolf.distanceToSqr(attackTarget.get()) > SharedWolfAi.POUNCE_DISTANCE;
+                && wolf.distanceToSqr(attackTarget.get()) > Mth.square(SharedWolfAi.POUNCE_DISTANCE);
     }
 
 

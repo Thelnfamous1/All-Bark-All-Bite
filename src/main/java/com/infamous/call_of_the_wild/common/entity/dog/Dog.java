@@ -1,10 +1,12 @@
 package com.infamous.call_of_the_wild.common.entity.dog;
 
 import com.infamous.call_of_the_wild.common.ABABTags;
-import com.infamous.call_of_the_wild.common.entity.*;
-import com.infamous.call_of_the_wild.common.registry.*;
 import com.infamous.call_of_the_wild.common.ai.AiUtil;
-import com.infamous.call_of_the_wild.common.entity.AnimalAccessor;
+import com.infamous.call_of_the_wild.common.ai.CommandAi;
+import com.infamous.call_of_the_wild.common.entity.*;
+import com.infamous.call_of_the_wild.common.registry.ABABDogVariants;
+import com.infamous.call_of_the_wild.common.registry.ABABEntityDataSerializers;
+import com.infamous.call_of_the_wild.common.registry.ABABEntityTypes;
 import com.infamous.call_of_the_wild.common.util.DebugUtil;
 import com.infamous.call_of_the_wild.common.util.MiscUtil;
 import com.mojang.serialization.Dynamic;
@@ -53,9 +55,10 @@ import org.apache.commons.lang3.tuple.MutablePair;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Collection;
+import java.util.Optional;
 
 @SuppressWarnings("NullableProblems")
-public class Dog extends TamableAnimal implements InterestedMob, ShakingMob, VariantMob, CollaredMob, AnimalAccessor {
+public class Dog extends TamableAnimal implements InterestedMob, ShakingMob, VariantMob, CollaredMob {
     @SuppressWarnings("unused")
     private static final int FLAG_SITTING = 1; // Used by TamableAnimal
     @SuppressWarnings("unused")
@@ -297,7 +300,21 @@ public class Dog extends TamableAnimal implements InterestedMob, ShakingMob, Var
                     || this.isFood(stack) && !this.isTame() && !this.isAggressive();
             return canInteract && !this.hasPose(Pose.DIGGING) ? InteractionResult.SUCCESS : InteractionResult.PASS;
         } else {
-            return DogAi.mobInteract(this, player, hand);
+            Optional<InteractionResult> mobInteract = DogAi.mobInteract(this, player, hand);
+            if(mobInteract.isEmpty()){
+                InteractionResult animalInteractResult = super.mobInteract(player, hand);
+                boolean willNotBreed = !animalInteractResult.consumesAction() || this.isBaby();
+                if (willNotBreed && this.isOwnedBy(player)) {
+                    this.setOrderedToSit(!this.isOrderedToSit());
+                    this.setJumping(false);
+                    CommandAi.yieldAsPet(this);
+                    CommandAi.setFollowing(this);
+                    return InteractionResult.CONSUME;
+                }
+                return animalInteractResult;
+            } else{
+                return mobInteract.get();
+            }
         }
     }
 
@@ -590,17 +607,5 @@ public class Dog extends TamableAnimal implements InterestedMob, ShakingMob, Var
     @Override
     public MutablePair<Float, Float> getInterestedAngles() {
         return this.interestedAngles;
-    }
-
-    // AnimalAccessor
-
-    @Override
-    public InteractionResult animalInteract(Player player, InteractionHand hand) {
-        return super.mobInteract(player, hand);
-    }
-
-    @Override
-    public void takeItemFromPlayer(Player player, InteractionHand hand, ItemStack itemStack) {
-        this.usePlayerItem(player, hand, itemStack);
     }
 }

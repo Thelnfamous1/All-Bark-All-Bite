@@ -5,15 +5,13 @@ package com.infamous.call_of_the_wild.client.renderer.model;// Made with Blockbe
 
 import com.infamous.call_of_the_wild.client.renderer.model.animation.DogAnimation;
 import com.infamous.call_of_the_wild.common.entity.dog.Dog;
-import com.mojang.blaze3d.vertex.PoseStack;
-import com.mojang.blaze3d.vertex.VertexConsumer;
-import net.minecraft.client.model.HierarchicalModel;
+import net.minecraft.client.model.ColorableHierarchicalModel;
 import net.minecraft.client.model.geom.ModelPart;
 import net.minecraft.client.model.geom.PartPose;
 import net.minecraft.client.model.geom.builders.*;
 
 @SuppressWarnings({"FieldCanBeLocal", "unused", "NullableProblems"})
-public class AndreDogModel<T extends Dog> extends HierarchicalModel<T> {
+public class AndreDogModel<T extends Dog> extends ColorableHierarchicalModel<T> {
 	public static final String HEAD = "head";
 	public static final String BODY = "body";
 	public static final String UPPER_BODY = "upper_body";
@@ -24,9 +22,6 @@ public class AndreDogModel<T extends Dog> extends HierarchicalModel<T> {
 	public static final String TAIL = "tail";
 	private static final String DOG_TAG = "dog_tag";
 	private final ModelPart dogTag;
-	private float r = 1.0F;
-	private float g = 1.0F;
-	private float b = 1.0F;
 	private final ModelPart root;
 	final ModelPart head;
 	private final ModelPart body;
@@ -115,17 +110,6 @@ public class AndreDogModel<T extends Dog> extends HierarchicalModel<T> {
 				PartPose.offset(0.0F, 14.0F, 10.0F));
 
 		return LayerDefinition.create(meshDefinition, 51, 51);
-	}
-
-	public void setColor(float r, float g, float b) {
-		this.r = r;
-		this.g = g;
-		this.b = b;
-	}
-
-	@Override
-	public void renderToBuffer(PoseStack poseStack, VertexConsumer vertexConsumer, int packedLight, int packedOverlay, float red, float green, float blue, float alpha) {
-		super.renderToBuffer(poseStack, vertexConsumer, packedLight, packedOverlay, this.r * red, this.g * green, this.b * blue, alpha);
 	}
 
 	@Override
