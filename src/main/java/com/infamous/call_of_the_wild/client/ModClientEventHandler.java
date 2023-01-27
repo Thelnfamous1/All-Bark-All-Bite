@@ -7,7 +7,7 @@ import com.infamous.call_of_the_wild.client.renderer.HoundmasterRenderer;
 import com.infamous.call_of_the_wild.client.renderer.IllagerHoundRenderer;
 import com.infamous.call_of_the_wild.client.renderer.model.AndreDogModel;
 import com.infamous.call_of_the_wild.client.renderer.model.HoundmasterModel;
-import com.infamous.call_of_the_wild.client.renderer.model.IllagerHoundModelTemp;
+import com.infamous.call_of_the_wild.client.renderer.model.IllagerHoundModel;
 import com.infamous.call_of_the_wild.common.registry.ABABEntityTypes;
 import net.minecraft.world.entity.EntityType;
 import net.minecraftforge.api.distmarker.Dist;
@@ -23,7 +23,7 @@ public class ModClientEventHandler {
     static void onRegisterLayerDefinitions(EntityRenderersEvent.RegisterLayerDefinitions event){
         event.registerLayerDefinition(ABABModelLayers.DOG, AndreDogModel::createBodyLayer);
         event.registerLayerDefinition(ABABModelLayers.HOUNDMASTER, HoundmasterModel::createBodyLayer);
-        event.registerLayerDefinition(ABABModelLayers.ILLAGER_HOUND, IllagerHoundModelTemp::createBodyLayer);
+        event.registerLayerDefinition(ABABModelLayers.ILLAGER_HOUND, IllagerHoundModel::createBodyLayer);
     }
 
     @SubscribeEvent(priority = EventPriority.HIGHEST)

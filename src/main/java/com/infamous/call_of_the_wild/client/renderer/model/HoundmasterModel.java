@@ -26,12 +26,15 @@ public class HoundmasterModel<T extends Houndmaster> extends HierarchicalModel<T
 	private final ModelPart rightArm;
 	private final ModelPart leftLeg;
 	private final ModelPart rightLeg;
+	private final ModelPart whistle;
 
 	public HoundmasterModel(ModelPart root) {
 		this.root = root;
 		this.body = root.getChild("body");
 		this.head = root.getChild("head");
 		this.leftArm = root.getChild("left_arm");
+		this.whistle = this.leftArm.getChild("whistle");
+		this.whistle.visible = false;
 		this.rightArm = root.getChild("right_arm");
 		this.leftLeg = root.getChild("left_leg");
 		this.rightLeg = root.getChild("right_leg");
@@ -41,44 +44,43 @@ public class HoundmasterModel<T extends Houndmaster> extends HierarchicalModel<T
 		MeshDefinition meshDefinition = new MeshDefinition();
 		PartDefinition root = meshDefinition.getRoot();
 
-		PartDefinition body = root.addOrReplaceChild("body", CubeListBuilder.create().texOffs(0, 0).addBox(-6.0F, -15.0F, -3.0F, 12.0F, 15.0F, 6.0F, new CubeDeformation(-0.8F))
-		.texOffs(0, 39).addBox(-4.0F, -14.0F, -3.0F, 8.0F, 18.0F, 6.0F, new CubeDeformation(1.25F))
-		.texOffs(32, 49).addBox(-4.0F, -13.75F, -3.0F, 8.0F, 8.0F, 6.0F, new CubeDeformation(1.5F)), PartPose.offset(0.0F, 12.0F, 0.0F));
+		PartDefinition head = root.addOrReplaceChild("head", CubeListBuilder.create().texOffs(0, 21).addBox(-4.0F, -10.0F, -4.0F, 8.0F, 10.0F, 8.0F, new CubeDeformation(0.0F)), PartPose.offset(0.0F, -2.5F, 0.0F));
 
-		PartDefinition head = root.addOrReplaceChild("head", CubeListBuilder.create().texOffs(0, 21).addBox(-1.0F, -3.0F, -6.0F, 2.0F, 4.0F, 2.0F, new CubeDeformation(0.0F))
-		.texOffs(0, 21).addBox(-4.0F, -10.0F, -4.0F, 8.0F, 10.0F, 8.0F, new CubeDeformation(0.0F))
-		.texOffs(30, 0).addBox(-4.0F, -2.0F, -4.75F, 8.0F, 4.0F, 1.0F, new CubeDeformation(0.05F))
-		.texOffs(0, 63).addBox(-4.0F, -11.75F, -4.0F, 8.0F, 5.0F, 8.0F, new CubeDeformation(0.5F))
-		.texOffs(24, 63).addBox(-3.0F, -11.75F, -3.0F, 6.0F, 1.0F, 6.0F, new CubeDeformation(0.5F)), PartPose.offset(0.0F, -14.5F, 0.0F));
+		PartDefinition hat = head.addOrReplaceChild("hat", CubeListBuilder.create().texOffs(0, 63).addBox(-4.0F, -3.25F, -4.0F, 8.0F, 5.0F, 8.0F, new CubeDeformation(0.5F))
+				.texOffs(24, 63).addBox(-3.0F, -3.25F, -3.0F, 6.0F, 1.0F, 6.0F, new CubeDeformation(0.5F)), PartPose.offset(0.0F, -8.5F, 0.0F));
 
-		PartDefinition head_r1 = head.addOrReplaceChild("head_r1", CubeListBuilder.create().texOffs(48, 55).addBox(0.0F, -6.6438F, -1.388F, 0.0F, 8.0F, 8.0F, new CubeDeformation(0.0F)), PartPose.offsetAndRotation(-0.25F, -8.7887F, 4.5468F, -0.8294F, -0.0764F, 0.0607F));
+		PartDefinition head_r1 = hat.addOrReplaceChild("head_r1", CubeListBuilder.create().texOffs(48, 55).addBox(0.0005F, -6.7386F, -1.6254F, 0.0F, 8.0F, 8.0F, new CubeDeformation(0.0F)), PartPose.offsetAndRotation(0.5F, -0.0387F, 4.5468F, -1.1352F, 0.1739F, -0.0636F));
 
-		PartDefinition head_r2 = head.addOrReplaceChild("head_r2", CubeListBuilder.create().texOffs(48, 55).addBox(-0.0012F, -6.64F, -1.412F, 0.0F, 8.0F, 8.0F, new CubeDeformation(0.0F)), PartPose.offsetAndRotation(-0.5F, -8.7887F, 4.5468F, -1.1318F, -0.1996F, 0.066F));
+		PartDefinition head_r2 = hat.addOrReplaceChild("head_r2", CubeListBuilder.create().texOffs(48, 55).addBox(0.0F, -6.6438F, -1.388F, 0.0F, 8.0F, 8.0F, new CubeDeformation(0.0F)), PartPose.offsetAndRotation(-0.25F, -0.2887F, 4.5468F, -0.8294F, -0.0764F, 0.0607F));
 
-		PartDefinition head_r3 = head.addOrReplaceChild("head_r3", CubeListBuilder.create().texOffs(48, 55).addBox(0.0005F, -6.7386F, -1.6254F, 0.0F, 8.0F, 8.0F, new CubeDeformation(0.0F)), PartPose.offsetAndRotation(0.5F, -8.5387F, 4.5468F, -1.1352F, 0.1739F, -0.0636F));
+		PartDefinition head_r3 = hat.addOrReplaceChild("head_r3", CubeListBuilder.create().texOffs(48, 55).addBox(-0.0012F, -6.64F, -1.412F, 0.0F, 8.0F, 8.0F, new CubeDeformation(0.0F)), PartPose.offsetAndRotation(-0.5F, -0.2887F, 4.5468F, -1.1318F, -0.1996F, 0.066F));
 
-		PartDefinition head_r4 = head.addOrReplaceChild("head_r4", CubeListBuilder.create().texOffs(48, 55).addBox(0.0F, -6.7495F, -1.6145F, 0.0F, 8.0F, 8.0F, new CubeDeformation(0.0F)), PartPose.offsetAndRotation(0.25F, -8.5387F, 4.5468F, -0.8287F, 0.058F, -0.0211F));
+		PartDefinition head_r4 = hat.addOrReplaceChild("head_r4", CubeListBuilder.create().texOffs(48, 55).addBox(0.0F, -6.7495F, -1.6145F, 0.0F, 8.0F, 8.0F, new CubeDeformation(0.0F)), PartPose.offsetAndRotation(0.25F, -0.0387F, 4.5468F, -0.8287F, 0.058F, -0.0211F));
 
-		PartDefinition left_eyebrown = head.addOrReplaceChild("left_eyebrown", CubeListBuilder.create().texOffs(24, 21).mirror().addBox(-1.5F, -1.0F, -0.5F, 3.0F, 2.0F, 1.0F, new CubeDeformation(0.0F)).mirror(false), PartPose.offset(2.5F, -5.0F, -4.5F));
+		PartDefinition nose = head.addOrReplaceChild("nose", CubeListBuilder.create().texOffs(0, 21).addBox(-1.0F, -1.0F, -6.0F, 2.0F, 4.0F, 2.0F, new CubeDeformation(0.0F)), PartPose.offset(0.0F, -2.0F, 0.0F));
 
-		PartDefinition right_eyebrown = head.addOrReplaceChild("right_eyebrown", CubeListBuilder.create().texOffs(24, 21).addBox(-1.5F, -1.0F, -0.5F, 3.0F, 2.0F, 1.0F, new CubeDeformation(0.0F)), PartPose.offset(-2.5F, -5.0F, -4.5F));
+		PartDefinition beard = head.addOrReplaceChild("beard", CubeListBuilder.create().texOffs(30, 0).addBox(-3.5F, -2.0F, -0.75F, 7.0F, 5.0F, 1.0F, new CubeDeformation(0.05F)), PartPose.offset(0.0F, 0.0F, -4.0F));
 
-		PartDefinition left_arm = root.addOrReplaceChild("left_arm", CubeListBuilder.create().texOffs(32, 33).addBox(-1.0F, -2.0F, -2.0F, 4.0F, 12.0F, 4.0F, new CubeDeformation(0.0F))
-		.texOffs(48, 33).mirror().addBox(-1.0F, -2.0F, -2.0F, 4.0F, 12.0F, 4.0F, new CubeDeformation(0.25F)).mirror(false), PartPose.offset(6.0F, -12.75F, 0.0F));
+		PartDefinition leftArm = root.addOrReplaceChild("left_arm", CubeListBuilder.create().texOffs(32, 33).addBox(-1.0F, -2.0F, -2.0F, 4.0F, 12.0F, 4.0F, new CubeDeformation(0.0F))
+				.texOffs(48, 33).mirror().addBox(-1.0F, -2.0F, -2.0F, 4.0F, 12.0F, 4.0F, new CubeDeformation(0.15F)).mirror(false), PartPose.offset(5.5F, -0.75F, 0.0F));
 
-		PartDefinition left_arm_r1 = left_arm.addOrReplaceChild("left_arm_r1", CubeListBuilder.create().texOffs(48, 17).mirror().addBox(-2.0F, -2.5F, -2.0F, 4.0F, 4.0F, 4.0F, new CubeDeformation(0.75F)).mirror(false), PartPose.offsetAndRotation(1.0F, 8.0F, 0.0F, 0.0F, -1.5708F, 0.0F));
+		PartDefinition left_arm_r1 = leftArm.addOrReplaceChild("left_arm_r1", CubeListBuilder.create().texOffs(48, 17).mirror().addBox(-2.0F, -2.05F, -2.0F, 4.0F, 4.0F, 4.0F, new CubeDeformation(0.3F)).mirror(false), PartPose.offsetAndRotation(1.0F, 8.3F, 0.0F, 0.0F, -1.5708F, 0.0F));
 
-		PartDefinition whistle = left_arm.addOrReplaceChild("whistle", CubeListBuilder.create().texOffs(36, 6).addBox(-1.5F, -1.0F, -5.5F, 3.0F, 4.0F, 4.0F, new CubeDeformation(0.0F))
-		.texOffs(48, 0).addBox(-1.5F, -1.0F, -1.5F, 3.0F, 2.0F, 3.0F, new CubeDeformation(0.0F)), PartPose.offset(1.5F, 9.0F, -2.0F));
+		PartDefinition whistle = leftArm.addOrReplaceChild("whistle", CubeListBuilder.create().texOffs(33, 80).addBox(-1.5F, -2.0F, -3.0F, 2.0F, 3.0F, 2.0F, new CubeDeformation(0.0F))
+				.texOffs(18, 80).addBox(-1.5F, -2.0F, -1.0F, 2.0F, 2.0F, 3.0F, new CubeDeformation(0.0F)), PartPose.offset(1.5F, 9.0F, -2.0F));
 
-		PartDefinition right_arm = root.addOrReplaceChild("right_arm", CubeListBuilder.create().texOffs(32, 33).mirror().addBox(-3.0F, -2.0F, -2.0F, 4.0F, 12.0F, 4.0F, new CubeDeformation(0.0F)).mirror(false)
-		.texOffs(48, 33).addBox(-3.0F, -2.0F, -2.0F, 4.0F, 12.0F, 4.0F, new CubeDeformation(0.25F)), PartPose.offset(-6.0F, -12.75F, 0.0F));
+		PartDefinition rightArm = root.addOrReplaceChild("right_arm", CubeListBuilder.create().texOffs(32, 33).mirror().addBox(-3.0F, -2.0F, -2.0F, 4.0F, 12.0F, 4.0F, new CubeDeformation(0.0F)).mirror(false)
+				.texOffs(48, 33).addBox(-3.0F, -2.0F, -2.0F, 4.0F, 12.0F, 4.0F, new CubeDeformation(0.15F)), PartPose.offset(-5.5F, -0.75F, 0.0F));
 
-		PartDefinition right_arm_r1 = right_arm.addOrReplaceChild("right_arm_r1", CubeListBuilder.create().texOffs(48, 17).addBox(-2.0F, -2.5F, -2.0F, 4.0F, 4.0F, 4.0F, new CubeDeformation(0.75F)), PartPose.offsetAndRotation(-1.0F, 8.0F, 0.0F, 0.0F, 1.5708F, 0.0F));
+		PartDefinition right_arm_r1 = rightArm.addOrReplaceChild("right_arm_r1", CubeListBuilder.create().texOffs(48, 17).addBox(-2.0F, -2.05F, -2.0F, 4.0F, 4.0F, 4.0F, new CubeDeformation(0.3F)), PartPose.offsetAndRotation(-1.0F, 8.3F, 0.0F, 0.0F, 1.5708F, 0.0F));
 
-		PartDefinition left_leg = root.addOrReplaceChild("left_leg", CubeListBuilder.create().texOffs(32, 17).addBox(-2.0F, 0.0F, -2.0F, 4.0F, 12.0F, 4.0F, new CubeDeformation(0.5F)), PartPose.offset(2.5F, 12.0F, 0.0F));
+		PartDefinition body = root.addOrReplaceChild("body", CubeListBuilder.create().texOffs(0, 0).addBox(-4.0F, -14.0F, -3.0F, 8.0F, 12.0F, 6.0F, new CubeDeformation(0.0F))
+				.texOffs(0, 39).addBox(-4.0F, -14.0F, -3.0F, 8.0F, 18.0F, 6.0F, new CubeDeformation(0.4F))
+				.texOffs(32, 49).addBox(-4.0F, -13.75F, -3.0F, 8.0F, 8.0F, 6.0F, new CubeDeformation(1.0F)), PartPose.offset(0.0F, 12.0F, 0.0F));
 
-		PartDefinition right_leg = root.addOrReplaceChild("right_leg", CubeListBuilder.create().texOffs(32, 17).mirror().addBox(-2.0F, 0.0F, -2.0F, 4.0F, 12.0F, 4.0F, new CubeDeformation(0.5F)).mirror(false), PartPose.offset(-2.5F, 12.0F, 0.0F));
+		PartDefinition leftLeg = root.addOrReplaceChild("left_leg", CubeListBuilder.create().texOffs(32, 17).addBox(-2.5F, 0.0F, -2.0F, 4.0F, 12.0F, 4.0F, new CubeDeformation(0.0F)), PartPose.offset(2.5F, 12.0F, 0.0F));
+
+		PartDefinition rightLeg = root.addOrReplaceChild("right_leg", CubeListBuilder.create().texOffs(32, 17).mirror().addBox(-1.5F, 0.0F, -2.0F, 4.0F, 12.0F, 4.0F, new CubeDeformation(0.0F)).mirror(false), PartPose.offset(-2.5F, 12.0F, 0.0F));
 
 		return LayerDefinition.create(meshDefinition, 64, 128);
 	}
@@ -86,6 +88,11 @@ public class HoundmasterModel<T extends Houndmaster> extends HierarchicalModel<T
 	@Override
 	public ModelPart root() {
 		return this.root;
+	}
+
+	@Override
+	public void prepareMobModel(T entity, float limbSwing, float limbSwingAmount, float partialTicks) {
+		this.whistle.visible = entity.isWhistling();
 	}
 
 	@Override
@@ -133,9 +140,8 @@ public class HoundmasterModel<T extends Houndmaster> extends HierarchicalModel<T
 			this.leftArm.zRot = -2.3561945F;
 			this.leftArm.yRot = 0.0F;
 		} else if(entity.isWhistling()){
-			ModelPart whistleArm = this.getArm(entity.getMainArm().getOpposite());
-			whistleArm.xRot = Mth.clamp(this.head.xRot, -1.2F, 1.2F) - 1.4835298F;
-			whistleArm.yRot = this.head.yRot - ((float)Math.PI / 6F);
+			this.leftArm.xRot = Mth.clamp(this.head.xRot, -1.2F, 1.2F) - 1.4835298F;
+			this.leftArm.yRot = this.head.yRot - ((float)Math.PI / 6F);
 		}
 	}
 

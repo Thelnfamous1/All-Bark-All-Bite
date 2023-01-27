@@ -160,14 +160,6 @@ public class IllagerHound extends Monster implements HasOwner, IEntityAdditional
         this.playSound(SoundEvents.WOLF_GROWL, this.getSoundVolume(), this.getVoicePitch());
     }
 
-    public float getTailAngle() {
-        if (this.isAggressive()) {
-            return (float) (49F * Math.PI / 100F);
-        } else {
-            return ((float)Math.PI / 5F);
-        }
-    }
-
     // HasOwner
 
     @Nullable
