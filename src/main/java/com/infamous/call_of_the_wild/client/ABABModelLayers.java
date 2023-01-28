@@ -14,13 +14,14 @@ public class ABABModelLayers {
     public static final ModelLayerLocation DOG = register(ABABEntityTypes.DOG_NAME);
     public static final ModelLayerLocation HOUNDMASTER = register(ABABEntityTypes.HOUNDMASTER_NAME);
     public static final ModelLayerLocation ILLAGER_HOUND = register(ABABEntityTypes.ILLAGER_HOUND_NAME);
+    public static final ModelLayerLocation WOLF = register("wolf");
 
     private static ModelLayerLocation register(String path) {
-        return register(path, "main");
+        return register("main", new ResourceLocation(AllBarkAllBite.MODID, path));
     }
 
-    private static ModelLayerLocation register(String path, String layer) {
-        ModelLayerLocation modellayerlocation = createLocation(path, layer);
+    private static ModelLayerLocation register(String layer, ResourceLocation location) {
+        ModelLayerLocation modellayerlocation = createLocation(layer, location);
         if (!ALL_MODELS.add(modellayerlocation)) {
             throw new IllegalStateException("Duplicate registration for " + modellayerlocation);
         } else {
@@ -28,7 +29,7 @@ public class ABABModelLayers {
         }
     }
 
-    private static ModelLayerLocation createLocation(String path, String layer) {
-        return new ModelLayerLocation(new ResourceLocation(AllBarkAllBite.MODID, path), layer);
+    private static ModelLayerLocation createLocation(String layer, ResourceLocation location) {
+        return new ModelLayerLocation(location, layer);
     }
 }

@@ -6,12 +6,13 @@ package com.infamous.call_of_the_wild.client.renderer.model;// Made with Blockbe
 import com.infamous.call_of_the_wild.client.renderer.model.animation.DogAnimation;
 import com.infamous.call_of_the_wild.common.entity.dog.Dog;
 import net.minecraft.client.model.ColorableHierarchicalModel;
+import net.minecraft.client.model.HeadedModel;
 import net.minecraft.client.model.geom.ModelPart;
 import net.minecraft.client.model.geom.PartPose;
 import net.minecraft.client.model.geom.builders.*;
 
 @SuppressWarnings({"FieldCanBeLocal", "unused", "NullableProblems"})
-public class AndreDogModel<T extends Dog> extends ColorableHierarchicalModel<T> {
+public class DogModel<T extends Dog> extends ColorableHierarchicalModel<T> implements HeadedModel {
 	public static final String HEAD = "head";
 	public static final String BODY = "body";
 	public static final String UPPER_BODY = "upper_body";
@@ -23,7 +24,7 @@ public class AndreDogModel<T extends Dog> extends ColorableHierarchicalModel<T> 
 	private static final String DOG_TAG = "dog_tag";
 	private final ModelPart dogTag;
 	private final ModelPart root;
-	final ModelPart head;
+	private final ModelPart head;
 	private final ModelPart body;
 	private final ModelPart upperBody;
 	private final ModelPart rightHindLeg;
@@ -33,7 +34,7 @@ public class AndreDogModel<T extends Dog> extends ColorableHierarchicalModel<T> 
 	private final ModelPart tail;
 	private float partialTicks;
 
-	public AndreDogModel(ModelPart root) {
+	public DogModel(ModelPart root) {
 		this.root = root;
 		this.head = root.getChild(HEAD);
 		this.body = root.getChild(BODY);
@@ -119,21 +120,23 @@ public class AndreDogModel<T extends Dog> extends ColorableHierarchicalModel<T> 
 
 	@Override
 	public void prepareMobModel(T dog, float animPos, float lerpAnimSpeed, float partialTicks) {
-		this.root().getAllParts().forEach(ModelPart::resetPose); // this runs before setupAnim anyway, so best to do it here
 		this.partialTicks = partialTicks;
 		this.dogTag.visible = dog.isTame() && dog.hasCustomName();
 	}
 
 	@Override
 	public void setupAnim(T dog, float animPos, float lerpAnimSpeed, float bob, float headYRot, float headXRot) {
+		this.root().getAllParts().forEach(ModelPart::resetPose);
 		this.animateHeadLookTarget(headYRot, headXRot);
-		this.animate(dog.babyAnimationState, DogAnimation.DOG_BABY_SCALING, bob);
-		this.animate(dog.sitAnimationState, DogAnimation.DOG_SIT, bob);
-		this.animate(dog.idleAnimationState, DogAnimation.DOG_IDLE, bob);
-		this.animate(dog.walkAnimationState, DogAnimation.DOG_WALK, bob);
-		this.animate(dog.runAnimationState, DogAnimation.DOG_RUN, bob);
-		this.animate(dog.jumpAnimationState, DogAnimation.DOG_JUMP, bob);
-		this.animate(dog.shakeAnimationState, DogAnimation.DOG_SHAKE, bob);
+		this.animate(dog.animationController.attackAnimationState, DogAnimation.ATTACK, bob);
+		this.animate(dog.animationController.babyAnimationState, DogAnimation.BABY, bob);
+		this.animate(dog.animationController.sitAnimationState, DogAnimation.SIT, bob);
+		this.animate(dog.animationController.idleAnimationState, DogAnimation.IDLE, bob);
+		this.animate(dog.animationController.idleSitAnimationState, DogAnimation.IDLE_SIT, bob);
+		this.animate(dog.animationController.walkAnimationState, DogAnimation.WALK, bob);
+		this.animate(dog.animationController.sprintAnimationState, DogAnimation.SPRINT, bob);
+		this.animate(dog.animationController.jumpAnimationState, DogAnimation.JUMP, bob);
+		this.animate(dog.animationController.shakeAnimationState, DogAnimation.SHAKE, bob);
 		this.animateInterest(dog, this.partialTicks);
 	}
 
@@ -146,4 +149,8 @@ public class AndreDogModel<T extends Dog> extends ColorableHierarchicalModel<T> 
 		this.head.zRot = dog.getHeadRollAngle(partialTicks); //+ dog.getBodyRollAngle(partialTicks, 0.0F);
 	}
 
+	@Override
+	public ModelPart getHead() {
+		return this.head;
+	}
 }

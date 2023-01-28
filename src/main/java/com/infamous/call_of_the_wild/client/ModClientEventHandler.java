@@ -5,7 +5,8 @@ import com.infamous.call_of_the_wild.client.renderer.ABABWolfRenderer;
 import com.infamous.call_of_the_wild.client.renderer.DogRenderer;
 import com.infamous.call_of_the_wild.client.renderer.HoundmasterRenderer;
 import com.infamous.call_of_the_wild.client.renderer.IllagerHoundRenderer;
-import com.infamous.call_of_the_wild.client.renderer.model.AndreDogModel;
+import com.infamous.call_of_the_wild.client.renderer.model.ABABWolfModel;
+import com.infamous.call_of_the_wild.client.renderer.model.DogModel;
 import com.infamous.call_of_the_wild.client.renderer.model.HoundmasterModel;
 import com.infamous.call_of_the_wild.client.renderer.model.IllagerHoundModel;
 import com.infamous.call_of_the_wild.common.registry.ABABEntityTypes;
@@ -21,7 +22,8 @@ public class ModClientEventHandler {
 
     @SubscribeEvent
     static void onRegisterLayerDefinitions(EntityRenderersEvent.RegisterLayerDefinitions event){
-        event.registerLayerDefinition(ABABModelLayers.DOG, AndreDogModel::createBodyLayer);
+        event.registerLayerDefinition(ABABModelLayers.DOG, DogModel::createBodyLayer);
+        event.registerLayerDefinition(ABABModelLayers.WOLF, ABABWolfModel::createBodyLayer);
         event.registerLayerDefinition(ABABModelLayers.HOUNDMASTER, HoundmasterModel::createBodyLayer);
         event.registerLayerDefinition(ABABModelLayers.ILLAGER_HOUND, IllagerHoundModel::createBodyLayer);
     }

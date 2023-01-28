@@ -201,7 +201,9 @@ public class WolfAi {
 
         boolean inWater = wolf.isInWater();
         if (inWater || wolf.getTarget() != null || wolf.level.isThundering()) {
-            GenericAi.wakeUp(wolf);
+            if(wolf.isSleeping()){
+                GenericAi.wakeUp(wolf);
+            }
         }
 
         if (inWater || wolf.isSleeping()) {

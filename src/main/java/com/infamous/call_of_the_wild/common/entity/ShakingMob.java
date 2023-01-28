@@ -62,19 +62,16 @@ public interface ShakingMob {
         }
     }
 
-    default boolean handleShakingEvent(byte id){
+    default void handleShakingEvent(byte id){
         if (id == START_SHAKING_ID) {
             //this.setIsShaking(true);
             this.setShakeAnims(0.0F, 0.0F);
-            this.getShakeAnimationState().startIfStopped(this.cast().tickCount);
-            return true;
+            this.getShakeAnimationState().start(this.cast().tickCount);
         } else if (id == STOP_SHAKING_ID) {
             //this.setIsShaking(false);
             this.setShakeAnims(0.0F, 0.0F);
             this.getShakeAnimationState().stop();
-            return true;
         }
-        return false;
     }
 
     default void dieShaking(){

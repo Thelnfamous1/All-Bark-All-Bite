@@ -1,5 +1,6 @@
 package com.infamous.call_of_the_wild.common.entity.illager_hound;
 
+import com.infamous.call_of_the_wild.common.entity.EntityAnimationController;
 import com.infamous.call_of_the_wild.common.entity.HasOwner;
 import com.infamous.call_of_the_wild.common.ai.AiUtil;
 import com.infamous.call_of_the_wild.common.util.DebugUtil;
@@ -41,12 +42,14 @@ import java.util.UUID;
 public class IllagerHound extends Monster implements HasOwner, IEntityAdditionalSpawnData {
     protected static final EntityDataAccessor<Optional<UUID>> DATA_OWNERUUID_ID = SynchedEntityData.defineId(IllagerHound.class, EntityDataSerializers.OPTIONAL_UUID);
 
+    public final EntityAnimationController<IllagerHound> animationController;
     @Nullable
     private LivingEntity cachedOwner;
 
     public IllagerHound(EntityType<? extends IllagerHound> entityType, Level level) {
         super(entityType, level);
         this.xpReward = Enemy.XP_REWARD_MEDIUM;
+        this.animationController = new EntityAnimationController<>(this, Entity.DATA_POSE);
     }
 
     public static AttributeSupplier.Builder createAttributes() {
@@ -110,6 +113,46 @@ public class IllagerHound extends Monster implements HasOwner, IEntityAdditional
     @Override
     public Brain<IllagerHound> getBrain() {
         return (Brain<IllagerHound>) super.getBrain();
+    }
+
+    @Override
+    public void onSyncedDataUpdated(EntityDataAccessor<?> entityDataAccessor) {
+        super.onSyncedDataUpdated(entityDataAccessor);
+        if(this.animationController != null){
+            this.animationController.onSyncedDataUpdatedAnimations(entityDataAccessor);
+        }
+    }
+
+    @Override
+    public void tick() {
+        super.tick();
+        this.animationController.tickAnimations();
+    }
+
+    @Override
+    public void aiStep() {
+        super.aiStep();
+        this.animationController.aiStepAnimations();
+    }
+
+    @Override
+    protected void jumpFromGround() {
+        super.jumpFromGround();
+        if (!this.level.isClientSide) {
+            this.level.broadcastEntityEvent(this, EntityAnimationController.JUMPING_EVENT_ID);
+        }
+    }
+
+    @Override
+    public boolean doHurtTarget(Entity target) {
+        this.level.broadcastEntityEvent(this, EntityAnimationController.ATTACKING_EVENT_ID);
+        return super.doHurtTarget(target);
+    }
+
+    @Override
+    public void handleEntityEvent(byte id) {
+        this.animationController.handleEntityEventAnimation(id);
+        super.handleEntityEvent(id);
     }
 
     @Override

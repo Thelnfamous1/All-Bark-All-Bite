@@ -1,5 +1,6 @@
-package com.infamous.call_of_the_wild.client.renderer.model;
+package com.infamous.call_of_the_wild.client.renderer.model.layer;
 
+import com.infamous.call_of_the_wild.client.renderer.model.DogModel;
 import com.infamous.call_of_the_wild.common.entity.dog.Dog;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.math.Vector3f;
@@ -11,10 +12,10 @@ import net.minecraft.client.renderer.entity.layers.RenderLayer;
 import net.minecraft.world.item.ItemStack;
 
 @SuppressWarnings("NullableProblems")
-public class DogHeldItemLayer extends RenderLayer<Dog, AndreDogModel<Dog>> {
+public class DogHeldItemLayer extends RenderLayer<Dog, DogModel<Dog>> {
    private final ItemInHandRenderer itemInHandRenderer;
 
-   public DogHeldItemLayer(RenderLayerParent<Dog, AndreDogModel<Dog>> renderLayerParent, ItemInHandRenderer itemInHandRenderer) {
+   public DogHeldItemLayer(RenderLayerParent<Dog, DogModel<Dog>> renderLayerParent, ItemInHandRenderer itemInHandRenderer) {
       super(renderLayerParent);
       this.itemInHandRenderer = itemInHandRenderer;
    }
@@ -31,9 +32,9 @@ public class DogHeldItemLayer extends RenderLayer<Dog, AndreDogModel<Dog>> {
       }
 
       poseStack.translate(
-              (this.getParentModel()).head.x / 16.0F,
-              (this.getParentModel()).head.y / 16.0F,
-              (this.getParentModel()).head.z / 16.0F);
+              (this.getParentModel()).getHead().x / 16.0F,
+              (this.getParentModel()).getHead().y / 16.0F,
+              (this.getParentModel()).getHead().z / 16.0F);
       float headRollAngle = dog.getHeadRollAngle(partialTicks);
       poseStack.mulPose(Vector3f.ZP.rotation(headRollAngle));
       poseStack.mulPose(Vector3f.YP.rotationDegrees(lerpYRot));

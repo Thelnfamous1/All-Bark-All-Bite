@@ -7,6 +7,7 @@ import com.infamous.call_of_the_wild.common.ai.AiUtil;
 import com.infamous.call_of_the_wild.common.ai.BrainUtil;
 import com.infamous.call_of_the_wild.common.ai.CommandAi;
 import com.infamous.call_of_the_wild.common.entity.DogSpawner;
+import com.infamous.call_of_the_wild.common.entity.EntityAnimationController;
 import com.infamous.call_of_the_wild.common.entity.dog.Dog;
 import com.infamous.call_of_the_wild.common.entity.wolf.WolfAi;
 import com.infamous.call_of_the_wild.common.event.BrainEvent;
@@ -293,5 +294,13 @@ public class ForgeEventHandler {
                 command.accept(dog);
             }
         });
+    }
+
+    @SubscribeEvent
+    static void onLivingJump(LivingEvent.LivingJumpEvent event){
+        LivingEntity entity = event.getEntity();
+        if(entity.getType() == EntityType.WOLF){
+            entity.level.broadcastEntityEvent(entity, EntityAnimationController.JUMPING_EVENT_ID);
+        }
     }
 }

@@ -1,6 +1,7 @@
-package com.infamous.call_of_the_wild.client.renderer.model;
+package com.infamous.call_of_the_wild.client.renderer.model.layer;
 
 import com.infamous.call_of_the_wild.AllBarkAllBite;
+import com.infamous.call_of_the_wild.client.renderer.model.DogModel;
 import com.infamous.call_of_the_wild.common.entity.dog.Dog;
 import com.mojang.blaze3d.vertex.PoseStack;
 import net.minecraft.client.renderer.MultiBufferSource;
@@ -9,11 +10,11 @@ import net.minecraft.client.renderer.entity.layers.RenderLayer;
 import net.minecraft.resources.ResourceLocation;
 
 @SuppressWarnings("NullableProblems")
-public class DogCollarLayer extends RenderLayer<Dog, AndreDogModel<Dog>> {
+public class DogCollarLayer extends RenderLayer<Dog, DogModel<Dog>> {
    private static final ResourceLocation DOG_COLLAR_LOCATION = new ResourceLocation(AllBarkAllBite.MODID, "textures/entity/dog/dog_collar.png");
    private static final ResourceLocation DOG_TAG_LOCATION = new ResourceLocation(AllBarkAllBite.MODID, "textures/entity/dog/dog_tag.png");
 
-   public DogCollarLayer(RenderLayerParent<Dog, AndreDogModel<Dog>> layerParent) {
+   public DogCollarLayer(RenderLayerParent<Dog, DogModel<Dog>> layerParent) {
       super(layerParent);
    }
 

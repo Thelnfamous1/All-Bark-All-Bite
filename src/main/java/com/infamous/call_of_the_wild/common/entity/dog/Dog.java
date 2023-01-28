@@ -11,8 +11,6 @@ import com.infamous.call_of_the_wild.common.util.DebugUtil;
 import com.infamous.call_of_the_wild.common.util.MiscUtil;
 import com.mojang.serialization.Dynamic;
 import net.minecraft.core.BlockPos;
-import net.minecraft.core.particles.BlockParticleOption;
-import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.protocol.game.DebugPackets;
 import net.minecraft.network.syncher.EntityDataAccessor;
@@ -21,7 +19,6 @@ import net.minecraft.network.syncher.SynchedEntityData;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.sounds.SoundEvents;
-import net.minecraft.util.Mth;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.DifficultyInstance;
 import net.minecraft.world.InteractionHand;
@@ -44,7 +41,6 @@ import net.minecraft.world.item.DyeColor;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.ServerLevelAccessor;
-import net.minecraft.world.level.block.RenderShape;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.pathfinder.BlockPathTypes;
 import net.minecraft.world.phys.Vec3;
@@ -68,19 +64,9 @@ public class Dog extends TamableAnimal implements InterestedMob, ShakingMob, Var
     private static final int FLAG_SHAKING = 32;
     private static final EntityDataAccessor<EntityVariant> DATA_VARIANT_ID = SynchedEntityData.defineId(Dog.class, ABABEntityDataSerializers.DOG_VARIANT.get());
     private static final EntityDataAccessor<Integer> DATA_COLLAR_COLOR = SynchedEntityData.defineId(Dog.class, EntityDataSerializers.INT);
-    private static final byte JUMPING_ID = (byte) 1;
     private final MutablePair<Float, Float> interestedAngles = new MutablePair<>(0.0F, 0.0F);
 
-    public final AnimationState babyAnimationState = new AnimationState();
-    public final AnimationState sitAnimationState = new AnimationState();
-    public AnimationState idleAnimationState = new AnimationState();
-    public final AnimationState walkAnimationState = new AnimationState();
-    public final AnimationState runAnimationState = new AnimationState();
-    public final AnimationState jumpAnimationState = new AnimationState();
-    public final AnimationState shakeAnimationState = new AnimationState();
-    public final AnimationState diggingAnimationState = new AnimationState();
-    private int jumpTicks;
-    private int jumpDuration;
+    public final SharedWolfAnimationController animationController;
     private final MutablePair<Float, Float> shakeAnims = new MutablePair<>(0.0F, 0.0F);
 
     public Dog(EntityType<? extends Dog> type, Level level) {
@@ -89,6 +75,7 @@ public class Dog extends TamableAnimal implements InterestedMob, ShakingMob, Var
         this.setPathfindingMalus(BlockPathTypes.POWDER_SNOW, -1.0F);
         this.setPathfindingMalus(BlockPathTypes.DANGER_POWDER_SNOW, -1.0F);
         this.setCanPickUpLoot(this.canPickUpLoot());
+        this.animationController = new SharedWolfAnimationController(this, TamableAnimal.DATA_FLAGS_ID, Entity.DATA_POSE);
     }
 
     public static AttributeSupplier.Builder createAttributes() {
@@ -108,22 +95,8 @@ public class Dog extends TamableAnimal implements InterestedMob, ShakingMob, Var
     @Override
     public void onSyncedDataUpdated(EntityDataAccessor<?> dataAccessor) {
         super.onSyncedDataUpdated(dataAccessor);
-        if(DATA_FLAGS_ID.equals(dataAccessor)){
-            if(this.level.isClientSide){
-                if(this.isInSittingPose()){
-                    this.idleAnimationState.stop();
-                    this.walkAnimationState.stop();
-                    this.runAnimationState.stop();
-                    this.jumpAnimationState.stop();
-                    this.sitAnimationState.startIfStopped(this.tickCount);
-                } else{
-                    this.sitAnimationState.stop();
-                }
-            }
-        } else if(DATA_POSE.equals(dataAccessor)){
-            if (this.getPose() == Pose.DIGGING) {
-                this.diggingAnimationState.start(this.tickCount);
-            }
+        if(this.animationController != null){
+            this.animationController.onSyncedDataUpdatedAnimations(dataAccessor);
         }
     }
 
@@ -186,47 +159,13 @@ public class Dog extends TamableAnimal implements InterestedMob, ShakingMob, Var
     public void aiStep() {
         super.aiStep();
         this.aiStepShaking();
-        if (this.jumpTicks != this.jumpDuration) {
-            ++this.jumpTicks;
-        } else if (this.jumpDuration != 0) {
-            this.jumpTicks = 0;
-            this.jumpDuration = 0;
-        }
+        this.animationController.aiStepAnimations();
     }
 
     @Override
     public void tick() {
         if (this.level.isClientSide()) {
-            if(this.isBaby()){
-                this.babyAnimationState.startIfStopped(this.tickCount);
-            } else{
-                this.babyAnimationState.stop();
-            }
-
-            boolean midJump = this.jumpDuration != 0;
-            if(!midJump && this.jumpAnimationState.isStarted()) this.jumpAnimationState.stop();
-            boolean moving = this.isMovingOnLandOrInWater();
-
-            if(!this.isInSittingPose()){
-                if (moving && !midJump) {
-                    this.idleAnimationState.stop();
-                    if(this.isSprinting()){
-                        this.walkAnimationState.stop();
-                        this.runAnimationState.startIfStopped(this.tickCount);
-                    } else{
-                        this.runAnimationState.stop();
-                        this.walkAnimationState.startIfStopped(this.tickCount);
-                    }
-                } else {
-                    if(!midJump) this.idleAnimationState.startIfStopped(this.tickCount);
-                    this.walkAnimationState.stop();
-                    this.runAnimationState.stop();
-                }
-            }
-
-            if (this.getPose() == Pose.DIGGING) {
-                this.clientDiggingParticles(this.diggingAnimationState);
-            }
+            this.animationController.tickAnimations();
         }
 
         super.tick();
@@ -234,26 +173,6 @@ public class Dog extends TamableAnimal implements InterestedMob, ShakingMob, Var
             this.tickInterest();
             this.tickShaking();
         }
-    }
-
-    private boolean isMovingOnLandOrInWater() {
-        return this.getDeltaMovement().horizontalDistanceSqr() > 1.0E-6D && (this.isOnGround() || this.isInWaterOrBubble());
-    }
-
-    private void clientDiggingParticles(AnimationState animationState) {
-        if ((float)animationState.getAccumulatedTime() < 4500.0F) {
-            RandomSource random = this.getRandom();
-            BlockState blockStateOn = this.getBlockStateOn();
-            if (blockStateOn.getRenderShape() != RenderShape.INVISIBLE) {
-                for(int particleCount = 0; particleCount < 10; ++particleCount) {
-                    double x = this.getX() + (double) Mth.randomBetween(random, -0.7F, 0.7F);
-                    double y = this.getY();
-                    double z = this.getZ() + (double)Mth.randomBetween(random, -0.7F, 0.7F);
-                    this.level.addParticle(new BlockParticleOption(ParticleTypes.BLOCK, blockStateOn), x, y, z, 0.0D, 0.0D, 0.0D);
-                }
-            }
-        }
-
     }
 
     @Override
@@ -326,12 +245,9 @@ public class Dog extends TamableAnimal implements InterestedMob, ShakingMob, Var
 
     @Override
     public void handleEntityEvent(byte id) {
-        if(id == JUMPING_ID){
-            this.jumpAnimationState.startIfStopped(this.tickCount);
-            this.jumpDuration = 10; // half a second, which is the same length as the jump animation
-            this.jumpTicks = 0;
-        }
-        else if(!this.handleShakingEvent(id)) super.handleEntityEvent(id);
+        this.animationController.handleEntityEventAnimation(id);
+        this.handleShakingEvent(id);
+        super.handleEntityEvent(id);
     }
 
     @Override
@@ -427,8 +343,14 @@ public class Dog extends TamableAnimal implements InterestedMob, ShakingMob, Var
     protected void jumpFromGround() {
         super.jumpFromGround();
         if (!this.level.isClientSide) {
-            this.level.broadcastEntityEvent(this, JUMPING_ID);
+            this.level.broadcastEntityEvent(this, EntityAnimationController.JUMPING_EVENT_ID);
         }
+    }
+
+    @Override
+    public boolean doHurtTarget(Entity target) {
+        this.level.broadcastEntityEvent(this, EntityAnimationController.ATTACKING_EVENT_ID);
+        return super.doHurtTarget(target);
     }
 
     @Override
@@ -589,7 +511,7 @@ public class Dog extends TamableAnimal implements InterestedMob, ShakingMob, Var
 
     @Override
     public AnimationState getShakeAnimationState() {
-        return this.shakeAnimationState;
+        return this.animationController.shakeAnimationState;
     }
 
     // InterestedMob
