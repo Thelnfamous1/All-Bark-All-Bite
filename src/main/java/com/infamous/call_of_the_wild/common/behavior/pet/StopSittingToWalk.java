@@ -21,7 +21,6 @@ public class StopSittingToWalk extends Behavior<TamableAnimal> {
 
     @Override
     protected void start(ServerLevel level, TamableAnimal tamableAnimal, long gameTime) {
-        tamableAnimal.setOrderedToSit(false);
         tamableAnimal.setInSittingPose(false);
     }
 }

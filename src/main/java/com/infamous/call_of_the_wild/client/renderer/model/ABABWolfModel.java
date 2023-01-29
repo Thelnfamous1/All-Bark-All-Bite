@@ -8,13 +8,14 @@ import com.infamous.call_of_the_wild.client.renderer.model.animation.WolfAnimati
 import com.infamous.call_of_the_wild.common.entity.AnimationControllerAccessor;
 import com.infamous.call_of_the_wild.common.entity.SharedWolfAnimationController;
 import net.minecraft.client.model.ColorableHierarchicalModel;
+import net.minecraft.client.model.HeadedModel;
 import net.minecraft.client.model.geom.ModelPart;
 import net.minecraft.client.model.geom.PartPose;
 import net.minecraft.client.model.geom.builders.*;
 import net.minecraft.world.entity.animal.Wolf;
 
 @SuppressWarnings({"NullableProblems", "FieldCanBeLocal", "unused"})
-public class ABABWolfModel<T extends Wolf> extends ColorableHierarchicalModel<T> {
+public class ABABWolfModel<T extends Wolf> extends ColorableHierarchicalModel<T> implements HeadedModel {
 	public static final String HEAD = "head";
 	public static final String BODY = "body";
 	public static final String UPPER_BODY = "upper_body";
@@ -23,6 +24,7 @@ public class ABABWolfModel<T extends Wolf> extends ColorableHierarchicalModel<T>
 	public static final String RIGHT_FRONT_LEG = "right_front_leg";
 	public static final String LEFT_FRONT_LEG = "left_front_leg";
 	public static final String TAIL = "tail";
+	private static final float IDLE_SLEEP_ANIMATION_SPEED = 0.5F;
 	private final ModelPart root;
 	private final ModelPart head;
 	private final ModelPart body;
@@ -92,7 +94,7 @@ public class ABABWolfModel<T extends Wolf> extends ColorableHierarchicalModel<T>
 		this.animate(animationController.crouchAnimationState, WolfAnimation.CROUCH, ageInTicks);
 		this.animate(animationController.idleAnimationState, WolfAnimation.IDLE, ageInTicks);
 		this.animate(animationController.idleSitAnimationState, WolfAnimation.IDLE_SIT, ageInTicks);
-		this.animate(animationController.idleSleepAnimationState, WolfAnimation.IDLE_SLEEP, ageInTicks);
+		this.animate(animationController.idleSleepAnimationState, WolfAnimation.IDLE_SLEEP, ageInTicks, IDLE_SLEEP_ANIMATION_SPEED);
 		this.animate(animationController.jumpAnimationState, WolfAnimation.JUMP, ageInTicks);
 		this.animate(animationController.leapAnimationState, WolfAnimation.LEAP, ageInTicks);
 		this.animate(animationController.shakeAnimationState, DogAnimation.SHAKE, ageInTicks);
@@ -115,5 +117,10 @@ public class ABABWolfModel<T extends Wolf> extends ColorableHierarchicalModel<T>
 	@Override
 	public ModelPart root() {
 		return this.root;
+	}
+
+	@Override
+	public ModelPart getHead() {
+		return this.head;
 	}
 }

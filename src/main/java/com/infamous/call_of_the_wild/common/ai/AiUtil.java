@@ -1,8 +1,10 @@
 package com.infamous.call_of_the_wild.common.ai;
 
-import com.infamous.call_of_the_wild.common.util.ReflectionUtil;
+import com.infamous.call_of_the_wild.mixin.LivingEntityAccessor;
 import com.mojang.datafixers.util.Pair;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.particles.ItemParticleOption;
+import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.util.Mth;
@@ -33,8 +35,6 @@ import java.util.Optional;
 import java.util.UUID;
 
 public class AiUtil {
-
-    private static final String LIVING_ENTITY_GET_SOUND_VOLUME = "m_6121_";
 
     public static void addEatEffect(LivingEntity eater, Level level, FoodProperties foodProperties) {
         for(Pair<MobEffectInstance, Float> pair : foodProperties.getEffects()) {
@@ -131,9 +131,9 @@ public class AiUtil {
         return livingEntity.getHealth() < livingEntity.getMaxHealth();
     }
 
-    public static void animalEat(Animal animal, ItemStack stack, float soundVolume) {
+    public static void animalEat(Animal animal, ItemStack stack) {
         if (animal.isFood(stack) && !animal.level.isClientSide) {
-            playSoundEvent(animal, animal.getEatingSound(stack), soundVolume);
+            playSoundEvent(animal, animal.getEatingSound(stack));
 
             float healAmount = 1.0F;
             FoodProperties foodProperties = stack.getFoodProperties(animal);
@@ -147,13 +147,8 @@ public class AiUtil {
         }
     }
 
-    public static void playSoundEvent(LivingEntity livingEntity, SoundEvent soundEvent, float soundVolume) {
-        livingEntity.playSound(soundEvent, soundVolume, livingEntity.getVoicePitch());
-    }
-
-    @SuppressWarnings("ConstantConditions")
-    public static float getSoundVolume(LivingEntity livingEntity) {
-        return ReflectionUtil.callMethod(LIVING_ENTITY_GET_SOUND_VOLUME, livingEntity);
+    public static void playSoundEvent(LivingEntity livingEntity, SoundEvent soundEvent) {
+        livingEntity.playSound(soundEvent, getSoundVolume(livingEntity), livingEntity.getVoicePitch());
     }
 
     public static void setWalkAndLookTargetMemories(LivingEntity mob, Entity target, float speedModifier, int closeEnough) {
@@ -229,5 +224,30 @@ public class AiUtil {
         }
 
         return hitResult;
+    }
+
+    public static void sendEatParticles(ServerLevel level, LivingEntity entity, ItemStack itemstack) {
+        if (!itemstack.isEmpty()) {
+            Vec3 dist = (new Vec3(
+                    ((double) entity.getRandom().nextFloat() - 0.5D) * 0.1D,
+                    Math.random() * 0.1D + 0.1D,
+                    0.0D))
+                    .xRot(-entity.getXRot() * ((float)Math.PI / 180F))
+                    .yRot(-entity.getYRot() * ((float)Math.PI / 180F));
+            level.sendParticles(
+                    new ItemParticleOption(ParticleTypes.ITEM, itemstack),
+                    entity.getX() + entity.getLookAngle().x / 2.0D,
+                    entity.getY(),
+                    entity.getZ() + entity.getLookAngle().z / 2.0D,
+                    10,
+                    dist.x,
+                    dist.y + 0.05D,
+                    dist.z,
+                    0.0F);
+        }
+    }
+
+    public static float getSoundVolume(LivingEntity livingEntity) {
+        return ((LivingEntityAccessor) livingEntity).callGetSoundVolume();
     }
 }

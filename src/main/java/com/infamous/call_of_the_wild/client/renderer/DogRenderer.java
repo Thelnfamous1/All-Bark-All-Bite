@@ -3,7 +3,7 @@ package com.infamous.call_of_the_wild.client.renderer;
 import com.infamous.call_of_the_wild.client.ABABModelLayers;
 import com.infamous.call_of_the_wild.client.renderer.model.DogModel;
 import com.infamous.call_of_the_wild.client.renderer.model.layer.DogCollarLayer;
-import com.infamous.call_of_the_wild.client.renderer.model.layer.DogHeldItemLayer;
+import com.infamous.call_of_the_wild.client.renderer.model.layer.SharedWolfHeldItemLayer;
 import com.infamous.call_of_the_wild.common.entity.dog.Dog;
 import com.mojang.blaze3d.vertex.PoseStack;
 import net.minecraft.client.renderer.MultiBufferSource;
@@ -19,7 +19,7 @@ public class DogRenderer extends MobRenderer<Dog, DogModel<Dog>> {
    public DogRenderer(EntityRendererProvider.Context context) {
       super(context, new DogModel<>(context.bakeLayer(ABABModelLayers.DOG)), DEFAULT_SHADOW_RADIUS);
       this.addLayer(new DogCollarLayer(this));
-      this.addLayer(new DogHeldItemLayer(this, context.getItemInHandRenderer()));
+      this.addLayer(new SharedWolfHeldItemLayer<>(this, context.getItemInHandRenderer()));
    }
 
    public void render(Dog dog, float lerpYRot, float partialTicks, PoseStack poseStack, MultiBufferSource bufferSource, int packedLight) {

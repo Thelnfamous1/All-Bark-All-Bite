@@ -40,6 +40,7 @@ public class DogAi {
 
     public static final Collection<? extends MemoryModuleType<?>> MEMORY_TYPES = ImmutableList.of(
             MemoryModuleType.ANGRY_AT,
+            MemoryModuleType.ATE_RECENTLY,
             MemoryModuleType.ATTACK_COOLING_DOWN,
             MemoryModuleType.ATTACK_TARGET,
             MemoryModuleType.AVOID_TARGET,
@@ -280,8 +281,9 @@ public class DogAi {
             return false;
         } else if (DogGoalPackages.canFetch(stack)) {
             return DogGoalPackages.isNotHoldingItem(dog) && dog.isTame();
+        } else{
+            return dog.canHoldItem(stack);
         }
-        return false;
     }
 
     /**
@@ -290,7 +292,11 @@ public class DogAi {
     public static void pickUpItem(Dog dog, ItemEntity itemEntity) {
         dog.take(itemEntity, 1);
         ItemStack singleton = MiscUtil.removeOneItemFromItemEntity(itemEntity);
-        holdInMouth(dog, singleton);
+        DogAi.holdInMouth(dog, singleton);
+        AiUtil.setItemPickupCooldown(dog, DogGoalPackages.ITEM_PICKUP_COOLDOWN);
+        if(DogGoalPackages.canFetch(singleton)){
+            dog.getBrain().eraseMemory(ABABMemoryModuleTypes.TIME_TRYING_TO_REACH_FETCH_ITEM.get());
+        }
     }
 
 }

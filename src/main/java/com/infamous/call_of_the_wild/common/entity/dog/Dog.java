@@ -147,7 +147,7 @@ public class Dog extends TamableAnimal implements InterestedMob, ShakingMob, Var
     }
 
     @Override
-    protected float getSoundVolume() {
+    public float getSoundVolume() {
         return 0.4F;
     }
 
@@ -197,9 +197,6 @@ public class Dog extends TamableAnimal implements InterestedMob, ShakingMob, Var
             return false;
         } else {
             Entity sourceEntity = source.getEntity();
-            if (!this.level.isClientSide) {
-                this.setOrderedToSit(false);
-            }
 
             // for some reason, vanilla Wolves take reduced damage from non-players and non-arrows
             if (sourceEntity != null && !(sourceEntity instanceof Player) && !(sourceEntity instanceof AbstractArrow)) {
@@ -239,7 +236,7 @@ public class Dog extends TamableAnimal implements InterestedMob, ShakingMob, Var
 
     @Override
     protected void usePlayerItem(Player player, InteractionHand hand, ItemStack stack) {
-        AiUtil.animalEat(this, stack, this.getSoundVolume());
+        AiUtil.animalEat(this, stack);
         super.usePlayerItem(player, hand, stack);
     }
 
@@ -335,6 +332,13 @@ public class Dog extends TamableAnimal implements InterestedMob, ShakingMob, Var
         RandomSource random = serverLevelAccessor.getRandom();
         EntityVariant randomVariant = MiscUtil.getRandomObject(values, random);
         this.setVariant(randomVariant);
+
+        ServerLevel serverlevel = serverLevelAccessor.getLevel();
+        if (serverlevel.structureManager().getStructureWithPieceAt(this.blockPosition(), ABABTags.DOGS_SPAWN_AS_BLACK).isValid()) {
+            this.setVariant(ABABDogVariants.BLACK.get());
+            this.setPersistenceRequired();
+        }
+
         SharedWolfAi.initMemories(this, random);
         return spawnGroupData;
     }
@@ -386,12 +390,6 @@ public class Dog extends TamableAnimal implements InterestedMob, ShakingMob, Var
     }
 
     @Override
-    protected void pickUpItem(ItemEntity itemEntity) {
-        this.onItemPickup(itemEntity);
-        DogAi.pickUpItem(this, itemEntity);
-    }
-
-    @Override
     public boolean canPickUpLoot() {
         return !this.isOnPickupCooldown();
     }
@@ -407,6 +405,18 @@ public class Dog extends TamableAnimal implements InterestedMob, ShakingMob, Var
     }
 
     @Override
+    public boolean canHoldItem(ItemStack itemStack) {
+        ItemStack itemBySlot = this.getItemInMouth();
+        return itemBySlot.isEmpty() || this.isFood(itemStack) && !this.isFood(itemBySlot);
+    }
+
+    @Override
+    protected void pickUpItem(ItemEntity itemEntity) {
+        this.onItemPickup(itemEntity);
+        DogAi.pickUpItem(this, itemEntity);
+    }
+
+    @Override
     public SoundEvent getEatingSound(ItemStack stack) {
         return SoundEvents.FOX_EAT;
     }
@@ -416,16 +426,15 @@ public class Dog extends TamableAnimal implements InterestedMob, ShakingMob, Var
     }
 
     protected boolean hasItemInMouth() {
-        return !this.getItemInHand(InteractionHand.MAIN_HAND).isEmpty();
+        return !this.getMainHandItem().isEmpty();
     }
 
-    public ItemStack getItemInMouth(){
-        return this.getItemInHand(InteractionHand.MAIN_HAND);
+    protected ItemStack getItemInMouth(){
+        return this.getMainHandItem();
     }
 
-    @SuppressWarnings("SameParameterValue")
-    protected void setItemInMouth(ItemStack stack){
-        this.setItemInHand(InteractionHand.MAIN_HAND, stack);
+    protected void removeItemInMouth(){
+        this.setItemSlot(EquipmentSlot.MAINHAND, ItemStack.EMPTY);
     }
 
     protected boolean isOnPickupCooldown() {

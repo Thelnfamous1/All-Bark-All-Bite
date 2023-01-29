@@ -107,4 +107,5 @@ public class GenericAi {
         return livingEntity.getBrain().getMemory(MemoryModuleType.NEAREST_LIVING_ENTITIES)
                 .orElse(ImmutableList.of());
     }
+
 }

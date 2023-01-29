@@ -28,6 +28,7 @@ public class DataEventHandler {
         generator.addProvider(isServer, ABABInstrumentTagsProvider.create(generator, existingFileHelper));
         generator.addProvider(isServer, ABABItemTagProvider.create(generator, blockTagProvider, existingFileHelper));
         generator.addProvider(isServer, ABABGameEventTagsProvider.create(generator, existingFileHelper));
+        generator.addProvider(isServer, ABABStructureTagsProvider.create(generator, existingFileHelper));
 
         generator.addProvider(isServer,ABABLootTableProvider.create(generator));
     }

@@ -4,6 +4,7 @@
   "compatibilityLevel": "JAVA_17",
   "refmap": "call_of_the_wild.refmap.json",
   "mixins": [
+    "LivingEntityAccessor",
     "LivingEntityMixin",
     "TamableAnimalMixin",
     "VillagerMixin",

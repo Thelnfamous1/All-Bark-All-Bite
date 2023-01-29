@@ -19,6 +19,7 @@ import net.minecraft.world.entity.ai.Brain;
 import net.minecraft.world.entity.ai.behavior.*;
 import net.minecraft.world.entity.ai.memory.MemoryModuleType;
 import net.minecraft.world.entity.ai.sensing.Sensor;
+import net.minecraft.world.entity.animal.Animal;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.entity.schedule.Activity;
 
@@ -58,6 +59,8 @@ public class SharedWolfAi {
     public static final int MAX_ALERTABLE_XZ = 12;
     public static final int MAX_ALERTABLE_Y = 6;
     private static final int HOWL_VOLUME = 4;
+    public static final int EAT_DURATION = 60;
+    public static final int MIN_TICKS_BEFORE_EAT = 600;
 
     public static void initMemories(TamableAnimal wolf, RandomSource randomSource) {
         int huntCooldownInTicks = TIME_BETWEEN_HUNTS.sample(randomSource);
@@ -253,5 +256,9 @@ public class SharedWolfAi {
 
     public static boolean wantsToAttack(TamableAnimal tamableAnimal, LivingEntity target, LivingEntity owner){
         return tamableAnimal.wantsToAttack(target, owner);
+    }
+
+    public static void setAteRecently(Animal animal){
+        animal.getBrain().setMemoryWithExpiry(MemoryModuleType.ATE_RECENTLY, true, MIN_TICKS_BEFORE_EAT - EAT_DURATION);
     }
 }

@@ -1,5 +1,6 @@
 package com.infamous.call_of_the_wild.common.entity;
 
+import com.infamous.call_of_the_wild.common.ABABTags;
 import com.infamous.call_of_the_wild.common.entity.dog.Dog;
 import com.infamous.call_of_the_wild.common.registry.ABABEntityTypes;
 import net.minecraft.core.BlockPos;
@@ -42,11 +43,10 @@ public class DogSpawner implements CustomSpawner {
                         return this.spawnInVillage(level, targetPos);
                      }
 
-                     /*
-                     if (level.structureManager().getStructureWithPieceAt(targetPos, StructureTags.CATS_SPAWN_IN).isValid()) {
+
+                     if (level.structureManager().getStructureWithPieceAt(targetPos, ABABTags.DOGS_SPAWN_IN).isValid()) {
                         return this.spawnInHut(level, targetPos);
                      }
-                      */
                   }
 
                }
@@ -68,7 +68,6 @@ public class DogSpawner implements CustomSpawner {
       return 0;
    }
 
-   @SuppressWarnings("unused")
    private int spawnInHut(ServerLevel level, BlockPos blockPos) {
       int horizontalBound = 16;
       List<Dog> nearbyDogs = level.getEntitiesOfClass(Dog.class, (new AABB(blockPos)).inflate(horizontalBound, 8.0D, horizontalBound));

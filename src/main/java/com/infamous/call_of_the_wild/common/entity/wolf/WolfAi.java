@@ -41,6 +41,7 @@ import java.util.Optional;
 public class WolfAi {
     public static final Collection<? extends MemoryModuleType<?>> MEMORY_TYPES = ImmutableList.of(
             MemoryModuleType.ANGRY_AT,
+            MemoryModuleType.ATE_RECENTLY,
             MemoryModuleType.ATTACK_COOLING_DOWN,
             MemoryModuleType.ATTACK_TARGET,
             MemoryModuleType.AVOID_TARGET,
@@ -191,7 +192,7 @@ public class WolfAi {
         Activity current = brain.getActiveNonCoreActivity().orElse(null);
 
         if (previous != current) {
-            getSoundForCurrentActivity(wolf).ifPresent(se -> AiUtil.playSoundEvent(wolf, se, AiUtil.getSoundVolume(wolf)));
+            getSoundForCurrentActivity(wolf).ifPresent(se -> AiUtil.playSoundEvent(wolf, se));
         }
 
         if(GenericAi.getAttackTarget(wolf).isEmpty() && wolf.getTarget() != null) wolf.setTarget(null);
@@ -207,7 +208,6 @@ public class WolfAi {
         }
 
         if (inWater || wolf.isSleeping()) {
-            wolf.setOrderedToSit(false);
             wolf.setInSittingPose(false);
         }
 
@@ -232,7 +232,8 @@ public class WolfAi {
         return AiUtil.hasAnyMemory(wolf,
                 MemoryModuleType.ATTACK_TARGET,
                 MemoryModuleType.AVOID_TARGET,
-                MemoryModuleType.IS_PANICKING
+                MemoryModuleType.IS_PANICKING,
+                ABABMemoryModuleTypes.HOWL_LOCATION.get()
         ) && !AiUtil.hasAnyMemory(wolf,
                 ABABMemoryModuleTypes.IS_STALKING.get(),
                 ABABMemoryModuleTypes.LONG_JUMP_TARGET.get(),
@@ -303,7 +304,7 @@ public class WolfAi {
         if (!wolf.level.isClientSide) {
             if (wolf.isTame() && wolf.isOwnedBy(player)) {
                 if (wolf.isFood(itemInHand) && AiUtil.isInjured(wolf)) {
-                    AiUtil.animalEat(wolf, itemInHand, AiUtil.getSoundVolume(wolf));
+                    AiUtil.animalEat(wolf, itemInHand);
                     AnimalAccessor.cast(wolf).takeItemFromPlayer(player, hand, itemInHand);
                     return InteractionResult.SUCCESS;
                 }
@@ -312,7 +313,7 @@ public class WolfAi {
                     ItemStack copy = itemInHand.copy(); // retain a copy of the item before it is potentially consumed during animalInteract
                     InteractionResult animalInteractionResult = AnimalAccessor.cast(wolf).animalInteract(player, hand);
                     if(animalInteractionResult.consumesAction()){
-                        AiUtil.animalEat(wolf, copy, AiUtil.getSoundVolume(wolf));
+                        AiUtil.animalEat(wolf, copy);
                     }
                     return animalInteractionResult;
                 }
