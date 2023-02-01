@@ -3,10 +3,10 @@ package com.infamous.call_of_the_wild.client.renderer.model;// Made with Blockbe
 // Paste this class into your mod and generate all required imports
 
 
-import com.infamous.call_of_the_wild.client.renderer.model.animation.DogAnimation;
 import com.infamous.call_of_the_wild.client.renderer.model.animation.WolfAnimation;
 import com.infamous.call_of_the_wild.common.entity.AnimationControllerAccessor;
 import com.infamous.call_of_the_wild.common.entity.SharedWolfAnimationController;
+import com.infamous.call_of_the_wild.mixin.WolfAccessor;
 import net.minecraft.client.model.ColorableHierarchicalModel;
 import net.minecraft.client.model.HeadedModel;
 import net.minecraft.client.model.geom.ModelPart;
@@ -97,21 +97,29 @@ public class ABABWolfModel<T extends Wolf> extends ColorableHierarchicalModel<T>
 		this.animate(animationController.idleSleepAnimationState, WolfAnimation.IDLE_SLEEP, ageInTicks, IDLE_SLEEP_ANIMATION_SPEED);
 		this.animate(animationController.jumpAnimationState, WolfAnimation.JUMP, ageInTicks);
 		this.animate(animationController.leapAnimationState, WolfAnimation.LEAP, ageInTicks);
-		this.animate(animationController.shakeAnimationState, DogAnimation.SHAKE, ageInTicks);
 		this.animate(animationController.sitAnimationState, WolfAnimation.SIT, ageInTicks);
 		this.animate(animationController.sleepAnimationState, WolfAnimation.SLEEP, ageInTicks);
 		this.animate(animationController.sprintAnimationState, WolfAnimation.SPRINT, ageInTicks);
 		this.animate(animationController.walkAnimationState, WolfAnimation.WALK, ageInTicks);
-		this.animateInterest(wolf, this.partialTicks);
+		this.animateInterestAndShaking(wolf, this.partialTicks);
+	}
+
+	private void animateInterestAndShaking(T wolf, float partialTicks) {
+		boolean interested = wolf.isInterested();
+		boolean shaking = ((WolfAccessor)wolf).getIsShaking();
+		if(interested || shaking){
+			this.head.zRot = (interested ? wolf.getHeadRollAngle(partialTicks) : 0.0F) + (shaking ? wolf.getBodyRollAngle(partialTicks, 0.0F) : 0.0F);
+		}
+		if(shaking){
+			this.upperBody.zRot = wolf.getBodyRollAngle(partialTicks, -0.08F);
+			this.body.zRot = wolf.getBodyRollAngle(partialTicks, -0.16F);
+			this.tail.zRot = wolf.getBodyRollAngle(partialTicks, -0.2F);
+		}
 	}
 
 	private void animateHeadLookTarget(float yRot, float xRot) {
 		this.head.xRot = xRot * ((float)Math.PI / 180F);
 		this.head.yRot = yRot * ((float)Math.PI / 180F);
-	}
-
-	private void animateInterest(T wolf, float partialTicks) {
-		this.head.zRot = wolf.getHeadRollAngle(partialTicks); //+ dog.getBodyRollAngle(partialTicks, 0.0F);
 	}
 
 	@Override

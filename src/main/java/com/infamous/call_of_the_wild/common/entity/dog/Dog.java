@@ -518,11 +518,6 @@ public class Dog extends TamableAnimal implements InterestedMob, ShakingMob, Var
         this.playSound(SoundEvents.WOLF_SHAKE, this.getSoundVolume(), (this.random.nextFloat() - this.random.nextFloat()) * 0.2F + 1.0F);
     }
 
-    @Override
-    public AnimationState getShakeAnimationState() {
-        return this.animationController.shakeAnimationState;
-    }
-
     // InterestedMob
 
     @Override

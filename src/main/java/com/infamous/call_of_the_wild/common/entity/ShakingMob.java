@@ -3,7 +3,6 @@ package com.infamous.call_of_the_wild.common.entity;
 import com.infamous.call_of_the_wild.common.util.MiscUtil;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.util.Mth;
-import net.minecraft.world.entity.AnimationState;
 import net.minecraft.world.entity.PathfinderMob;
 import net.minecraft.world.level.gameevent.GameEvent;
 import net.minecraft.world.phys.Vec3;
@@ -64,14 +63,21 @@ public interface ShakingMob {
 
     default void handleShakingEvent(byte id){
         if (id == START_SHAKING_ID) {
-            //this.setIsShaking(true);
             this.setShakeAnims(0.0F, 0.0F);
-            this.getShakeAnimationState().start(this.cast().tickCount);
         } else if (id == STOP_SHAKING_ID) {
-            //this.setIsShaking(false);
             this.setShakeAnims(0.0F, 0.0F);
-            this.getShakeAnimationState().stop();
         }
+    }
+
+    default float getBodyRollAngle(float partialTick, float initialZRot) {
+        float bodyRollAngle = (Mth.lerp(partialTick, this.getShakeAnims().left, this.getShakeAnims().right) + initialZRot) / 1.8F;
+        if (bodyRollAngle < 0.0F) {
+            bodyRollAngle = 0.0F;
+        } else if (bodyRollAngle > 1.0F) {
+            bodyRollAngle = 1.0F;
+        }
+
+        return Mth.sin(bodyRollAngle * (float)Math.PI) * Mth.sin(bodyRollAngle * (float)Math.PI * 11.0F) * 0.15F * (float)Math.PI;
     }
 
     default void dieShaking(){
@@ -82,18 +88,6 @@ public interface ShakingMob {
 
     default float getWetShade(float partialTicks) {
         return Math.min(0.5F + Mth.lerp(partialTicks, this.getShakeAnims().left, this.getShakeAnims().right) / MAX_SHAKE_TIME_IN_SECONDS * 0.5F, 1.0F);
-    }
-
-    @SuppressWarnings("unused")
-    default float getBodyRollAngle(float partialTicks, float additional) {
-        float bodyRoll = (Mth.lerp(partialTicks, this.getShakeAnims().left, this.getShakeAnims().right) + additional) / 1.8F;
-        if (bodyRoll < 0.0F) {
-            bodyRoll = 0.0F;
-        } else if (bodyRoll > 1.0F) {
-            bodyRoll = 1.0F;
-        }
-
-        return Mth.sin(bodyRoll * (float)Math.PI) * Mth.sin(bodyRoll * (float)Math.PI * 11.0F) * 0.15F * (float)Math.PI;
     }
 
     boolean isWet();
@@ -113,5 +107,4 @@ public interface ShakingMob {
 
     void playShakeSound();
 
-    AnimationState getShakeAnimationState();
 }

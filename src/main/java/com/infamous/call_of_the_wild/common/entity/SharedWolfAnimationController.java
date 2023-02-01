@@ -14,7 +14,6 @@ import net.minecraft.world.level.block.state.BlockState;
 public class SharedWolfAnimationController extends EntityAnimationController<TamableAnimal> {
     private final EntityDataAccessor<Byte> tamableEntityFlags;
     public final AnimationState idleSitAnimationState = new AnimationState();
-    public final AnimationState shakeAnimationState = new AnimationState();
     public final AnimationState sitAnimationState = new AnimationState();
     private int idleSitDelayTicks;
 
@@ -28,10 +27,12 @@ public class SharedWolfAnimationController extends EntityAnimationController<Tam
         if (this.tamableEntityFlags.equals(dataAccessor)) {
             if (this.entity.isInSittingPose()) {
                 this.stopAllNonePoseAnimations();
-                if (!this.sitAnimationState.isStarted()) {
-                    this.idleSitDelayTicks = 4; // 0.2 seconds, same length as sit animation
+                if(!this.idleSitAnimationState.isStarted()){
+                    if (!this.sitAnimationState.isStarted()) {
+                        this.idleSitDelayTicks = 4; // 0.2 seconds, same length as sit animation
+                    }
+                    this.sitAnimationState.startIfStopped(this.entity.tickCount);
                 }
-                this.sitAnimationState.startIfStopped(this.entity.tickCount);
             } else {
                 this.sitAnimationState.stop();
                 this.idleSitAnimationState.stop();

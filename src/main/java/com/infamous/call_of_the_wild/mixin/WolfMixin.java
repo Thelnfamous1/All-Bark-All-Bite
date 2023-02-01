@@ -1,6 +1,9 @@
 package com.infamous.call_of_the_wild.mixin;
 
-import com.infamous.call_of_the_wild.common.entity.*;
+import com.infamous.call_of_the_wild.common.entity.AnimalAccessor;
+import com.infamous.call_of_the_wild.common.entity.AnimationControllerAccessor;
+import com.infamous.call_of_the_wild.common.entity.EntityAnimationController;
+import com.infamous.call_of_the_wild.common.entity.SharedWolfAnimationController;
 import com.infamous.call_of_the_wild.common.entity.wolf.WolfAi;
 import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.sounds.SoundEvent;
@@ -56,16 +59,6 @@ public abstract class WolfMixin extends TamableAnimal implements AnimalAccessor,
     @Inject(method = "doHurtTarget", at = @At("HEAD"))
     private void handleDoHurtTarget(Entity target, CallbackInfoReturnable<Boolean> cir){
         this.level.broadcastEntityEvent(this, EntityAnimationController.ATTACKING_EVENT_ID);
-    }
-
-    @Inject(method = "handleEntityEvent", at = @At("HEAD"))
-    private void handleHandleEntityEvent(byte id, CallbackInfo ci){
-        this.animationController.handleEntityEventAnimation(id);
-        if(id == ShakingMob.START_SHAKING_ID){
-            this.animationController.shakeAnimationState.start(this.tickCount);
-        } else if(id == ShakingMob.STOP_SHAKING_ID){
-            this.animationController.shakeAnimationState.stop();
-        }
     }
 
     @Inject(method = "setTame", at = @At("HEAD"), cancellable = true)

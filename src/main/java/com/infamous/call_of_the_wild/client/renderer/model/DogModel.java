@@ -52,63 +52,36 @@ public class DogModel<T extends Dog> extends ColorableHierarchicalModel<T> imple
 		MeshDefinition meshDefinition = new MeshDefinition();
 		PartDefinition root = meshDefinition.getRoot();
 
-		PartDefinition head = root.addOrReplaceChild(HEAD, CubeListBuilder.create()
-				.texOffs(29, 0).addBox(-2.0F, -3.0F, -3.0F, 6.0F, 6.0F, 5.0F, new CubeDeformation(0.0F))
-				.texOffs(32, 33).addBox(-0.5F, -0.02F, -6.0F, 3.0F, 3.0F, 3.0F, new CubeDeformation(0.0F)),
-				PartPose.offset(-1.0F, 12.0F, -4.5F));
+		PartDefinition head = root.addOrReplaceChild(HEAD, CubeListBuilder.create().texOffs(29, 0).addBox(-2.0F, -3.0F, -3.0F, 6.0F, 6.0F, 5.0F, new CubeDeformation(0.0F))
+				.texOffs(32, 33).addBox(-0.5F, -0.02F, -6.0F, 3.0F, 3.0F, 3.0F, new CubeDeformation(0.0F)), PartPose.offset(-1.0F, 12.0F, -4.5F));
 
-		PartDefinition headR1 = head.addOrReplaceChild("head_r1", CubeListBuilder.create()
-				.texOffs(24, 18).addBox(-2.964F, -3.005F, -0.8733F, 3.0F, 4.0F, 1.0F, new CubeDeformation(0.0F)),
-				PartPose.offsetAndRotation(0.0F, -3.0F, 0.0F, 0.2285F, -0.1606F, -0.3867F));
+		PartDefinition head_r1 = head.addOrReplaceChild("head_r1", CubeListBuilder.create().texOffs(24, 18).addBox(-2.964F, -3.005F, -0.8733F, 3.0F, 4.0F, 1.0F, new CubeDeformation(0.0F)), PartPose.offsetAndRotation(0.0F, -3.0F, 0.0F, 0.2285F, -0.1606F, -0.3867F));
 
-		PartDefinition headR2 = head.addOrReplaceChild("head_r2", CubeListBuilder.create()
-				.texOffs(24, 18).mirror().addBox(0.0F, -3.0F, -1.0F, 3.0F, 4.0F, 1.0F, new CubeDeformation(0.0F)).mirror(false),
-				PartPose.offsetAndRotation(2.0F, -3.0F, 0.0F, 0.2285F, 0.1606F, 0.3867F));
+		PartDefinition head_r2 = head.addOrReplaceChild("head_r2", CubeListBuilder.create().texOffs(24, 18).mirror().addBox(0.0F, -3.0F, -1.0F, 3.0F, 4.0F, 1.0F, new CubeDeformation(0.0F)).mirror(false), PartPose.offsetAndRotation(2.0F, -3.0F, 0.0F, 0.2285F, 0.1606F, 0.3867F));
 
 		PartDefinition body = root.addOrReplaceChild(BODY, CubeListBuilder.create(), PartPose.offset(0.0F, 16.0F, 2.5F));
 
-		PartDefinition bodyRotationR1 = body.addOrReplaceChild("body_rotation_r1", CubeListBuilder.create()
-				.texOffs(32, 18).addBox(-4.0F, 0.0F, -6.5F, 8.0F, 13.0F, 2.0F, new CubeDeformation(0.0F)),
-				PartPose.offsetAndRotation(0.0F, -0.5F, -6.5F, 1.5708F, 0.0F, 0.0F));
+		PartDefinition body_rotation_r1 = body.addOrReplaceChild("body_rotation_r1", CubeListBuilder.create().texOffs(32, 18).addBox(-4.0F, 0.0F, -6.5F, 8.0F, 13.0F, 2.0F, new CubeDeformation(0.0F)), PartPose.offsetAndRotation(0.0F, -0.5F, -6.5F, 1.5708F, 0.0F, 0.0F));
 
-		PartDefinition bodyRotationR2 = body.addOrReplaceChild("body_rotation_r2", CubeListBuilder.create()
-				.texOffs(0, 18).addBox(-4.0F, -5.0F, -4.5F, 8.0F, 13.0F, 8.0F, new CubeDeformation(0.0F)),
-				PartPose.offsetAndRotation(0.0F, -0.5F, -1.5F, 1.5708F, 0.0F, 0.0F));
+		PartDefinition body_rotation_r2 = body.addOrReplaceChild("body_rotation_r2", CubeListBuilder.create().texOffs(0, 18).addBox(-4.0F, -5.0F, -4.5F, 8.0F, 13.0F, 8.0F, new CubeDeformation(0.0F)), PartPose.offsetAndRotation(0.0F, -0.5F, -1.5F, 1.5708F, 0.0F, 0.0F));
 
-		PartDefinition bodyRotation = body.addOrReplaceChild("body_rotation", CubeListBuilder.create(),
-				PartPose.offsetAndRotation(0.0F, -1.0F, -0.5F, 1.5708F, 0.0F, 0.0F));
+		PartDefinition body_rotation = body.addOrReplaceChild("body_rotation", CubeListBuilder.create(), PartPose.offsetAndRotation(0.0F, -1.0F, -0.5F, 1.5708F, 0.0F, 0.0F));
 
-		PartDefinition upperBody = body.addOrReplaceChild(UPPER_BODY, CubeListBuilder.create(),
-				PartPose.offset(-1.0F, -1.5F, -0.5F));
+		PartDefinition mane = body.addOrReplaceChild(UPPER_BODY, CubeListBuilder.create(), PartPose.offset(0.0F, -1.5F, 0.0F));
 
-		PartDefinition upperBodyRotation = upperBody.addOrReplaceChild("upper_body_rotation", CubeListBuilder.create()
-				.texOffs(0, 0).addBox(-5.0F, -3.5F, -5.5F, 9.0F, 7.0F, 11.0F, new CubeDeformation(0.0F)),
-				PartPose.offsetAndRotation(1.5F, 2.5F, -3.0F, 1.5708F, 0.0F, 0.0F));
+		PartDefinition mane_rotation = mane.addOrReplaceChild("mane_rotation", CubeListBuilder.create().texOffs(0, 0).addBox(-4.5F, -7.0F, -8.0F, 9.0F, 7.0F, 11.0F, new CubeDeformation(0.0F)), PartPose.offsetAndRotation(0.0F, 0.0F, 0.0F, 1.5708F, 0.0F, 0.0F));
 
-		PartDefinition dogTag = upperBody.addOrReplaceChild(DOG_TAG, CubeListBuilder.create()
-				.texOffs(40, 11).addBox(-1.5F, -4.25F, -0.5F, 2.0F, 1.0F, 2.0F, new CubeDeformation(0.0F)),
-				PartPose.offsetAndRotation(1.5F, 2.5F, -3.0F, 1.5708F, 0.0F, 0.0F));
+		PartDefinition tag = mane.addOrReplaceChild(DOG_TAG, CubeListBuilder.create().texOffs(40, 11).addBox(-1.0F, -7.75F, -3.0F, 2.0F, 1.0F, 2.0F, new CubeDeformation(0.0F)), PartPose.offsetAndRotation(0.0F, 0.0F, 0.0F, 1.5708F, 0.0F, 0.0F));
 
+		PartDefinition leg1 = root.addOrReplaceChild(RIGHT_HIND_LEG, CubeListBuilder.create().texOffs(0, 18).addBox(-1.0F, 0.0F, -1.0F, 2.0F, 5.0F, 2.0F, new CubeDeformation(0.0F)), PartPose.offset(-2.0F, 19.0F, 7.0F));
 
-		PartDefinition rightHindLeg = root.addOrReplaceChild(RIGHT_HIND_LEG, CubeListBuilder.create()
-				.texOffs(0, 18).addBox(0.0F, 3.0F, -1.0F, 2.0F, 5.0F, 2.0F, new CubeDeformation(0.0F)),
-				PartPose.offset(-3.0F, 16.0F, 7.0F));
+		PartDefinition leg2 = root.addOrReplaceChild(LEFT_HIND_LEG, CubeListBuilder.create().texOffs(0, 18).mirror().addBox(-1.0F, 0.0F, -1.0F, 2.0F, 5.0F, 2.0F, new CubeDeformation(0.0F)).mirror(false), PartPose.offset(2.0F, 19.0F, 7.0F));
 
-		PartDefinition leftHindLeg = root.addOrReplaceChild(LEFT_HIND_LEG, CubeListBuilder.create()
-				.texOffs(0, 18).mirror().addBox(0.0F, 3.0F, -1.0F, 2.0F, 5.0F, 2.0F, new CubeDeformation(0.0F)).mirror(false),
-				PartPose.offset(1.0F, 16.0F, 7.0F));
+		PartDefinition leg3 = root.addOrReplaceChild(RIGHT_FRONT_LEG, CubeListBuilder.create().texOffs(0, 18).addBox(-1.0F, 0.0F, -1.0F, 2.0F, 5.0F, 2.0F, new CubeDeformation(0.0F)), PartPose.offset(-2.0F, 19.0F, -2.0F));
 
-		PartDefinition rightFrontLeg = root.addOrReplaceChild(RIGHT_FRONT_LEG, CubeListBuilder.create()
-				.texOffs(0, 18).addBox(0.0F, 3.0F, -1.0F, 2.0F, 5.0F, 2.0F, new CubeDeformation(0.0F)),
-				PartPose.offset(-3.0F, 16.0F, -2.0F));
+		PartDefinition leg4 = root.addOrReplaceChild(LEFT_FRONT_LEG, CubeListBuilder.create().texOffs(0, 18).mirror().addBox(-1.0F, 0.0F, -1.0F, 2.0F, 5.0F, 2.0F, new CubeDeformation(0.0F)).mirror(false), PartPose.offset(2.0F, 19.0F, -2.0F));
 
-		PartDefinition leftFrontLeg = root.addOrReplaceChild(LEFT_FRONT_LEG, CubeListBuilder.create()
-				.texOffs(0, 18).mirror().addBox(0.0F, 3.0F, -1.0F, 2.0F, 5.0F, 2.0F, new CubeDeformation(0.0F)).mirror(false),
-				PartPose.offset(1.0F, 16.0F, -2.0F));
-
-		PartDefinition tail = root.addOrReplaceChild(TAIL, CubeListBuilder.create()
-				.texOffs(0, 0).addBox(-1.0F, 0.0F, -1.0F, 2.0F, 8.0F, 2.0F, new CubeDeformation(0.0F)),
-				PartPose.offset(0.0F, 14.0F, 10.0F));
+		PartDefinition tail = root.addOrReplaceChild(TAIL, CubeListBuilder.create().texOffs(0, 0).addBox(-1.0F, 0.0F, -1.0F, 2.0F, 8.0F, 2.0F, new CubeDeformation(0.0F)), PartPose.offset(0.0F, 14.0F, 10.0F));
 
 		return LayerDefinition.create(meshDefinition, 51, 51);
 	}
@@ -136,17 +109,25 @@ public class DogModel<T extends Dog> extends ColorableHierarchicalModel<T> imple
 		this.animate(dog.animationController.walkAnimationState, DogAnimation.WALK, bob);
 		this.animate(dog.animationController.sprintAnimationState, DogAnimation.SPRINT, bob);
 		this.animate(dog.animationController.jumpAnimationState, DogAnimation.JUMP, bob);
-		this.animate(dog.animationController.shakeAnimationState, DogAnimation.SHAKE, bob);
-		this.animateInterest(dog, this.partialTicks);
+		this.animateInterestAndShaking(dog, this.partialTicks);
+	}
+
+	private void animateInterestAndShaking(T dog, float partialTicks1) {
+		boolean interested = dog.isInterested();
+		boolean shaking = dog.isShaking();
+		if(interested || shaking){
+			this.head.zRot = (interested ? dog.getHeadRollAngle(partialTicks1) : 0.0F) + (shaking ? dog.getBodyRollAngle(partialTicks1, 0.0F) : 0.0F);
+		}
+		if(shaking){
+			this.upperBody.zRot = dog.getBodyRollAngle(partialTicks1, -0.08F);
+			this.body.zRot = dog.getBodyRollAngle(partialTicks1, -0.16F);
+			this.tail.zRot = dog.getBodyRollAngle(partialTicks1, -0.2F);
+		}
 	}
 
 	private void animateHeadLookTarget(float yRot, float xRot) {
 		this.head.xRot = xRot * ((float)Math.PI / 180F);
 		this.head.yRot = yRot * ((float)Math.PI / 180F);
-	}
-
-	private void animateInterest(T dog, float partialTicks) {
-		this.head.zRot = dog.getHeadRollAngle(partialTicks); //+ dog.getBodyRollAngle(partialTicks, 0.0F);
 	}
 
 	@Override
