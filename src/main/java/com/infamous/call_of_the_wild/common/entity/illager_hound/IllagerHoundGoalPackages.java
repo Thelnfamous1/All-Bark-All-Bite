@@ -5,6 +5,7 @@ import com.infamous.call_of_the_wild.common.ABABTags;
 import com.infamous.call_of_the_wild.common.ai.AiUtil;
 import com.infamous.call_of_the_wild.common.behavior.HurtByTrigger;
 import com.infamous.call_of_the_wild.common.behavior.LeapAtTarget;
+import com.infamous.call_of_the_wild.common.behavior.Sprint;
 import com.infamous.call_of_the_wild.common.behavior.pet.FollowOwner;
 import com.infamous.call_of_the_wild.common.behavior.pet.OwnerHurtByTarget;
 import com.infamous.call_of_the_wild.common.behavior.pet.OwnerHurtTarget;
@@ -48,6 +49,7 @@ public class IllagerHoundGoalPackages {
     static ImmutableList<? extends Pair<Integer, ? extends Behavior<? super IllagerHound>>> getFightPackage() {
         return BrainUtil.createPriorityPairs(0,
                 ImmutableList.of(
+                        new Sprint<>(),
                         new SetWalkTargetFromAttackTargetIfTargetOutOfReach(SharedWolfAi.SPEED_MODIFIER_CHASING),
                         new LeapAtTarget(SharedWolfAi.LEAP_YD, SharedWolfAi.TOO_CLOSE_TO_LEAP, SharedWolfAi.POUNCE_DISTANCE),
                         new MeleeAttack(SharedWolfAi.ATTACK_COOLDOWN_TICKS),
@@ -58,7 +60,8 @@ public class IllagerHoundGoalPackages {
     static ImmutableList<? extends Pair<Integer, ? extends Behavior<? super IllagerHound>>> getIdlePackage() {
         return BrainUtil.createPriorityPairs(0,
                 ImmutableList.of(
-                        new FollowOwner<>(AiUtil::getOwner, SharedWolfAi.SPEED_MODIFIER_WALKING, SharedWolfAi.CLOSE_ENOUGH_TO_OWNER, SharedWolfAi.TOO_FAR_FROM_OWNER),
+                        new Sprint<>(SharedWolfAi.TOO_FAR_FROM_WALK_TARGET),
+                        new FollowOwner<>(AiUtil::getOwner, SharedWolfAi.SPEED_MODIFIER_WALKING, SharedWolfAi.CLOSE_ENOUGH_TO_OWNER, SharedWolfAi.TOO_FAR_FROM_WALK_TARGET),
                         new StartAttacking<>(IllagerHoundGoalPackages::findNearestValidAttackTarget),
                         createIdleLookBehavior(),
                         createIdleMovementBehaviors()

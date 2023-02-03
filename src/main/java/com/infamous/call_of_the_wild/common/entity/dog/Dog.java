@@ -224,6 +224,7 @@ public class Dog extends TamableAnimal implements InterestedMob, ShakingMob, Var
                     this.setOrderedToSit(!this.isOrderedToSit());
                     this.setJumping(false);
                     CommandAi.yieldAsPet(this);
+                    DogGoalPackages.stopHoldingItemInMouth(this);
                     CommandAi.setFollowing(this);
                     return InteractionResult.CONSUME;
                 }
@@ -406,8 +407,8 @@ public class Dog extends TamableAnimal implements InterestedMob, ShakingMob, Var
 
     @Override
     public boolean canHoldItem(ItemStack itemStack) {
-        ItemStack itemBySlot = this.getItemInMouth();
-        return itemBySlot.isEmpty() || this.isFood(itemStack) && !this.isFood(itemBySlot);
+        ItemStack itemInMouth = this.getItemInMouth();
+        return itemInMouth.isEmpty() || this.isFood(itemStack) && !this.isFood(itemInMouth);
     }
 
     @Override

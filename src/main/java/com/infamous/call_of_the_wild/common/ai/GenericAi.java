@@ -8,6 +8,7 @@ import net.minecraft.world.entity.PathfinderMob;
 import net.minecraft.world.entity.ai.Brain;
 import net.minecraft.world.entity.ai.memory.MemoryModuleType;
 import net.minecraft.world.entity.ai.memory.NearestVisibleLivingEntities;
+import net.minecraft.world.entity.ai.memory.WalkTarget;
 import net.minecraft.world.entity.ai.util.LandRandomPos;
 import net.minecraft.world.entity.animal.Fox;
 import net.minecraft.world.entity.player.Player;
@@ -108,4 +109,11 @@ public class GenericAi {
                 .orElse(ImmutableList.of());
     }
 
+    public static Optional<WalkTarget> getWalkTarget(LivingEntity livingEntity) {
+        return livingEntity.getBrain().getMemory(MemoryModuleType.WALK_TARGET);
+    }
+
+    public static boolean isPanicking(LivingEntity livingEntity) {
+        return livingEntity.getBrain().hasMemoryValue(MemoryModuleType.IS_PANICKING);
+    }
 }

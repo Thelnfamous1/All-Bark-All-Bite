@@ -16,7 +16,7 @@ public class StopSittingToWalk extends Behavior<TamableAnimal> {
 
     @Override
     protected boolean checkExtraStartConditions(ServerLevel level, TamableAnimal tamableAnimal) {
-        return tamableAnimal.isOrderedToSit() || tamableAnimal.isInSittingPose();
+        return tamableAnimal.isInSittingPose();
     }
 
     @Override

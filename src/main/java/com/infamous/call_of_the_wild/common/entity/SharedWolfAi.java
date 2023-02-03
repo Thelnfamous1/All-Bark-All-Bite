@@ -18,6 +18,7 @@ import net.minecraft.world.entity.*;
 import net.minecraft.world.entity.ai.Brain;
 import net.minecraft.world.entity.ai.behavior.*;
 import net.minecraft.world.entity.ai.memory.MemoryModuleType;
+import net.minecraft.world.entity.ai.memory.WalkTarget;
 import net.minecraft.world.entity.ai.sensing.Sensor;
 import net.minecraft.world.entity.animal.Animal;
 import net.minecraft.world.entity.player.Player;
@@ -55,7 +56,7 @@ public class SharedWolfAi {
     public static final byte FAILED_TAME_ID = 6;
     public static final int CLOSE_ENOUGH_TO_OWNER = 2;
     public static final int TOO_FAR_TO_SWITCH_TARGETS = 4;
-    public static final int TOO_FAR_FROM_OWNER = 10;
+    public static final int TOO_FAR_FROM_WALK_TARGET = 10;
     public static final int MAX_ALERTABLE_XZ = 12;
     public static final int MAX_ALERTABLE_Y = 6;
     private static final int HOWL_VOLUME = 4;
@@ -260,5 +261,9 @@ public class SharedWolfAi {
 
     public static void setAteRecently(Animal animal){
         animal.getBrain().setMemoryWithExpiry(MemoryModuleType.ATE_RECENTLY, true, MIN_TICKS_BEFORE_EAT - EAT_DURATION);
+    }
+
+    public static boolean canSprintCore(TamableAnimal wolf){
+        return canMove(wolf) && GenericAi.isPanicking(wolf);
     }
 }

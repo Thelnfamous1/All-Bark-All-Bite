@@ -1,12 +1,12 @@
 package com.infamous.call_of_the_wild.common.entity;
 
+import com.infamous.call_of_the_wild.common.ai.AiUtil;
 import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.world.entity.AnimationState;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.Pose;
 
 public class EntityAnimationController<T extends LivingEntity> {
-    protected static final double NEAR_ZERO_DELTA_MOVEMENT = 1.0E-6D;
     public static final byte JUMPING_EVENT_ID = (byte) 1;
     public static final byte ATTACKING_EVENT_ID = (byte) 4;
 
@@ -140,7 +140,7 @@ public class EntityAnimationController<T extends LivingEntity> {
         if(!midAttack && this.attackAnimationState.isStarted()) this.attackAnimationState.stop();
 
         boolean inactive = !midJump && !midAttack;
-        if (this.isMovingOnLandOrInWater() && inactive) {
+        if (AiUtil.isMovingOnLandOrInWater(this.entity) && inactive) {
             this.idleAnimationState.stop();
             if (this.entity.isSprinting()) {
                 this.walkAnimationState.stop();
@@ -154,22 +154,6 @@ public class EntityAnimationController<T extends LivingEntity> {
             this.sprintAnimationState.stop();
             this.walkAnimationState.stop();
         }
-    }
-
-    private boolean isMovingOnLand() {
-        return this.entity.isOnGround() && this.isMoving() && !this.entity.isInWaterOrBubble();
-    }
-
-    private boolean isMoving() {
-        return this.entity.getDeltaMovement().horizontalDistanceSqr() > NEAR_ZERO_DELTA_MOVEMENT;
-    }
-
-    private boolean isMovingInWater() {
-        return this.entity.isInWaterOrBubble() && this.isMoving();
-    }
-
-    private boolean isMovingOnLandOrInWater() {
-        return (this.entity.isOnGround() || this.entity.isInWaterOrBubble()) && this.isMoving();
     }
 
     public void handleEntityEventAnimation(byte id) {

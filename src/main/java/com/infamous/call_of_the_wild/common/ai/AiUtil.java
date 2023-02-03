@@ -36,6 +36,8 @@ import java.util.UUID;
 
 public class AiUtil {
 
+    protected static final double NEAR_ZERO_DELTA_MOVEMENT = 1.0E-6D;
+
     public static void addEatEffect(LivingEntity eater, Level level, FoodProperties foodProperties) {
         for(Pair<MobEffectInstance, Float> pair : foodProperties.getEffects()) {
             if (!level.isClientSide && pair.getFirst() != null && level.random.nextFloat() < pair.getSecond()) {
@@ -249,5 +251,21 @@ public class AiUtil {
 
     public static float getSoundVolume(LivingEntity livingEntity) {
         return ((LivingEntityAccessor) livingEntity).callGetSoundVolume();
+    }
+
+    private static boolean isMovingOnLand(LivingEntity entity) {
+        return entity.isOnGround() && isMoving(entity) && !entity.isInWaterOrBubble();
+    }
+
+    private static boolean isMoving(LivingEntity entity) {
+        return entity.getDeltaMovement().horizontalDistanceSqr() > NEAR_ZERO_DELTA_MOVEMENT;
+    }
+
+    private static boolean isMovingInWater(LivingEntity entity) {
+        return entity.isInWaterOrBubble() && isMoving(entity);
+    }
+
+    public static boolean isMovingOnLandOrInWater(LivingEntity entity) {
+        return (entity.isOnGround() || entity.isInWaterOrBubble()) && isMoving(entity);
     }
 }

@@ -129,7 +129,8 @@ public class DogAi {
         brain.addActivityAndRemoveMemoriesWhenStopped(Activity.FIGHT,
                 DogGoalPackages.getFightPackage(),
                 ImmutableSet.of(
-                        Pair.of(MemoryModuleType.ATTACK_TARGET, MemoryStatus.VALUE_PRESENT)
+                        Pair.of(MemoryModuleType.ATTACK_TARGET, MemoryStatus.VALUE_PRESENT),
+                        Pair.of(MemoryModuleType.IS_PANICKING, MemoryStatus.VALUE_ABSENT)
                 ),
                 ImmutableSet.of(MemoryModuleType.ATTACK_TARGET));
     }
@@ -138,7 +139,8 @@ public class DogAi {
         brain.addActivityAndRemoveMemoriesWhenStopped(Activity.AVOID,
                 DogGoalPackages.getAvoidPackage(),
                 ImmutableSet.of(
-                        Pair.of(MemoryModuleType.AVOID_TARGET, MemoryStatus.VALUE_PRESENT)
+                        Pair.of(MemoryModuleType.AVOID_TARGET, MemoryStatus.VALUE_PRESENT),
+                        Pair.of(MemoryModuleType.IS_PANICKING, MemoryStatus.VALUE_ABSENT)
                 ),
                 ImmutableSet.of(MemoryModuleType.AVOID_TARGET));
     }
@@ -147,7 +149,8 @@ public class DogAi {
         brain.addActivityAndRemoveMemoriesWhenStopped(Activity.DIG,
                 DogGoalPackages.getDigPackage(),
                 ImmutableSet.of(
-                        Pair.of(ABABMemoryModuleTypes.DIG_LOCATION.get(), MemoryStatus.VALUE_PRESENT)
+                        Pair.of(ABABMemoryModuleTypes.DIG_LOCATION.get(), MemoryStatus.VALUE_PRESENT),
+                        Pair.of(MemoryModuleType.IS_PANICKING, MemoryStatus.VALUE_ABSENT)
                 ),
                 ImmutableSet.of(ABABMemoryModuleTypes.DIG_LOCATION.get()));
     }
@@ -156,13 +159,17 @@ public class DogAi {
         brain.addActivityAndRemoveMemoriesWhenStopped(ABABActivities.FETCH.get(),
                 DogGoalPackages.getFetchPackage(),
                 ImmutableSet.of(
-                        Pair.of(ABABMemoryModuleTypes.FETCHING_ITEM.get(), MemoryStatus.VALUE_PRESENT)
+                        Pair.of(ABABMemoryModuleTypes.FETCHING_ITEM.get(), MemoryStatus.VALUE_PRESENT),
+                        Pair.of(MemoryModuleType.IS_PANICKING, MemoryStatus.VALUE_ABSENT)
                 ),
                 ImmutableSet.of(ABABMemoryModuleTypes.FETCHING_ITEM.get()));
     }
 
     private static void initIdleActivity(Brain<Dog> brain) {
-        brain.addActivity(Activity.IDLE, DogGoalPackages.getIdlePackage());
+        brain.addActivityWithConditions(Activity.IDLE, DogGoalPackages.getIdlePackage(),
+                ImmutableSet.of(
+                        Pair.of(MemoryModuleType.IS_PANICKING, MemoryStatus.VALUE_ABSENT)
+                ));
     }
 
     /**
@@ -241,16 +248,6 @@ public class DogAi {
         }
 
         dog.setAggressive(brain.hasMemoryValue(MemoryModuleType.ATTACK_TARGET));
-        dog.setSprinting(canSprint(dog));
-    }
-
-    private static boolean canSprint(Dog dog) {
-        return AiUtil.hasAnyMemory(dog,
-                MemoryModuleType.ATTACK_TARGET,
-                MemoryModuleType.AVOID_TARGET,
-                MemoryModuleType.IS_PANICKING,
-                ABABMemoryModuleTypes.FETCHING_ITEM.get(),
-                ABABMemoryModuleTypes.DIG_LOCATION.get());
     }
 
     public static Optional<SoundEvent> getSoundForCurrentActivity(Dog dog) {
@@ -277,11 +274,10 @@ public class DogAi {
                 MemoryModuleType.ATTACK_TARGET,
                 MemoryModuleType.AVOID_TARGET,
                 MemoryModuleType.IS_PANICKING,
-                MemoryModuleType.BREED_TARGET)) {
+                MemoryModuleType.BREED_TARGET,
+                ABABMemoryModuleTypes.DIG_LOCATION.get())) {
             return false;
-        } else if (DogGoalPackages.canFetch(stack)) {
-            return DogGoalPackages.isNotHoldingItem(dog) && dog.isTame();
-        } else{
+        } else {
             return dog.canHoldItem(stack);
         }
     }

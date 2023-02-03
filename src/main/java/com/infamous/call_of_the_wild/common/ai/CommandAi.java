@@ -86,4 +86,8 @@ public class CommandAi {
     private static void stopFollowing(LivingEntity entity) {
         entity.getBrain().eraseMemory(ABABMemoryModuleTypes.IS_FOLLOWING.get());
     }
+
+    public static boolean isFollowing(LivingEntity entity){
+        return entity.getBrain().hasMemoryValue(ABABMemoryModuleTypes.IS_FOLLOWING.get());
+    }
 }

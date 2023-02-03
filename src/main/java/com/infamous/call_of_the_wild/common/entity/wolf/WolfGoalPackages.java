@@ -46,17 +46,16 @@ public class WolfGoalPackages {
     static ImmutableList<? extends Pair<Integer, ? extends Behavior<? super Wolf>>> getCorePackage() {
         return BrainUtil.createPriorityPairs(0,
                 ImmutableList.of(
+                        new Swim(SharedWolfAi.JUMP_CHANCE_IN_WATER),
                         new HurtByTrigger<>(WolfGoalPackages::wasHurtBy),
                         new WakeUpTrigger<>(WolfGoalPackages::wantsToWakeUp),
                         new ValidateLeader(),
                         new ValidateFollowers(),
                         new CountDownCooldownTicks(MemoryModuleType.LONG_JUMP_COOLDOWN_TICKS),
-
-                        new Swim(SharedWolfAi.JUMP_CHANCE_IN_WATER),
                         new RunIf<>(SharedWolfAi::shouldPanic, new AnimalPanic(SharedWolfAi.SPEED_MODIFIER_PANICKING), true),
+                        new Sprint<>(SharedWolfAi::canSprintCore),
                         new LookAtTargetSink(45, 90),
                         new MoveToTargetSink(),
-
                         new StopSittingToWalk(),
                         new OwnerHurtByTarget<>(SharedWolfAi::canDefendOwner, SharedWolfAi::wantsToAttack),
                         new CopyMemoryWithExpiry<>(
@@ -109,6 +108,7 @@ public class WolfGoalPackages {
                                 GateBehavior.OrderPolicy.ORDERED,
                                 GateBehavior.RunningPolicy.TRY_ALL,
                                 ImmutableList.of(
+                                        Pair.of(new Sprint<>(SharedWolfAi::canMove), 1),
                                         Pair.of(new SetWalkTargetFromAttackTargetIfTargetOutOfReach(SharedWolfAi.SPEED_MODIFIER_CHASING), 1),
                                         Pair.of(new LeapAtTarget(SharedWolfAi.LEAP_YD, SharedWolfAi.TOO_CLOSE_TO_LEAP, SharedWolfAi.POUNCE_DISTANCE), 1),
                                         Pair.of(new MeleeAttack(SharedWolfAi.ATTACK_COOLDOWN_TICKS), 1)
@@ -147,6 +147,7 @@ public class WolfGoalPackages {
     static ImmutableList<? extends Pair<Integer, ? extends Behavior<? super Wolf>>> getAvoidPackage() {
         return BrainUtil.createPriorityPairs(0,
                 ImmutableList.of(
+                        new Sprint<>(SharedWolfAi::canMove),
                         SetWalkTargetAwayFrom.entity(MemoryModuleType.AVOID_TARGET, SharedWolfAi.SPEED_MODIFIER_RETREATING, SharedWolfAi.DESIRED_DISTANCE_FROM_ENTITY_WHEN_AVOIDING, true),
                         createIdleLookBehaviors(),
                         createIdleMovementBehaviors(),
@@ -202,6 +203,7 @@ public class WolfGoalPackages {
     static ImmutableList<? extends Pair<Integer, ? extends Behavior<? super Wolf>>> getMeetPackage() {
         return BrainUtil.createPriorityPairs(0,
                 ImmutableList.of(
+                        new Sprint<>(SharedWolfAi::canMove),
                         new StayCloseToTarget<>(SharedWolfAi::getHowlPosition, SharedWolfAi.ADULT_FOLLOW_RANGE.getMinValue() - 1, SharedWolfAi.ADULT_FOLLOW_RANGE.getMaxValue(), SharedWolfAi.SPEED_MODIFIER_WALKING),
                         new EraseMemoryIf<>(WolfGoalPackages::wantsToStopFollowingHowl, ABABMemoryModuleTypes.HOWL_LOCATION.get()))
         );
@@ -228,7 +230,7 @@ public class WolfGoalPackages {
     @NotNull
     static ImmutableList<? extends Pair<Integer, ? extends Behavior<? super Wolf>>> getIdlePackage() {
         return BrainUtil.createPriorityPairs(0, ImmutableList.of(
-
+                new Sprint<>(SharedWolfAi::canMove, SharedWolfAi.TOO_FAR_FROM_WALK_TARGET),
                 new AnimalMakeLove(EntityType.WOLF, SharedWolfAi.SPEED_MODIFIER_BREEDING),
                 new StartAttacking<>(SharedWolfAi::canStartAttacking, SharedWolfAi::findNearestValidAttackTarget),
                 new StartHunting<>(WolfGoalPackages::canHunt, SharedWolfAi::startHunting, SharedWolfAi.TIME_BETWEEN_HUNTS),

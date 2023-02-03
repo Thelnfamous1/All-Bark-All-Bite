@@ -1,12 +1,10 @@
 package com.infamous.call_of_the_wild.common.behavior.pack;
 
 import com.google.common.collect.ImmutableMap;
-import com.infamous.call_of_the_wild.common.registry.ABABMemoryModuleTypes;
 import com.infamous.call_of_the_wild.common.ai.AiUtil;
 import com.infamous.call_of_the_wild.common.ai.GenericAi;
-import com.infamous.call_of_the_wild.common.util.MiscUtil;
 import com.infamous.call_of_the_wild.common.ai.PackAi;
-import net.minecraft.core.particles.ParticleTypes;
+import com.infamous.call_of_the_wild.common.registry.ABABMemoryModuleTypes;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.util.valueproviders.UniformInt;
 import net.minecraft.world.entity.LivingEntity;
@@ -49,7 +47,7 @@ public class FollowPackLeader<E extends LivingEntity> extends Behavior<E> {
         } else {
             this.lastCheckTimestamp = level.getGameTime();
 
-            this.joinOrCreatePack(level, mob);
+            this.joinOrCreatePack(mob);
 
             return PackAi.isFollower(mob);
         }
@@ -60,23 +58,23 @@ public class FollowPackLeader<E extends LivingEntity> extends Behavior<E> {
         return leader.isPresent() && mob.closerThan(leader.get(), this.followRange.getMaxValue() + 1) && !mob.closerThan(leader.get(), this.followRange.getMinValue());
     }
 
-    private void joinOrCreatePack(ServerLevel level, E mob) {
+    private void joinOrCreatePack(E mob) {
         List<LivingEntity> nearbyVisibleAdults = GenericAi.getNearbyVisibleAdults(mob);
 
         // Find a suitable leader, or promote self to leader
-        LivingEntity leader = this.findLeader(level, mob, nearbyVisibleAdults.stream());
+        LivingEntity leader = this.findLeader(mob, nearbyVisibleAdults.stream());
 
         // Tell nearby allies to follow leader
         this.addFollowers(leader, nearbyVisibleAdults.stream());
     }
 
-    private LivingEntity findLeader(ServerLevel level, E mob, Stream<LivingEntity> stream) {
+    private LivingEntity findLeader(E mob, Stream<LivingEntity> stream) {
         LivingEntity leader = stream
                 .filter(le -> PackAi.canFollow(mob, le))
                 .findAny()
                 .orElse(mob);
 
-        MiscUtil.sendParticlesAroundSelf(level, leader, ParticleTypes.FLAME, leader.getEyeHeight(),  10, 0.2D);
+        //MiscUtil.sendParticlesAroundSelf(level, leader, ParticleTypes.FLAME, leader.getEyeHeight(),  10, 0.2D);
         if(leader != mob){
             PackAi.startFollowing(mob, leader);
         }

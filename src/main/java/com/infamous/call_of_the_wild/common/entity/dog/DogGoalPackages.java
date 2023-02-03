@@ -3,10 +3,7 @@ package com.infamous.call_of_the_wild.common.entity.dog;
 import com.google.common.collect.ImmutableList;
 import com.infamous.call_of_the_wild.common.ABABTags;
 import com.infamous.call_of_the_wild.common.ai.*;
-import com.infamous.call_of_the_wild.common.behavior.Beg;
-import com.infamous.call_of_the_wild.common.behavior.Eat;
-import com.infamous.call_of_the_wild.common.behavior.HurtByTrigger;
-import com.infamous.call_of_the_wild.common.behavior.LeapAtTarget;
+import com.infamous.call_of_the_wild.common.behavior.*;
 import com.infamous.call_of_the_wild.common.behavior.dig.DigAtLocation;
 import com.infamous.call_of_the_wild.common.behavior.hunter.RememberIfHuntTargetWasKilled;
 import com.infamous.call_of_the_wild.common.behavior.hunter.StartHunting;
@@ -26,6 +23,7 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.Pose;
 import net.minecraft.world.entity.TamableAnimal;
 import net.minecraft.world.entity.ai.Brain;
 import net.minecraft.world.entity.ai.behavior.*;
@@ -57,6 +55,7 @@ public class DogGoalPackages {
                         new Swim(SharedWolfAi.JUMP_CHANCE_IN_WATER),
                         new HurtByTrigger<>(DogGoalPackages::wasHurtBy),
                         new RunIf<>(SharedWolfAi::shouldPanic, new AnimalPanic(SharedWolfAi.SPEED_MODIFIER_PANICKING), true),
+                        new Sprint<>(SharedWolfAi::canSprintCore),
                         new LookAtTargetSink(45, 90),
                         new MoveToTargetSink(),
                         new SitWhenOrderedTo(),
@@ -67,7 +66,6 @@ public class DogGoalPackages {
                                 ABABMemoryModuleTypes.NEAREST_VISIBLE_DISLIKED.get(),
                                 MemoryModuleType.AVOID_TARGET,
                                 SharedWolfAi.AVOID_DURATION),
-                        new StopHoldingItemIfNoLongerInItemActivity<>(DogGoalPackages::isHoldingNonFetchItem, DogGoalPackages::stopHoldingItemInMouth, ABABMemoryModuleTypes.FETCHING_ITEM.get()),
                         new RunIf<>(DogGoalPackages::canFetch, new StartItemActivityWithItemIfSeen<>(DogGoalPackages::canFetch, ABABMemoryModuleTypes.FETCHING_ITEM.get(), ABABMemoryModuleTypes.FETCHING_DISABLED.get(), ABABMemoryModuleTypes.DISABLE_WALK_TO_FETCH_ITEM.get())),
                         new CountDownCooldownTicks(MemoryModuleType.TEMPTATION_COOLDOWN_TICKS),
                         new CountDownCooldownTicks(MemoryModuleType.ITEM_PICKUP_COOLDOWN_TICKS),
@@ -76,12 +74,6 @@ public class DogGoalPackages {
 
     private static boolean isNearDisliked(Dog wolf){
         return GenericAi.isNearDisliked(wolf, SharedWolfAi.DESIRED_DISTANCE_FROM_DISLIKED);
-    }
-
-    private static boolean isHoldingNonFetchItem(Dog dog) {
-        return dog.hasItemInMouth()
-                && !AiUtil.hasAnyMemory(dog, ABABMemoryModuleTypes.DIG_LOCATION.get())
-                && !dog.isFood(dog.getItemInMouth());
     }
 
     static void stopHoldingItemInMouth(Dog dog) {
@@ -101,7 +93,7 @@ public class DogGoalPackages {
     }
 
     private static boolean canFetch(Dog dog, ItemEntity itemEntity){
-        return canFetch(itemEntity.getItem()) && itemEntity.closerThan(dog, MAX_FETCH_DISTANCE);
+        return !dog.hasItemInMouth() && canFetch(itemEntity.getItem()) && itemEntity.closerThan(dog, MAX_FETCH_DISTANCE);
     }
 
     static boolean canFetch(Dog dog){
@@ -136,6 +128,7 @@ public class DogGoalPackages {
     static ImmutableList<? extends Pair<Integer, ? extends Behavior<? super Dog>>> getFightPackage() {
         return BrainUtil.createPriorityPairs(0,
                 ImmutableList.of(
+                        new Sprint<>(SharedWolfAi::canMove),
                         new StopAttackingIfTargetInvalid<>(),
                         new RunIf<>(SharedWolfAi::canStartAttacking, new SetWalkTargetFromAttackTargetIfTargetOutOfReach(SharedWolfAi.SPEED_MODIFIER_CHASING)),
                         new RunIf<>(SharedWolfAi::canStartAttacking, new LeapAtTarget(SharedWolfAi.LEAP_YD, SharedWolfAi.TOO_CLOSE_TO_LEAP, SharedWolfAi.POUNCE_DISTANCE), true),
@@ -152,6 +145,7 @@ public class DogGoalPackages {
     static ImmutableList<? extends Pair<Integer, ? extends Behavior<? super Dog>>> getAvoidPackage() {
         return BrainUtil.createPriorityPairs(0,
                 ImmutableList.of(
+                        new Sprint<>(SharedWolfAi::canMove),
                         new RunIf<>(SharedWolfAi::canAvoid, SetWalkTargetAwayFrom.entity(MemoryModuleType.AVOID_TARGET, SharedWolfAi.SPEED_MODIFIER_RETREATING, SharedWolfAi.DESIRED_DISTANCE_FROM_ENTITY_WHEN_AVOIDING, true)),
                         createIdleLookBehaviors(),
                         new RunIf<>(DogGoalPackages::canWander, createIdleMovementBehaviors(), true),
@@ -204,8 +198,13 @@ public class DogGoalPackages {
     static ImmutableList<? extends Pair<Integer, ? extends Behavior<? super Dog>>> getDigPackage() {
         return BrainUtil.createPriorityPairs(0,
                 ImmutableList.of(
+                        new Sprint<>(DogGoalPackages::canSprintDig),
                         new RunIf<>(DogGoalPackages::canFetch, new StayCloseToTarget<>(DogGoalPackages::getDigPosition, 1, 2, SPEED_MODIFIER_FETCHING)),
                         new RunIf<>(DogGoalPackages::canFetch, new DigAtLocation<>(DogGoalPackages::onDigCompleted, DIG_DURATION), true)));
+    }
+
+    private static boolean canSprintDig(Dog dog){
+        return SharedWolfAi.canMove(dog) && !dog.hasPose(Pose.DIGGING);
     }
 
     private static Optional<PositionTracker> getDigPosition(LivingEntity dog) {
@@ -271,6 +270,7 @@ public class DogGoalPackages {
     static ImmutableList<? extends Pair<Integer, ? extends Behavior<? super Dog>>> getFetchPackage() {
         return BrainUtil.createPriorityPairs(0,
                 ImmutableList.of(
+                        new Sprint<>(SharedWolfAi::canMove),
                         createGoToWantedItem(DogGoalPackages::canFetch, true),
                         new RunIf<>(DogGoalPackages::canFetch, new GiveItemToTarget<>(Dog::getItemInMouth, AiUtil::getOwner, SharedWolfAi.CLOSE_ENOUGH_TO_OWNER, DogGoalPackages::onThrown), true),
                         new RunIf<>(DogGoalPackages::canReturnItemToOwner, createFollowOwner(SPEED_MODIFIER_FETCHING), true),
@@ -314,6 +314,7 @@ public class DogGoalPackages {
     static ImmutableList<? extends Pair<Integer, ? extends Behavior<? super Dog>>> getIdlePackage() {
         return BrainUtil.createPriorityPairs(0,
                 ImmutableList.of(
+                        new Sprint<>(SharedWolfAi::canMove, SharedWolfAi.TOO_FAR_FROM_WALK_TARGET),
                         new RunIf<>(DogGoalPackages::canFollowOwner, createFollowOwner(SharedWolfAi.SPEED_MODIFIER_WALKING), true),
                         new RunIf<>(SharedWolfAi::canMakeLove, new AnimalMakeLove(ABABEntityTypes.DOG.get(), SharedWolfAi.SPEED_MODIFIER_BREEDING), true),
                         new RunIf<>(SharedWolfAi::canFollowNonOwner, new FollowTemptation(SharedWolfAi::getSpeedModifierTempted), true),

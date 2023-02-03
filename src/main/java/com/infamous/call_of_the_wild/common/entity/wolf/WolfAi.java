@@ -6,14 +6,12 @@ import com.infamous.call_of_the_wild.common.ABABTags;
 import com.infamous.call_of_the_wild.common.ai.AiUtil;
 import com.infamous.call_of_the_wild.common.ai.BrainUtil;
 import com.infamous.call_of_the_wild.common.ai.GenericAi;
-import com.infamous.call_of_the_wild.common.ai.PackAi;
+import com.infamous.call_of_the_wild.common.entity.AnimalAccessor;
 import com.infamous.call_of_the_wild.common.entity.SharedWolfAi;
 import com.infamous.call_of_the_wild.common.registry.ABABMemoryModuleTypes;
 import com.infamous.call_of_the_wild.common.registry.ABABSensorTypes;
-import com.infamous.call_of_the_wild.common.util.*;
-import com.infamous.call_of_the_wild.common.entity.AnimalAccessor;
+import com.infamous.call_of_the_wild.common.util.MiscUtil;
 import com.mojang.datafixers.util.Pair;
-import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.sounds.SoundEvents;
@@ -31,7 +29,10 @@ import net.minecraft.world.entity.ai.sensing.SensorType;
 import net.minecraft.world.entity.animal.Wolf;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.entity.schedule.Activity;
-import net.minecraft.world.item.*;
+import net.minecraft.world.item.DyeColor;
+import net.minecraft.world.item.DyeItem;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.event.entity.living.LivingEvent;
 import org.jetbrains.annotations.Nullable;
 
@@ -123,6 +124,7 @@ public class WolfAi {
                 WolfGoalPackages.getFightPackage(),
                 ImmutableSet.of(
                         Pair.of(MemoryModuleType.ATTACK_TARGET, MemoryStatus.VALUE_PRESENT),
+                        Pair.of(MemoryModuleType.IS_PANICKING, MemoryStatus.VALUE_ABSENT),
                         Pair.of(ABABMemoryModuleTypes.LONG_JUMP_TARGET.get(), MemoryStatus.VALUE_ABSENT),
                         Pair.of(MemoryModuleType.LONG_JUMP_MID_JUMP, MemoryStatus.VALUE_ABSENT)
                 ),
@@ -134,6 +136,7 @@ public class WolfAi {
                 WolfGoalPackages.getAvoidPackage(),
                 ImmutableSet.of(
                         Pair.of(MemoryModuleType.AVOID_TARGET, MemoryStatus.VALUE_PRESENT),
+                        Pair.of(MemoryModuleType.IS_PANICKING, MemoryStatus.VALUE_ABSENT),
                         Pair.of(ABABMemoryModuleTypes.LONG_JUMP_TARGET.get(), MemoryStatus.VALUE_ABSENT),
                         Pair.of(MemoryModuleType.LONG_JUMP_MID_JUMP, MemoryStatus.VALUE_ABSENT)
                 ),
@@ -158,6 +161,7 @@ public class WolfAi {
                 WolfGoalPackages.getMeetPackage(),
                 ImmutableSet.of(
                         Pair.of(ABABMemoryModuleTypes.HOWL_LOCATION.get(), MemoryStatus.VALUE_PRESENT),
+                        Pair.of(MemoryModuleType.IS_PANICKING, MemoryStatus.VALUE_ABSENT),
                         Pair.of(MemoryModuleType.BREED_TARGET, MemoryStatus.VALUE_ABSENT)
                 ),
                 ImmutableSet.of(
@@ -170,7 +174,8 @@ public class WolfAi {
         brain.addActivityAndRemoveMemoriesWhenStopped(Activity.REST,
                 WolfGoalPackages.getRestPackage(),
                 ImmutableSet.of(
-                        Pair.of(ABABMemoryModuleTypes.IS_SLEEPING.get(), MemoryStatus.VALUE_PRESENT)
+                        Pair.of(ABABMemoryModuleTypes.IS_SLEEPING.get(), MemoryStatus.VALUE_PRESENT),
+                        Pair.of(MemoryModuleType.IS_PANICKING, MemoryStatus.VALUE_ABSENT)
                 ),
                 ImmutableSet.of(
                         ABABMemoryModuleTypes.IS_SLEEPING.get()
@@ -179,8 +184,11 @@ public class WolfAi {
     }
 
     private static void initIdleActivity(Brain<Wolf> brain) {
-        brain.addActivity(Activity.IDLE,
-                WolfGoalPackages.getIdlePackage()
+        brain.addActivityWithConditions(Activity.IDLE,
+                WolfGoalPackages.getIdlePackage(),
+                ImmutableSet.of(
+                        Pair.of(MemoryModuleType.IS_PANICKING, MemoryStatus.VALUE_ABSENT)
+                )
         );
     }
 
@@ -198,7 +206,6 @@ public class WolfAi {
         if(GenericAi.getAttackTarget(wolf).isEmpty() && wolf.getTarget() != null) wolf.setTarget(null);
 
         wolf.setAggressive(brain.hasMemoryValue(MemoryModuleType.ATTACK_TARGET));
-        wolf.setSprinting(canSprint(wolf));
 
         boolean inWater = wolf.isInWater();
         if (inWater || wolf.getTarget() != null || wolf.level.isThundering()) {
@@ -217,6 +224,7 @@ public class WolfAi {
             wolf.zza = 0.0F;
         }
 
+        /*
         if(PackAi.hasFollowers(wolf)){
             if(wolf.tickCount % 20 == 0){
                 MiscUtil.sendParticlesAroundSelf((ServerLevel) wolf.level, wolf, ParticleTypes.ANGRY_VILLAGER, wolf.getEyeHeight(),  10, 0.2D);
@@ -226,19 +234,7 @@ public class WolfAi {
                 MiscUtil.sendParticlesAroundSelf((ServerLevel) wolf.level, wolf, ParticleTypes.HAPPY_VILLAGER, wolf.getEyeHeight(),  10, 0.2D);
             }
         }
-    }
-
-    private static boolean canSprint(Wolf wolf) {
-        return AiUtil.hasAnyMemory(wolf,
-                MemoryModuleType.ATTACK_TARGET,
-                MemoryModuleType.AVOID_TARGET,
-                MemoryModuleType.IS_PANICKING,
-                ABABMemoryModuleTypes.HOWL_LOCATION.get()
-        ) && !AiUtil.hasAnyMemory(wolf,
-                ABABMemoryModuleTypes.IS_STALKING.get(),
-                ABABMemoryModuleTypes.LONG_JUMP_TARGET.get(),
-                MemoryModuleType.LONG_JUMP_MID_JUMP
-        );
+         */
     }
 
     public static Optional<SoundEvent> getSoundForCurrentActivity(Wolf wolf) {
