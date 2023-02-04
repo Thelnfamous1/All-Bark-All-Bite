@@ -28,6 +28,6 @@ public class ABABEntityTypeTagProvider extends EntityTypeTagsProvider {
         this.tag(ABABTags.WOLF_HUNT_TARGETS).add(EntityType.SHEEP, EntityType.GOAT, EntityType.PIG, EntityType.RABBIT, EntityType.CHICKEN);
         this.tag(ABABTags.WOLF_DISLIKED).add(EntityType.LLAMA).add(EntityType.TRADER_LLAMA);
 
-        this.tag(ABABTags.ILLAGER_HOUND_ALWAYS_HOSTILES).add(EntityType.PLAYER).add(EntityType.VILLAGER).add(EntityType.WANDERING_TRADER).add(EntityType.IRON_GOLEM);
+        this.tag(ABABTags.ILLAGER_HOUND_ALWAYS_HOSTILES).add(EntityType.VILLAGER).add(EntityType.WANDERING_TRADER).add(EntityType.IRON_GOLEM);
     }
 }

@@ -21,10 +21,7 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.GlobalPos;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundEvents;
-import net.minecraft.world.entity.EntityType;
-import net.minecraft.world.entity.LivingEntity;
-import net.minecraft.world.entity.Pose;
-import net.minecraft.world.entity.TamableAnimal;
+import net.minecraft.world.entity.*;
 import net.minecraft.world.entity.ai.Brain;
 import net.minecraft.world.entity.ai.behavior.*;
 import net.minecraft.world.entity.ai.memory.MemoryModuleType;
@@ -38,7 +35,6 @@ import net.minecraft.world.level.storage.loot.parameters.LootContextParams;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Optional;
-import java.util.function.Predicate;
 
 public class DogGoalPackages {
 
@@ -46,7 +42,6 @@ public class DogGoalPackages {
     public static final int MAX_FETCH_DISTANCE = 16;
     public static final int DISABLE_FETCH_TIME = 200;
     public static final int MAX_TIME_TO_REACH_ITEM = 200;
-    static final float SPEED_MODIFIER_FETCHING = 1.0F; // Dog will sprint with 30% extra speed, meaning final speed is effectively ~1.3F
     private static final long DIG_DURATION = 100L;
 
     static ImmutableList<? extends Pair<Integer, ? extends Behavior<? super Dog>>> getCorePackage() {
@@ -76,28 +71,12 @@ public class DogGoalPackages {
         return GenericAi.isNearDisliked(wolf, SharedWolfAi.DESIRED_DISTANCE_FROM_DISLIKED);
     }
 
-    static void stopHoldingItemInMouth(Dog dog) {
-        spitOutItem(dog, dog.getItemInMouth());
-        dog.removeItemInMouth();
-        AiUtil.setItemPickupCooldown(dog, ITEM_PICKUP_COOLDOWN);
-    }
-
-    protected static void spitOutItem(Dog dog, ItemStack itemStack) {
-        if (!itemStack.isEmpty() && !dog.level.isClientSide) {
-            ItemEntity itemEntity = new ItemEntity(dog.level, dog.getX() + dog.getLookAngle().x, dog.getY() + 1.0D, dog.getZ() + dog.getLookAngle().z, itemStack);
-            itemEntity.setPickUpDelay(40);
-            itemEntity.setThrower(dog.getUUID());
-            dog.playSound(SoundEvents.FOX_SPIT, 1.0F, 1.0F);
-            dog.level.addFreshEntity(itemEntity);
-        }
-    }
-
     private static boolean canFetch(Dog dog, ItemEntity itemEntity){
-        return !dog.hasItemInMouth() && canFetch(itemEntity.getItem()) && itemEntity.closerThan(dog, MAX_FETCH_DISTANCE);
+        return dog.getMainHandItem().isEmpty() && canFetch(itemEntity.getItem()) && itemEntity.closerThan(dog, MAX_FETCH_DISTANCE);
     }
 
-    static boolean canFetch(Dog dog){
-        return SharedWolfAi.canMove(dog) && dog.isTame();
+    static boolean canFetch(TamableAnimal tamableAnimal){
+        return SharedWolfAi.canMove(tamableAnimal) && tamableAnimal.isTame();
     }
 
     protected static boolean canFetch(ItemStack stack) {
@@ -105,8 +84,8 @@ public class DogGoalPackages {
     }
 
     private static void wasHurtBy(Dog dog, LivingEntity attacker) {
-        if (dog.hasItemInMouth()) {
-            stopHoldingItemInMouth(dog);
+        if (!dog.getMainHandItem().isEmpty()) {
+            SharedWolfAi.stopHoldingItemInMouth(dog);
         }
 
         dog.setOrderedToSit(false);
@@ -199,7 +178,7 @@ public class DogGoalPackages {
         return BrainUtil.createPriorityPairs(0,
                 ImmutableList.of(
                         new Sprint<>(DogGoalPackages::canSprintDig),
-                        new RunIf<>(DogGoalPackages::canFetch, new StayCloseToTarget<>(DogGoalPackages::getDigPosition, 1, 2, SPEED_MODIFIER_FETCHING)),
+                        new RunIf<>(DogGoalPackages::canFetch, new StayCloseToTarget<>(DogGoalPackages::getDigPosition, 1, 2, SharedWolfAi.SPEED_MODIFIER_FETCHING)),
                         new RunIf<>(DogGoalPackages::canFetch, new DigAtLocation<>(DogGoalPackages::onDigCompleted, DIG_DURATION), true)));
     }
 
@@ -231,8 +210,8 @@ public class DogGoalPackages {
                 .withParameter(LootContextParams.THIS_ENTITY, dog)
                 .withRandom(dog.getRandom());
 
-        if(canBury(dog.getItemInMouth())){
-            dog.removeItemInMouth();
+        if(canBury(dog.getMainHandItem())){
+            dog.setItemSlot(EquipmentSlot.MAINHAND, ItemStack.EMPTY);
         }
 
         BlockPos digPos = DigAi.getDigLocation(dog).get().pos();
@@ -240,7 +219,7 @@ public class DogGoalPackages {
         boolean pickedUp = false;
         for(ItemStack giftStack : lootTable.getRandomItems(lcb.create(LootContextParamSets.GIFT))) {
             if(!pickedUp){
-                DogAi.holdInMouth(dog, giftStack.split(1));
+                SharedWolfAi.holdInMouth(dog, giftStack.split(1));
                 fetchItem(dog);
                 if(!giftStack.isEmpty()){
                     dropItemAtPos(dog, digPos, giftStack);
@@ -271,16 +250,12 @@ public class DogGoalPackages {
         return BrainUtil.createPriorityPairs(0,
                 ImmutableList.of(
                         new Sprint<>(SharedWolfAi::canMove),
-                        createGoToWantedItem(DogGoalPackages::canFetch, true),
-                        new RunIf<>(DogGoalPackages::canFetch, new GiveItemToTarget<>(Dog::getItemInMouth, AiUtil::getOwner, SharedWolfAi.CLOSE_ENOUGH_TO_OWNER, DogGoalPackages::onThrown), true),
-                        new RunIf<>(DogGoalPackages::canReturnItemToOwner, createFollowOwner(SPEED_MODIFIER_FETCHING), true),
+                        SharedWolfAi.createGoToWantedItem(DogGoalPackages::canFetch, true),
+                        new RunIf<>(DogGoalPackages::canFetch, new GiveItemToTarget<>(LivingEntity::getMainHandItem, AiUtil::getOwner, SharedWolfAi.CLOSE_ENOUGH_TO_OWNER, DogGoalPackages::onThrown), true),
+                        new RunIf<>(DogGoalPackages::canReturnItemToOwner, createFollowOwner(SharedWolfAi.SPEED_MODIFIER_FETCHING), true),
                         new StopItemActivityIfItemTooFarAway<>(DogGoalPackages::canStopFetchingIfItemTooFar, MAX_FETCH_DISTANCE, ABABMemoryModuleTypes.FETCHING_ITEM.get()),
                         new StopItemActivityIfTiredOfTryingToReachItem<>(DogGoalPackages::canGetTiredTryingToReachItem, MAX_TIME_TO_REACH_ITEM, DISABLE_FETCH_TIME, ABABMemoryModuleTypes.FETCHING_ITEM.get(), ABABMemoryModuleTypes.TIME_TRYING_TO_REACH_FETCH_ITEM.get(), ABABMemoryModuleTypes.DISABLE_WALK_TO_FETCH_ITEM.get()),
                         new EraseMemoryIf<>(DogGoalPackages::wantsToStopFetching, ABABMemoryModuleTypes.FETCHING_ITEM.get())));
-    }
-
-    private static RunIf<Dog> createGoToWantedItem(Predicate<Dog> canWander, boolean overrideWalkTarget) {
-        return new RunIf<>(canWander, new GoToWantedItem<>(DogGoalPackages::isNotHoldingItem, SPEED_MODIFIER_FETCHING, overrideWalkTarget, MAX_FETCH_DISTANCE));
     }
 
     private static FollowOwner<Dog> createFollowOwner(float speedModifier) {
@@ -292,23 +267,19 @@ public class DogGoalPackages {
     }
 
     private static boolean canReturnItemToOwner(Dog dog){
-        return canFetch(dog) && dog.hasItemInMouth();
-    }
-
-    static boolean isNotHoldingItem(Dog dog) {
-        return dog.getItemInMouth().isEmpty();
+        return canFetch(dog) && !dog.getMainHandItem().isEmpty();
     }
 
     private static boolean canGetTiredTryingToReachItem(Dog dog) {
-        return !dog.hasItemInMouth();
+        return dog.getMainHandItem().isEmpty();
     }
 
     private static boolean canStopFetchingIfItemTooFar(Dog dog) {
-        return !dog.hasItemInMouth();
+        return dog.getMainHandItem().isEmpty();
     }
 
     private static boolean wantsToStopFetching(Dog dog) {
-        return !dog.isTame() || (!dog.hasItemInMouth() && dog.isOnPickupCooldown());
+        return !dog.isTame() || (dog.getMainHandItem().isEmpty() && GenericAi.isOnPickupCooldown(dog));
     }
 
     static ImmutableList<? extends Pair<Integer, ? extends Behavior<? super Dog>>> getIdlePackage() {
@@ -322,7 +293,7 @@ public class DogGoalPackages {
                         new RunIf<>(DogGoalPackages::canBeg, new Beg<>(DogGoalPackages::isInteresting, Dog::setIsInterested, SharedWolfAi.MAX_LOOK_DIST), true),
                         new StartAttacking<>(SharedWolfAi::canStartAttacking, SharedWolfAi::findNearestValidAttackTarget),
                         new StartHunting<>(DogGoalPackages::canHunt, SharedWolfAi::startHunting, SharedWolfAi.TIME_BETWEEN_HUNTS),
-                        createGoToWantedItem(DogGoalPackages::canWander, false),
+                        SharedWolfAi.createGoToWantedItem(DogGoalPackages::canWander, false),
                         createIdleLookBehaviors(),
                         new RunIf<>(DogGoalPackages::canWander, createIdleMovementBehaviors(), true),
                         new Eat(SharedWolfAi::setAteRecently))
@@ -335,7 +306,7 @@ public class DogGoalPackages {
 
     private static boolean canHunt(Dog dog){
         return !dog.isTame()
-                && !AiUtil.hasAnyMemory(dog, MemoryModuleType.ANGRY_AT)
+                && !AngerAi.hasAngryAt(dog)
                 && !dog.isBaby()
                 && !HunterAi.hasAnyoneNearbyHuntedRecently(dog, GenericAi.getNearbyAdults(dog))
                 && SharedWolfAi.canStartAttacking(dog);

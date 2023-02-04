@@ -17,7 +17,9 @@ import net.minecraft.util.valueproviders.UniformInt;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.behavior.*;
+import net.minecraft.world.entity.ai.memory.MemoryModuleType;
 import net.minecraft.world.entity.ai.sensing.Sensor;
+import net.minecraft.world.entity.player.Player;
 
 import java.util.Optional;
 
@@ -83,7 +85,8 @@ public class IllagerHoundGoalPackages {
     }
 
     private static Optional<? extends LivingEntity> findNearestValidAttackTarget(IllagerHound illagerHound) {
-        return GenericAi.getNearestVisibleLivingEntities(illagerHound).findClosest(le -> isTargetable(illagerHound, le));
+        Optional<Player> nearestAttackablePlayer = illagerHound.getBrain().getMemory(MemoryModuleType.NEAREST_VISIBLE_ATTACKABLE_PLAYER);
+        return nearestAttackablePlayer.isPresent() ? nearestAttackablePlayer : GenericAi.getNearestVisibleLivingEntities(illagerHound).findClosest(le -> isTargetable(illagerHound, le));
     }
 
     private static boolean isTargetable(IllagerHound illagerHound, LivingEntity target) {

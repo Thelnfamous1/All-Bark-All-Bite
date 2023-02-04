@@ -37,8 +37,8 @@ public class IllagerHoundModel<T extends IllagerHound> extends ColorableHierarch
       this.mouth = this.head.getChild(MOUTH);
       this.rightHindLeg = root.getChild(RIGHT_HIND_LEG);
       this.leftHindLeg = root.getChild(LEFT_HIND_LEG);
-      this.rightFrontLeg = root.getChild(RIGHT_HIND_LEG);
-      this.leftFrontLeg = root.getChild(LEFT_HIND_LEG);
+      this.rightFrontLeg = root.getChild(RIGHT_FRONT_LEG);
+      this.leftFrontLeg = root.getChild(LEFT_FRONT_LEG);
       this.tail = root.getChild(TAIL);
    }
 
@@ -80,9 +80,9 @@ public class IllagerHoundModel<T extends IllagerHound> extends ColorableHierarch
 
       PartDefinition leftHindLeg = partdefinition.addOrReplaceChild(LEFT_HIND_LEG, CubeListBuilder.create().texOffs(24, 0).addBox(-1.0F, 0.0F, -1.0F, 2.0F, 7.0F, 2.0F, new CubeDeformation(0.0F)), PartPose.offset(2.0F, 17.0F, 7.0F));
 
-      PartDefinition rightFrontLeg = partdefinition.addOrReplaceChild(RIGHT_HIND_LEG, CubeListBuilder.create().texOffs(24, 0).mirror().addBox(-1.0F, 0.0F, -1.0F, 2.0F, 7.0F, 2.0F, new CubeDeformation(0.25F)).mirror(false), PartPose.offset(-2.75F, 16.75F, -5.5F));
+      PartDefinition rightFrontLeg = partdefinition.addOrReplaceChild(RIGHT_FRONT_LEG, CubeListBuilder.create().texOffs(24, 0).mirror().addBox(-1.0F, 0.0F, -1.0F, 2.0F, 7.0F, 2.0F, new CubeDeformation(0.25F)).mirror(false), PartPose.offset(-2.75F, 16.75F, -5.5F));
 
-      PartDefinition leftFrontLeg = partdefinition.addOrReplaceChild(LEFT_HIND_LEG, CubeListBuilder.create().texOffs(48, 11).addBox(-1.0F, 0.0F, -1.0F, 2.0F, 7.0F, 2.0F, new CubeDeformation(0.25F)), PartPose.offset(2.75F, 16.75F, -5.5F));
+      PartDefinition leftFrontLeg = partdefinition.addOrReplaceChild(LEFT_FRONT_LEG, CubeListBuilder.create().texOffs(48, 11).addBox(-1.0F, 0.0F, -1.0F, 2.0F, 7.0F, 2.0F, new CubeDeformation(0.25F)), PartPose.offset(2.75F, 16.75F, -5.5F));
 
       PartDefinition tail = partdefinition.addOrReplaceChild(TAIL, CubeListBuilder.create().texOffs(0, 0).addBox(-1.0F, 0.0F, -1.0F, 2.0F, 8.0F, 2.0F, new CubeDeformation(0.0F)), PartPose.offset(0.0F, 9.0F, 10.0F));
 

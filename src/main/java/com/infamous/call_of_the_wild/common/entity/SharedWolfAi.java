@@ -1,12 +1,14 @@
 package com.infamous.call_of_the_wild.common.entity;
 
-import com.infamous.call_of_the_wild.common.behavior.MoveToNonSkySeeingSpot;
-import com.infamous.call_of_the_wild.common.registry.ABABGameEvents;
-import com.infamous.call_of_the_wild.common.registry.ABABMemoryModuleTypes;
 import com.infamous.call_of_the_wild.common.ai.AiUtil;
 import com.infamous.call_of_the_wild.common.ai.AngerAi;
 import com.infamous.call_of_the_wild.common.ai.GenericAi;
 import com.infamous.call_of_the_wild.common.ai.HunterAi;
+import com.infamous.call_of_the_wild.common.behavior.MoveToNonSkySeeingSpot;
+import com.infamous.call_of_the_wild.common.entity.dog.DogGoalPackages;
+import com.infamous.call_of_the_wild.common.registry.ABABGameEvents;
+import com.infamous.call_of_the_wild.common.registry.ABABMemoryModuleTypes;
+import com.infamous.call_of_the_wild.common.util.MiscUtil;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.GlobalPos;
 import net.minecraft.sounds.SoundEvents;
@@ -18,14 +20,16 @@ import net.minecraft.world.entity.*;
 import net.minecraft.world.entity.ai.Brain;
 import net.minecraft.world.entity.ai.behavior.*;
 import net.minecraft.world.entity.ai.memory.MemoryModuleType;
-import net.minecraft.world.entity.ai.memory.WalkTarget;
 import net.minecraft.world.entity.ai.sensing.Sensor;
 import net.minecraft.world.entity.animal.Animal;
+import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.entity.schedule.Activity;
+import net.minecraft.world.item.ItemStack;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.function.Predicate;
 
 public class SharedWolfAi {
     public static final int TOO_CLOSE_TO_LEAP = 2;
@@ -59,6 +63,7 @@ public class SharedWolfAi {
     public static final int TOO_FAR_FROM_WALK_TARGET = 10;
     public static final int MAX_ALERTABLE_XZ = 12;
     public static final int MAX_ALERTABLE_Y = 6;
+    public static final float SPEED_MODIFIER_FETCHING = 1.0F; // Dog will sprint with 30% extra speed, meaning final speed is effectively ~1.3F
     private static final int HOWL_VOLUME = 4;
     public static final int EAT_DURATION = 60;
     public static final int MIN_TICKS_BEFORE_EAT = 600;
@@ -265,5 +270,59 @@ public class SharedWolfAi {
 
     public static boolean canSprintCore(TamableAnimal wolf){
         return canMove(wolf) && GenericAi.isPanicking(wolf);
+    }
+
+    public static void stopHoldingItemInMouth(LivingEntity livingEntity) {
+        spitOutItem(livingEntity, livingEntity.getMainHandItem());
+        livingEntity.setItemSlot(EquipmentSlot.MAINHAND, ItemStack.EMPTY);
+        AiUtil.setItemPickupCooldown(livingEntity, DogGoalPackages.ITEM_PICKUP_COOLDOWN);
+    }
+
+    protected static void spitOutItem(LivingEntity livingEntity, ItemStack itemStack) {
+        if (!itemStack.isEmpty() && !livingEntity.level.isClientSide) {
+            ItemEntity itemEntity = new ItemEntity(livingEntity.level, livingEntity.getX() + livingEntity.getLookAngle().x, livingEntity.getY() + 1.0D, livingEntity.getZ() + livingEntity.getLookAngle().z, itemStack);
+            itemEntity.setPickUpDelay(40);
+            itemEntity.setThrower(livingEntity.getUUID());
+            livingEntity.playSound(SoundEvents.FOX_SPIT, 1.0F, 1.0F);
+            livingEntity.level.addFreshEntity(itemEntity);
+        }
+    }
+
+    public static void holdInMouth(Mob mob, ItemStack stack) {
+        if (!mob.getMainHandItem().isEmpty()) {
+            stopHoldingItemInMouth(mob);
+        }
+
+        mob.setItemSlot(EquipmentSlot.MAINHAND, stack);
+        mob.setGuaranteedDrop(EquipmentSlot.MAINHAND);
+        mob.setPersistenceRequired();
+    }
+
+    public static ItemStack pickUpAndHoldItem(Mob mob, ItemEntity itemEntity) {
+        mob.take(itemEntity, 1);
+        ItemStack singleton = MiscUtil.removeOneItemFromItemEntity(itemEntity);
+        holdInMouth(mob, singleton);
+        AiUtil.setItemPickupCooldown(mob, DogGoalPackages.ITEM_PICKUP_COOLDOWN);
+        return singleton;
+    }
+
+    public static boolean isNotHoldingItem(LivingEntity livingEntity) {
+        return livingEntity.getMainHandItem().isEmpty();
+    }
+
+    public static RunIf<TamableAnimal> createGoToWantedItem(Predicate<TamableAnimal> canWander, boolean overrideWalkTarget) {
+        return new RunIf<>(canWander, new GoToWantedItem<>(SharedWolfAi::isNotHoldingItem, SharedWolfAi.SPEED_MODIFIER_FETCHING, overrideWalkTarget, DogGoalPackages.MAX_FETCH_DISTANCE));
+    }
+
+    public static boolean isAbleToPickUp(Mob mob, ItemStack stack) {
+        if (AiUtil.hasAnyMemory(mob,
+                MemoryModuleType.ATTACK_TARGET,
+                MemoryModuleType.AVOID_TARGET,
+                MemoryModuleType.IS_PANICKING,
+                MemoryModuleType.BREED_TARGET)) {
+            return false;
+        } else {
+            return mob.canHoldItem(stack);
+        }
     }
 }

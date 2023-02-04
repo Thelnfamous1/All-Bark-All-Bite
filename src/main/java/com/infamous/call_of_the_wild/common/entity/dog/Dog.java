@@ -3,6 +3,7 @@ package com.infamous.call_of_the_wild.common.entity.dog;
 import com.infamous.call_of_the_wild.common.ABABTags;
 import com.infamous.call_of_the_wild.common.ai.AiUtil;
 import com.infamous.call_of_the_wild.common.ai.CommandAi;
+import com.infamous.call_of_the_wild.common.ai.GenericAi;
 import com.infamous.call_of_the_wild.common.entity.*;
 import com.infamous.call_of_the_wild.common.registry.ABABDogVariants;
 import com.infamous.call_of_the_wild.common.registry.ABABEntityDataSerializers;
@@ -28,7 +29,6 @@ import net.minecraft.world.entity.*;
 import net.minecraft.world.entity.ai.Brain;
 import net.minecraft.world.entity.ai.attributes.AttributeSupplier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
-import net.minecraft.world.entity.ai.memory.MemoryModuleType;
 import net.minecraft.world.entity.animal.Animal;
 import net.minecraft.world.entity.animal.horse.AbstractHorse;
 import net.minecraft.world.entity.item.ItemEntity;
@@ -224,7 +224,7 @@ public class Dog extends TamableAnimal implements InterestedMob, ShakingMob, Var
                     this.setOrderedToSit(!this.isOrderedToSit());
                     this.setJumping(false);
                     CommandAi.yieldAsPet(this);
-                    DogGoalPackages.stopHoldingItemInMouth(this);
+                    SharedWolfAi.stopHoldingItemInMouth(this);
                     CommandAi.setFollowing(this);
                     return InteractionResult.CONSUME;
                 }
@@ -392,7 +392,7 @@ public class Dog extends TamableAnimal implements InterestedMob, ShakingMob, Var
 
     @Override
     public boolean canPickUpLoot() {
-        return !this.isOnPickupCooldown();
+        return !GenericAi.isOnPickupCooldown(this);
     }
 
     @Override
@@ -407,7 +407,7 @@ public class Dog extends TamableAnimal implements InterestedMob, ShakingMob, Var
 
     @Override
     public boolean canHoldItem(ItemStack itemStack) {
-        ItemStack itemInMouth = this.getItemInMouth();
+        ItemStack itemInMouth = this.getMainHandItem();
         return itemInMouth.isEmpty() || this.isFood(itemStack) && !this.isFood(itemInMouth);
     }
 
@@ -420,26 +420,6 @@ public class Dog extends TamableAnimal implements InterestedMob, ShakingMob, Var
     @Override
     public SoundEvent getEatingSound(ItemStack stack) {
         return SoundEvents.FOX_EAT;
-    }
-
-    protected void holdInMouth(ItemStack stack) {
-        this.setItemSlotAndDropWhenKilled(EquipmentSlot.MAINHAND, stack);
-    }
-
-    protected boolean hasItemInMouth() {
-        return !this.getMainHandItem().isEmpty();
-    }
-
-    protected ItemStack getItemInMouth(){
-        return this.getMainHandItem();
-    }
-
-    protected void removeItemInMouth(){
-        this.setItemSlot(EquipmentSlot.MAINHAND, ItemStack.EMPTY);
-    }
-
-    protected boolean isOnPickupCooldown() {
-        return this.getBrain().hasMemoryValue(MemoryModuleType.ITEM_PICKUP_COOLDOWN_TICKS);
     }
 
     @Override

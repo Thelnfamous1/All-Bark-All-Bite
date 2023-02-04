@@ -18,6 +18,7 @@ import net.minecraft.sounds.SoundEvent;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
+import net.minecraft.world.entity.Mob;
 import net.minecraft.world.entity.ai.Brain;
 import net.minecraft.world.entity.ai.memory.MemoryModuleType;
 import net.minecraft.world.entity.ai.memory.MemoryStatus;
@@ -188,7 +189,7 @@ public class DogAi {
                         CommandAi.yieldAsPet(dog);
                         DigAi.setDigLocation(dog, digLocation.get());
                         ItemStack singleton = stack.split(1);
-                        holdInMouth(dog, singleton);
+                        SharedWolfAi.holdInMouth(dog, singleton);
                         return Optional.of(InteractionResult.CONSUME);
                     } else{
                         return Optional.of(InteractionResult.PASS);
@@ -226,14 +227,6 @@ public class DogAi {
         return Optional.of(InteractionResult.PASS);
     }
 
-    public static void holdInMouth(Dog dog, ItemStack stack) {
-        if (dog.hasItemInMouth()) {
-            DogGoalPackages.stopHoldingItemInMouth(dog);
-        }
-
-        dog.holdInMouth(stack);
-    }
-
     /**
      * Called by {@link Dog#customServerAiStep()}
      */
@@ -269,27 +262,15 @@ public class DogAi {
     /**
      * Called by {@link Dog#wantsToPickUp(ItemStack)}
      */
-    public static boolean wantsToPickup(Dog dog, ItemStack stack) {
-        if (AiUtil.hasAnyMemory(dog,
-                MemoryModuleType.ATTACK_TARGET,
-                MemoryModuleType.AVOID_TARGET,
-                MemoryModuleType.IS_PANICKING,
-                MemoryModuleType.BREED_TARGET,
-                ABABMemoryModuleTypes.DIG_LOCATION.get())) {
-            return false;
-        } else {
-            return dog.canHoldItem(stack);
-        }
+    public static boolean wantsToPickup(Mob dog, ItemStack stack) {
+        return DigAi.getDigLocation(dog).isEmpty() && SharedWolfAi.isAbleToPickUp(dog, stack);
     }
 
     /**
      * Called by {@link Dog#pickUpItem(ItemEntity)}
      */
     public static void pickUpItem(Dog dog, ItemEntity itemEntity) {
-        dog.take(itemEntity, 1);
-        ItemStack singleton = MiscUtil.removeOneItemFromItemEntity(itemEntity);
-        DogAi.holdInMouth(dog, singleton);
-        AiUtil.setItemPickupCooldown(dog, DogGoalPackages.ITEM_PICKUP_COOLDOWN);
+        ItemStack singleton = SharedWolfAi.pickUpAndHoldItem(dog, itemEntity);
         if(DogGoalPackages.canFetch(singleton)){
             dog.getBrain().eraseMemory(ABABMemoryModuleTypes.TIME_TRYING_TO_REACH_FETCH_ITEM.get());
         }

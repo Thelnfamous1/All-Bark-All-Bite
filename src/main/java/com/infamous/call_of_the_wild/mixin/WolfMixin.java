@@ -1,23 +1,22 @@
 package com.infamous.call_of_the_wild.mixin;
 
-import com.infamous.call_of_the_wild.common.entity.AnimalAccessor;
-import com.infamous.call_of_the_wild.common.entity.AnimationControllerAccessor;
-import com.infamous.call_of_the_wild.common.entity.EntityAnimationController;
-import com.infamous.call_of_the_wild.common.entity.SharedWolfAnimationController;
+import com.infamous.call_of_the_wild.common.ai.GenericAi;
+import com.infamous.call_of_the_wild.common.entity.*;
 import com.infamous.call_of_the_wild.common.entity.wolf.WolfAi;
 import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.sounds.SoundEvent;
+import net.minecraft.sounds.SoundEvents;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
-import net.minecraft.world.entity.Entity;
-import net.minecraft.world.entity.EntityType;
-import net.minecraft.world.entity.TamableAnimal;
+import net.minecraft.world.entity.*;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.animal.Animal;
 import net.minecraft.world.entity.animal.Wolf;
+import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
+import net.minecraftforge.event.ForgeEventFactory;
 import org.jetbrains.annotations.NotNull;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
@@ -95,5 +94,43 @@ public abstract class WolfMixin extends TamableAnimal implements AnimalAccessor,
     @Override
     public SharedWolfAnimationController getAnimationController() {
         return this.animationController;
+    }
+
+    // Vanilla overidden methods
+    @Override
+    public boolean wantsToPickUp(ItemStack stack) {
+        return ForgeEventFactory.getMobGriefingEvent(this.level, this) && this.canPickUpLoot() && SharedWolfAi.isAbleToPickUp(this, stack);
+    }
+
+    @Override
+    public boolean canPickUpLoot() {
+        return !GenericAi.isOnPickupCooldown(this);
+    }
+
+    @Override
+    public boolean canTakeItem(ItemStack stack) {
+        EquipmentSlot slot = Mob.getEquipmentSlotForItem(stack);
+        if (!this.getItemBySlot(slot).isEmpty()) {
+            return false;
+        } else {
+            return slot == EquipmentSlot.MAINHAND && super.canTakeItem(stack);
+        }
+    }
+
+    @Override
+    public boolean canHoldItem(ItemStack itemStack) {
+        ItemStack itemInMouth = this.getMainHandItem();
+        return itemInMouth.isEmpty() || this.isFood(itemStack) && !this.isFood(itemInMouth);
+    }
+
+    @Override
+    protected void pickUpItem(ItemEntity itemEntity) {
+        this.onItemPickup(itemEntity);
+        SharedWolfAi.pickUpAndHoldItem(this, itemEntity);
+    }
+
+    @Override
+    public SoundEvent getEatingSound(ItemStack stack) {
+        return SoundEvents.FOX_EAT;
     }
 }

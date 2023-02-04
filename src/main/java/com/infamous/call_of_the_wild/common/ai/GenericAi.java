@@ -116,4 +116,8 @@ public class GenericAi {
     public static boolean isPanicking(LivingEntity livingEntity) {
         return livingEntity.getBrain().hasMemoryValue(MemoryModuleType.IS_PANICKING);
     }
+
+    public static boolean isOnPickupCooldown(LivingEntity livingEntity) {
+        return livingEntity.getBrain().hasMemoryValue(MemoryModuleType.ITEM_PICKUP_COOLDOWN_TICKS);
+    }
 }

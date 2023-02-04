@@ -19,6 +19,7 @@ import com.infamous.call_of_the_wild.common.behavior.pet.StopSittingToWalk;
 import com.infamous.call_of_the_wild.common.behavior.sleep.StartSleeping;
 import com.infamous.call_of_the_wild.common.behavior.sleep.WakeUpTrigger;
 import com.infamous.call_of_the_wild.common.entity.SharedWolfAi;
+import com.infamous.call_of_the_wild.common.entity.dog.DogGoalPackages;
 import com.infamous.call_of_the_wild.common.registry.ABABMemoryModuleTypes;
 import com.mojang.datafixers.util.Pair;
 import net.minecraft.core.BlockPos;
@@ -52,6 +53,7 @@ public class WolfGoalPackages {
                         new ValidateLeader(),
                         new ValidateFollowers(),
                         new CountDownCooldownTicks(MemoryModuleType.LONG_JUMP_COOLDOWN_TICKS),
+                        new CountDownCooldownTicks(MemoryModuleType.ITEM_PICKUP_COOLDOWN_TICKS),
                         new RunIf<>(SharedWolfAi::shouldPanic, new AnimalPanic(SharedWolfAi.SPEED_MODIFIER_PANICKING), true),
                         new Sprint<>(SharedWolfAi::canSprintCore),
                         new LookAtTargetSink(45, 90),
@@ -78,6 +80,10 @@ public class WolfGoalPackages {
     }
 
     private static void wasHurtBy(Wolf wolf, LivingEntity attacker) {
+        if (!wolf.getMainHandItem().isEmpty()) {
+            SharedWolfAi.stopHoldingItemInMouth(wolf);
+        }
+
         wolf.setIsInterested(false);
         SharedWolfAi.clearStates(wolf);
 
@@ -282,6 +288,7 @@ public class WolfGoalPackages {
                 GateBehavior.OrderPolicy.ORDERED,
                 GateBehavior.RunningPolicy.TRY_ALL,
                 ImmutableList.of(
+                        Pair.of(SharedWolfAi.createGoToWantedItem(DogGoalPackages::canWander, false), 1),
                         Pair.of(createIdleLookBehaviors(), 1),
                         Pair.of(createIdleMovementBehaviors(), 1),
                         Pair.of(new Eat(SharedWolfAi::setAteRecently), 1)
