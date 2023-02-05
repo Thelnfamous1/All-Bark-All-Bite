@@ -65,8 +65,8 @@ public class SharedWolfAi {
     public static final int MAX_ALERTABLE_Y = 6;
     public static final float SPEED_MODIFIER_FETCHING = 1.0F; // Dog will sprint with 30% extra speed, meaning final speed is effectively ~1.3F
     private static final int HOWL_VOLUME = 4;
-    public static final int EAT_DURATION = 60;
-    public static final int MIN_TICKS_BEFORE_EAT = 600;
+    public static final int EAT_DURATION = MiscUtil.seconds(3);
+    public static final int MIN_TICKS_BEFORE_EAT = MiscUtil.seconds(30);
 
     public static void initMemories(TamableAnimal wolf, RandomSource randomSource) {
         int huntCooldownInTicks = TIME_BETWEEN_HUNTS.sample(randomSource);

@@ -77,10 +77,6 @@ public class GenericAi {
         return livingEntity.getBrain().hasMemoryValue(MemoryModuleType.NEAREST_PLAYER_HOLDING_WANTED_ITEM);
     }
 
-    public static boolean doesntSeeAnyPlayerHoldingWantedItem(LivingEntity livingEntity) {
-        return !seesPlayerHoldingWantedItem(livingEntity);
-    }
-
     public static void wakeUp(LivingEntity mob) {
         if(mob instanceof Fox fox){
             ReflectionUtil.callMethod("m_28626_", fox, false);

@@ -293,7 +293,7 @@ public class Dog extends TamableAnimal implements InterestedMob, ShakingMob, Var
         } else {
             if (this.isTame() != mate.isTame()) {
                 return false;
-            } else if (this.isInSittingPose() || mate.isInSittingPose()) {
+            } else if (!SharedWolfAi.canMove(this) || !SharedWolfAi.canMove(mate)) {
                 return false;
             } else {
                 return this.isInLove() && mate.isInLove();

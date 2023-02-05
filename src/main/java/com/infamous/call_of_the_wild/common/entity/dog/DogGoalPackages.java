@@ -35,6 +35,7 @@ import net.minecraft.world.level.storage.loot.parameters.LootContextParams;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Optional;
+import java.util.function.Predicate;
 
 public class DogGoalPackages {
 
@@ -148,7 +149,7 @@ public class DogGoalPackages {
                         Pair.of(InteractWith.of(ABABEntityTypes.DOG.get(), SharedWolfAi.INTERACTION_RANGE, MemoryModuleType.INTERACTION_TARGET, SharedWolfAi.SPEED_MODIFIER_WALKING, SharedWolfAi.CLOSE_ENOUGH_TO_INTERACT), 2),
                         Pair.of(InteractWith.of(EntityType.PLAYER, SharedWolfAi.INTERACTION_RANGE, MemoryModuleType.INTERACTION_TARGET, SharedWolfAi.SPEED_MODIFIER_WALKING, SharedWolfAi.CLOSE_ENOUGH_TO_INTERACT), 2),
                         Pair.of(InteractWith.of(EntityType.VILLAGER, SharedWolfAi.INTERACTION_RANGE, MemoryModuleType.INTERACTION_TARGET, SharedWolfAi.SPEED_MODIFIER_WALKING, SharedWolfAi.CLOSE_ENOUGH_TO_INTERACT), 2),
-                        Pair.of(new RunIf<>(GenericAi::doesntSeeAnyPlayerHoldingWantedItem, new SetWalkTargetFromLookTarget(SharedWolfAi.SPEED_MODIFIER_WALKING, SharedWolfAi.CLOSE_ENOUGH_TO_LOOK_TARGET)), 2),
+                        Pair.of(new RunIf<>(Predicate.not(GenericAi::seesPlayerHoldingWantedItem), new SetWalkTargetFromLookTarget(SharedWolfAi.SPEED_MODIFIER_WALKING, SharedWolfAi.CLOSE_ENOUGH_TO_LOOK_TARGET)), 2),
                         Pair.of(new DoNothing(30, 60), 1)));
     }
 
@@ -178,7 +179,7 @@ public class DogGoalPackages {
         return BrainUtil.createPriorityPairs(0,
                 ImmutableList.of(
                         new Sprint<>(DogGoalPackages::canSprintDig),
-                        new RunIf<>(DogGoalPackages::canFetch, new StayCloseToTarget<>(DogGoalPackages::getDigPosition, 1, 2, SharedWolfAi.SPEED_MODIFIER_FETCHING)),
+                        new RunIf<>(DogGoalPackages::canFetch, new StayCloseToTarget<>(DogGoalPackages::getDigPosition, 0, 1, SharedWolfAi.SPEED_MODIFIER_FETCHING)),
                         new RunIf<>(DogGoalPackages::canFetch, new DigAtLocation<>(DogGoalPackages::onDigCompleted, DIG_DURATION), true)));
     }
 

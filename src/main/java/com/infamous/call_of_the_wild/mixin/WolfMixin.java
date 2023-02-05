@@ -71,7 +71,7 @@ public abstract class WolfMixin extends TamableAnimal implements AnimalAccessor,
     private void handleCanMate(Animal partner, CallbackInfoReturnable<Boolean> cir){
         if (partner != this) {
             cir.setReturnValue(partner instanceof Wolf mate
-                    && !this.isInSittingPose() && !mate.isInSittingPose()
+                    && SharedWolfAi.canMove(this) && SharedWolfAi.canMove(mate)
                     && this.isInLove() && mate.isInLove());
         }
     }
