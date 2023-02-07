@@ -19,6 +19,7 @@ import net.minecraft.world.entity.ai.behavior.PositionTracker;
 import net.minecraft.world.entity.ai.memory.MemoryModuleType;
 import net.minecraft.world.entity.ai.memory.WalkTarget;
 import net.minecraft.world.entity.ai.sensing.Sensor;
+import net.minecraft.world.entity.ai.targeting.TargetingConditions;
 import net.minecraft.world.entity.animal.Animal;
 import net.minecraft.world.entity.animal.Turtle;
 import net.minecraft.world.entity.player.Player;
@@ -35,6 +36,8 @@ import java.util.Optional;
 import java.util.UUID;
 
 public class AiUtil {
+    private static final TargetingConditions TARGET_CONDITIONS_IGNORE_LINE_OF_SIGHT = TargetingConditions.forNonCombat().range(16.0D).ignoreLineOfSight();
+    private static final TargetingConditions TARGET_CONDITIONS_IGNORE_LINE_OF_SIGHT_IGNORE_INVISIBILITY_TESTING = TargetingConditions.forNonCombat().range(16.0D).ignoreLineOfSight().ignoreInvisibilityTesting();
 
     protected static final double NEAR_ZERO_DELTA_MOVEMENT = 1.0E-6D;
 
@@ -267,5 +270,11 @@ public class AiUtil {
 
     public static boolean isMovingOnLandOrInWater(LivingEntity entity) {
         return (entity.isOnGround() || entity.isInWaterOrBubble()) && isMoving(entity);
+    }
+
+
+
+    public static boolean isEntityTargetableIgnoringLineOfSight(LivingEntity entity, LivingEntity target) {
+        return entity.getBrain().isMemoryValue(MemoryModuleType.ATTACK_TARGET, target) ? TARGET_CONDITIONS_IGNORE_LINE_OF_SIGHT_IGNORE_INVISIBILITY_TESTING.test(entity, target) : TARGET_CONDITIONS_IGNORE_LINE_OF_SIGHT.test(entity, target);
     }
 }

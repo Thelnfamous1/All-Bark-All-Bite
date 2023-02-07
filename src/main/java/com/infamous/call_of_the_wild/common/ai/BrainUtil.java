@@ -1,6 +1,8 @@
 package com.infamous.call_of_the_wild.common.ai;
 
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableSet;
 import com.infamous.call_of_the_wild.common.util.ReflectionUtil;
 import com.mojang.datafixers.util.Pair;
 import net.minecraft.world.entity.LivingEntity;
@@ -53,6 +55,28 @@ public class BrainUtil {
                 orderPolicy,
                 runningPolicy,
                 behaviors);
+    }
+
+    public static <E extends LivingEntity> GateBehavior<E> tryAllBehaviorsInOrderIfAbsent(ImmutableList<Pair<Behavior<? super E>, Integer>> behaviors, MemoryModuleType<?>... entryTypes){
+        ImmutableMap.Builder<MemoryModuleType<?>, MemoryStatus> entryConditions = ImmutableMap.builder();
+        for(MemoryModuleType<?> type : entryTypes){
+            entryConditions.put(type, MemoryStatus.VALUE_ABSENT);
+        }
+
+        return gateBehaviors(
+                entryConditions.build(),
+                ImmutableSet.of(),
+                GateBehavior.OrderPolicy.ORDERED,
+                GateBehavior.RunningPolicy.TRY_ALL,
+                behaviors);
+    }
+
+    public static <E extends LivingEntity> ImmutableList<Pair<Behavior<? super E>, Integer>> basicWeightedBehaviors(Behavior<? super E>... behaviors){
+        ImmutableList.Builder<Pair<Behavior<? super E>, Integer>> weightedBehaviors = ImmutableList.builder();
+        for(Behavior<? super E> behavior : behaviors){
+            weightedBehaviors.add(Pair.of(behavior, 1));
+        }
+        return weightedBehaviors.build();
     }
 
     public static <E extends LivingEntity> Map<SensorType<? extends Sensor<? super E>>, Sensor<? super E>> getSensors(Brain<E> brain){

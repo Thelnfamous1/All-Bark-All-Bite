@@ -3,13 +3,13 @@ package com.infamous.call_of_the_wild.common.entity.dog;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.infamous.call_of_the_wild.common.ABABTags;
+import com.infamous.call_of_the_wild.common.ai.AiUtil;
 import com.infamous.call_of_the_wild.common.ai.CommandAi;
+import com.infamous.call_of_the_wild.common.ai.DigAi;
+import com.infamous.call_of_the_wild.common.ai.GenericAi;
 import com.infamous.call_of_the_wild.common.entity.SharedWolfAi;
 import com.infamous.call_of_the_wild.common.registry.ABABActivities;
 import com.infamous.call_of_the_wild.common.registry.ABABMemoryModuleTypes;
-import com.infamous.call_of_the_wild.common.ai.AiUtil;
-import com.infamous.call_of_the_wild.common.ai.DigAi;
-import com.infamous.call_of_the_wild.common.ai.GenericAi;
 import com.infamous.call_of_the_wild.common.registry.ABABSensorTypes;
 import com.infamous.call_of_the_wild.common.util.MiscUtil;
 import com.mojang.datafixers.util.Pair;
@@ -61,8 +61,11 @@ public class DogAi {
             MemoryModuleType.INTERACTION_TARGET,
             ABABMemoryModuleTypes.IS_FOLLOWING.get(),
             MemoryModuleType.IS_PANICKING,
+            ABABMemoryModuleTypes.IS_SLEEPING.get(),
             MemoryModuleType.IS_TEMPTED,
             MemoryModuleType.ITEM_PICKUP_COOLDOWN_TICKS,
+            MemoryModuleType.LAST_SLEPT,
+            MemoryModuleType.LAST_WOKEN,
             MemoryModuleType.LOOK_TARGET,
             ABABMemoryModuleTypes.NEAREST_ADULTS.get(),
             ABABMemoryModuleTypes.NEAREST_BABIES.get(),
@@ -113,6 +116,7 @@ public class DogAi {
         initRetreatActivity(brain);
         initDiggingActivity(brain);
         initFetchActivity(brain);
+        initRestActivity(brain);
         initIdleActivity(brain);
         brain.setCoreActivities(ImmutableSet.of(Activity.CORE));
         brain.setDefaultActivity(Activity.IDLE);
@@ -164,6 +168,19 @@ public class DogAi {
                         Pair.of(MemoryModuleType.IS_PANICKING, MemoryStatus.VALUE_ABSENT)
                 ),
                 ImmutableSet.of(ABABMemoryModuleTypes.FETCHING_ITEM.get()));
+    }
+
+    private static void initRestActivity(Brain<Dog> brain) {
+        brain.addActivityAndRemoveMemoriesWhenStopped(Activity.REST,
+                DogGoalPackages.getRestPackage(),
+                ImmutableSet.of(
+                        Pair.of(ABABMemoryModuleTypes.IS_SLEEPING.get(), MemoryStatus.VALUE_PRESENT),
+                        Pair.of(MemoryModuleType.IS_PANICKING, MemoryStatus.VALUE_ABSENT)
+                ),
+                ImmutableSet.of(
+                        ABABMemoryModuleTypes.IS_SLEEPING.get()
+                )
+        );
     }
 
     private static void initIdleActivity(Brain<Dog> brain) {
@@ -233,7 +250,7 @@ public class DogAi {
     public static void updateActivity(Dog dog) {
         Brain<Dog> brain = dog.getBrain();
         Activity previous = brain.getActiveNonCoreActivity().orElse(null);
-        brain.setActiveActivityToFirstValid(ImmutableList.of(Activity.FIGHT, Activity.AVOID, Activity.DIG, ABABActivities.FETCH.get(), Activity.IDLE));
+        brain.setActiveActivityToFirstValid(ImmutableList.of(Activity.FIGHT, Activity.AVOID, Activity.DIG, ABABActivities.FETCH.get(), Activity.REST, Activity.IDLE));
         Activity current = brain.getActiveNonCoreActivity().orElse(null);
 
         if (previous != current) {
@@ -241,6 +258,8 @@ public class DogAi {
         }
 
         dog.setAggressive(brain.hasMemoryValue(MemoryModuleType.ATTACK_TARGET));
+
+        SharedWolfAi.handleSleeping(dog);
     }
 
     public static Optional<SoundEvent> getSoundForCurrentActivity(Dog dog) {
@@ -252,6 +271,8 @@ public class DogAi {
             return SoundEvents.WOLF_GROWL;
         } else if (activity == Activity.AVOID && GenericAi.isNearAvoidTarget(dog, SharedWolfAi.DESIRED_DISTANCE_FROM_DISLIKED)) {
             return SoundEvents.WOLF_HURT;
+        } else if (activity == Activity.REST) {
+            return SoundEvents.FOX_SLEEP;
         } else if (MiscUtil.oneInChance(dog.getRandom(), 3)) {
             return dog.isTame() && dog.getHealth() < dog.getMaxHealth() * 0.5F ? SoundEvents.WOLF_WHINE : SoundEvents.WOLF_PANT;
         } else {

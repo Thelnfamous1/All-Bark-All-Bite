@@ -1053,7 +1053,7 @@ public class DogAnimation {
                                     AnimationChannel.Interpolations.LINEAR),
                             new Keyframe(0.52f, KeyframeAnimations.degreeVec(30f, 0f, 0f),
                                     AnimationChannel.Interpolations.LINEAR))).build();
-    public static final AnimationDefinition DOG_CROUCHING = AnimationDefinition.Builder.withLength(3f)
+    public static final AnimationDefinition CROUCH = AnimationDefinition.Builder.withLength(3f)
             .addAnimation(DogModel.HEAD,
                     new AnimationChannel(AnimationChannel.Targets.POSITION,
                             new Keyframe(0f, KeyframeAnimations.posVec(0f, 0f, 0f),
@@ -1162,7 +1162,7 @@ public class DogAnimation {
                                     AnimationChannel.Interpolations.LINEAR),
                             new Keyframe(3f, KeyframeAnimations.degreeVec(155f, 0f, 0f),
                                     AnimationChannel.Interpolations.LINEAR))).build();
-    public static final AnimationDefinition DOG_LEAPING = AnimationDefinition.Builder.withLength(0.36f) // original: 0.48f
+    public static final AnimationDefinition LEAP = AnimationDefinition.Builder.withLength(0.36f) // original: 0.48f
             .addAnimation(DogModel.HEAD,
                     new AnimationChannel(AnimationChannel.Targets.POSITION,
                             new Keyframe(0f, KeyframeAnimations.posVec(0f, -3f, 0.25f),
@@ -1337,7 +1337,7 @@ public class DogAnimation {
                                     AnimationChannel.Interpolations.LINEAR),
                             new Keyframe(0.48f, KeyframeAnimations.degreeVec(30f, 0f, 0f),
                                     AnimationChannel.Interpolations.LINEAR))).build();
-    public static final AnimationDefinition DOG_SLEEPING = AnimationDefinition.Builder.withLength(0.2f)
+    public static final AnimationDefinition SLEEP = AnimationDefinition.Builder.withLength(0.2f)
             .addAnimation(DogModel.HEAD,
                     new AnimationChannel(AnimationChannel.Targets.POSITION,
                             new Keyframe(0f, KeyframeAnimations.posVec(0f, 0f, 0f),
@@ -1424,7 +1424,7 @@ public class DogAnimation {
                                     AnimationChannel.Interpolations.LINEAR),
                             new Keyframe(0.2f, KeyframeAnimations.degreeVec(67.5f, 45f, 0f),
                                     AnimationChannel.Interpolations.LINEAR))).build();
-    public static final AnimationDefinition DOG_SLEEPING_IDLE = AnimationDefinition.Builder.withLength(3.68f).looping()
+    public static final AnimationDefinition IDLE_SLEEP = AnimationDefinition.Builder.withLength(3.68f).looping()
             .addAnimation(DogModel.HEAD,
                     new AnimationChannel(AnimationChannel.Targets.POSITION,
                             new Keyframe(0f, KeyframeAnimations.posVec(0f, -9f, -1f),

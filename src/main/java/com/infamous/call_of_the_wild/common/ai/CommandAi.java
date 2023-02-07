@@ -37,6 +37,7 @@ public class CommandAi {
 
     public static void commandAttack(TamableAnimal tamableAnimal, LivingEntity target, LivingEntity owner) {
         tamableAnimal.setOrderedToSit(false);
+        SharedWolfAi.clearStates(tamableAnimal);
         yieldAsPet(tamableAnimal);
         if(tamableAnimal.canAttack(target) && tamableAnimal.wantsToAttack(target, owner)){
             StartAttacking.setAttackTarget(tamableAnimal, target);
@@ -45,6 +46,7 @@ public class CommandAi {
 
     public static void commandCome(TamableAnimal tamableAnimal, LivingEntity owner, ServerLevel serverLevel) {
         tamableAnimal.setOrderedToSit(false);
+        SharedWolfAi.clearStates(tamableAnimal);
         yieldAsPet(tamableAnimal);
         Path path = tamableAnimal.getNavigation().createPath(owner, 0);
         if(path != null && path.canReach()){
@@ -56,12 +58,14 @@ public class CommandAi {
 
     public static void commandFree(TamableAnimal tamableAnimal) {
         tamableAnimal.setOrderedToSit(false);
+        SharedWolfAi.clearStates(tamableAnimal);
         yieldAsPet(tamableAnimal);
         stopFollowing(tamableAnimal);
     }
 
     public static void commandGo(TamableAnimal tamableAnimal, HitResult hitResult) {
         tamableAnimal.setOrderedToSit(false);
+        SharedWolfAi.clearStates(tamableAnimal);
         yieldAsPet(tamableAnimal);
         stopFollowing(tamableAnimal);
         if(hitResult instanceof BlockHitResult blockHitResult){
@@ -73,12 +77,14 @@ public class CommandAi {
 
     public static void commandHeel(TamableAnimal tamableAnimal) {
         tamableAnimal.setOrderedToSit(false);
+        SharedWolfAi.clearStates(tamableAnimal);
         yieldAsPet(tamableAnimal);
         setFollowing(tamableAnimal);
     }
 
     public static void commandSit(TamableAnimal tamableAnimal) {
         tamableAnimal.setOrderedToSit(true);
+        SharedWolfAi.clearStates(tamableAnimal);
         tamableAnimal.setJumping(false);
         yieldAsPet(tamableAnimal);
     }

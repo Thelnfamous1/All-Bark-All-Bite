@@ -2,7 +2,6 @@ package com.infamous.call_of_the_wild.common.behavior;
 
 import com.google.common.collect.ImmutableMap;
 import com.infamous.call_of_the_wild.common.ai.AiUtil;
-import com.infamous.call_of_the_wild.common.entity.SharedWolfAi;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.ai.behavior.Behavior;
@@ -17,12 +16,14 @@ import java.util.function.Consumer;
 public class Eat extends Behavior<Animal> {
     private final Consumer<Animal> onEaten;
     private int eatRemainingTicks;
+    private final int eatDuration;
 
-    public Eat(Consumer<Animal> onEaten) {
+    public Eat(Consumer<Animal> onEaten, int eatDuration) {
         super(ImmutableMap.of(
                 MemoryModuleType.ATE_RECENTLY, MemoryStatus.VALUE_ABSENT
         ));
         this.onEaten = onEaten;
+        this.eatDuration = eatDuration;
     }
 
     @Override
@@ -33,7 +34,7 @@ public class Eat extends Behavior<Animal> {
 
     @Override
     protected void start(ServerLevel level, Animal animal, long gameTime) {
-        this.eatRemainingTicks = SharedWolfAi.EAT_DURATION;
+        this.eatRemainingTicks = eatDuration;
     }
 
     @Override

@@ -30,9 +30,13 @@ public class SitWhenOrderedTo extends Behavior<TamableAnimal> {
             if (owner == null) {
                 return true;
             } else {
-                return (!(tamable.distanceToSqr(owner) < MAX_DISTANCE * MAX_DISTANCE) || owner.getLastHurtByMob() == null) && tamable.isOrderedToSit();
+                return (!(tamable.distanceToSqr(owner) < MAX_DISTANCE * MAX_DISTANCE) || owner.getLastHurtByMob() == null) && shouldSit(tamable);
             }
         }
+    }
+
+    private static boolean shouldSit(TamableAnimal tamable) {
+        return tamable.isOrderedToSit() && !tamable.isSleeping();
     }
 
     @Override
@@ -48,7 +52,7 @@ public class SitWhenOrderedTo extends Behavior<TamableAnimal> {
 
     @Override
     protected boolean canStillUse(ServerLevel level, TamableAnimal tamable, long gameTime) {
-        return tamable.isOrderedToSit();
+        return shouldSit(tamable);
     }
 
     @Override

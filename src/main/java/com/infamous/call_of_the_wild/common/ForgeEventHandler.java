@@ -207,7 +207,8 @@ public class ForgeEventHandler {
 
     @SubscribeEvent
     static void onSleepPosCheck(SleepingLocationCheckEvent event){
-        if(event.getEntity().getType() == EntityType.WOLF){
+        EntityType<?> type = event.getEntity().getType();
+        if(type == EntityType.WOLF || type == ABABEntityTypes.DOG.get()){
             event.setResult(Event.Result.ALLOW);
         }
     }

@@ -85,18 +85,6 @@ public class SharedWolfAi {
                 && !BehaviorUtils.isBreeding(wolf);
     }
 
-    public static boolean canAvoid(TamableAnimal wolf){
-        return !wolf.isTame();
-    }
-
-    public static boolean canMakeLove(TamableAnimal wolf){
-        return canMove(wolf);
-    }
-
-    public static boolean canFollowNonOwner(TamableAnimal wolf) {
-        return !wolf.isTame();
-    }
-
     @SuppressWarnings("unused")
     public static float getSpeedModifierTempted(LivingEntity wolf) {
         return SPEED_MODIFIER_TEMPTED;
@@ -227,7 +215,7 @@ public class SharedWolfAi {
         List<LivingEntity> livingEntities = GenericAi.getNearestLivingEntities(wolf);
         for(LivingEntity livingEntity : livingEntities){
             if(livingEntity.closerThan(wolf, MAX_ALERTABLE_XZ, MAX_ALERTABLE_Y)
-                    && Sensor.isEntityAttackableIgnoringLineOfSight(wolf, livingEntity)
+                    && AiUtil.isEntityTargetableIgnoringLineOfSight(wolf, livingEntity)
                     && canBeAlertedBy(wolf, livingEntity)){
                 return true;
             }
@@ -278,12 +266,12 @@ public class SharedWolfAi {
         AiUtil.setItemPickupCooldown(livingEntity, DogGoalPackages.ITEM_PICKUP_COOLDOWN);
     }
 
-    protected static void spitOutItem(LivingEntity livingEntity, ItemStack itemStack) {
+    private static void spitOutItem(LivingEntity livingEntity, ItemStack itemStack) {
         if (!itemStack.isEmpty() && !livingEntity.level.isClientSide) {
             ItemEntity itemEntity = new ItemEntity(livingEntity.level, livingEntity.getX() + livingEntity.getLookAngle().x, livingEntity.getY() + 1.0D, livingEntity.getZ() + livingEntity.getLookAngle().z, itemStack);
-            itemEntity.setPickUpDelay(40);
+            itemEntity.setDefaultPickUpDelay();
             itemEntity.setThrower(livingEntity.getUUID());
-            livingEntity.playSound(SoundEvents.FOX_SPIT, 1.0F, 1.0F);
+            AiUtil.playSoundEvent(livingEntity, SoundEvents.FOX_SPIT);
             livingEntity.level.addFreshEntity(itemEntity);
         }
     }
@@ -310,7 +298,7 @@ public class SharedWolfAi {
         return livingEntity.getMainHandItem().isEmpty();
     }
 
-    public static RunIf<TamableAnimal> createGoToWantedItem(Predicate<TamableAnimal> canWander, boolean overrideWalkTarget) {
+    public static <E extends TamableAnimal> RunIf<E> createGoToWantedItem(Predicate<E> canWander, boolean overrideWalkTarget) {
         return new RunIf<>(canWander, new GoToWantedItem<>(SharedWolfAi::isNotHoldingItem, SharedWolfAi.SPEED_MODIFIER_FETCHING, overrideWalkTarget, DogGoalPackages.MAX_FETCH_DISTANCE));
     }
 
@@ -325,4 +313,39 @@ public class SharedWolfAi {
             return mob.canHoldItem(stack);
         }
     }
+
+    public static boolean wantsToFindShelter(LivingEntity livingEntity){
+        return livingEntity.level.isThundering() || livingEntity.level.isDay();
+    }
+
+    public static boolean wantsToWakeUp(TamableAnimal wolf){
+        Optional<BlockPos> sleepingPos = wolf.getSleepingPos();
+        if (sleepingPos.isEmpty()) {
+            return true;
+        } else {
+            return !wolf.getBrain().hasMemoryValue(ABABMemoryModuleTypes.IS_SLEEPING.get())
+                    || !sleepingPos.get().closerToCenterThan(wolf.position(), 1.14D)
+                    || !canSleep(wolf)
+                    || GenericAi.getAttackTarget(wolf).isPresent()
+                    || wolf.level.isThundering()
+                    || wolf.isInWater();
+        }
+    }
+
+    public static boolean isNearDisliked(TamableAnimal wolf){
+        return GenericAi.isNearDisliked(wolf, DESIRED_DISTANCE_FROM_DISLIKED);
+    }
+
+    public static void handleSleeping(TamableAnimal wolf) {
+        if (wolf.isSleeping()) {
+            wolf.setInSittingPose(false);
+        }
+
+        if(wolf.isSleeping()){
+            wolf.setJumping(false);
+            wolf.xxa = 0.0F;
+            wolf.zza = 0.0F;
+        }
+    }
+
 }

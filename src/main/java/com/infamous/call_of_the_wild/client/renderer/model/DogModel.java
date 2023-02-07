@@ -22,6 +22,7 @@ public class DogModel<T extends Dog> extends ColorableHierarchicalModel<T> imple
 	public static final String LEFT_FRONT_LEG = "left_front_leg";
 	public static final String TAIL = "tail";
 	private static final String DOG_TAG = "dog_tag";
+	public static final float IDLE_SLEEP_ANIMATION_SPEED = 0.5F;
 	private final ModelPart dogTag;
 	private final ModelPart root;
 	private final ModelPart head;
@@ -53,7 +54,7 @@ public class DogModel<T extends Dog> extends ColorableHierarchicalModel<T> imple
 		PartDefinition root = meshDefinition.getRoot();
 
 		PartDefinition head = root.addOrReplaceChild(HEAD, CubeListBuilder.create().texOffs(29, 0).addBox(-2.0F, -3.0F, -3.0F, 6.0F, 6.0F, 5.0F, new CubeDeformation(0.0F))
-				.texOffs(32, 33).addBox(-0.5F, -0.02F, -6.0F, 3.0F, 3.0F, 3.0F, new CubeDeformation(0.0F)), PartPose.offset(-1.0F, 12.0F, -4.5F));
+				.texOffs(32, 33).addBox(-IDLE_SLEEP_ANIMATION_SPEED, -0.02F, -6.0F, 3.0F, 3.0F, 3.0F, new CubeDeformation(0.0F)), PartPose.offset(-1.0F, 12.0F, -4.5F));
 
 		PartDefinition head_r1 = head.addOrReplaceChild("head_r1", CubeListBuilder.create().texOffs(24, 18).addBox(-2.964F, -3.005F, -0.8733F, 3.0F, 4.0F, 1.0F, new CubeDeformation(0.0F)), PartPose.offsetAndRotation(0.0F, -3.0F, 0.0F, 0.2285F, -0.1606F, -0.3867F));
 
@@ -61,11 +62,11 @@ public class DogModel<T extends Dog> extends ColorableHierarchicalModel<T> imple
 
 		PartDefinition body = root.addOrReplaceChild(BODY, CubeListBuilder.create(), PartPose.offset(0.0F, 16.0F, 2.5F));
 
-		PartDefinition body_rotation_r1 = body.addOrReplaceChild("body_rotation_r1", CubeListBuilder.create().texOffs(32, 18).addBox(-4.0F, 0.0F, -6.5F, 8.0F, 13.0F, 2.0F, new CubeDeformation(0.0F)), PartPose.offsetAndRotation(0.0F, -0.5F, -6.5F, 1.5708F, 0.0F, 0.0F));
+		PartDefinition body_rotation_r1 = body.addOrReplaceChild("body_rotation_r1", CubeListBuilder.create().texOffs(32, 18).addBox(-4.0F, 0.0F, -6.5F, 8.0F, 13.0F, 2.0F, new CubeDeformation(0.0F)), PartPose.offsetAndRotation(0.0F, -IDLE_SLEEP_ANIMATION_SPEED, -6.5F, 1.5708F, 0.0F, 0.0F));
 
-		PartDefinition body_rotation_r2 = body.addOrReplaceChild("body_rotation_r2", CubeListBuilder.create().texOffs(0, 18).addBox(-4.0F, -5.0F, -4.5F, 8.0F, 13.0F, 8.0F, new CubeDeformation(0.0F)), PartPose.offsetAndRotation(0.0F, -0.5F, -1.5F, 1.5708F, 0.0F, 0.0F));
+		PartDefinition body_rotation_r2 = body.addOrReplaceChild("body_rotation_r2", CubeListBuilder.create().texOffs(0, 18).addBox(-4.0F, -5.0F, -4.5F, 8.0F, 13.0F, 8.0F, new CubeDeformation(0.0F)), PartPose.offsetAndRotation(0.0F, -IDLE_SLEEP_ANIMATION_SPEED, -1.5F, 1.5708F, 0.0F, 0.0F));
 
-		PartDefinition body_rotation = body.addOrReplaceChild("body_rotation", CubeListBuilder.create(), PartPose.offsetAndRotation(0.0F, -1.0F, -0.5F, 1.5708F, 0.0F, 0.0F));
+		PartDefinition body_rotation = body.addOrReplaceChild("body_rotation", CubeListBuilder.create(), PartPose.offsetAndRotation(0.0F, -1.0F, -IDLE_SLEEP_ANIMATION_SPEED, 1.5708F, 0.0F, 0.0F));
 
 		PartDefinition mane = body.addOrReplaceChild(UPPER_BODY, CubeListBuilder.create(), PartPose.offset(0.0F, -1.5F, 0.0F));
 
@@ -103,12 +104,16 @@ public class DogModel<T extends Dog> extends ColorableHierarchicalModel<T> imple
 		this.animateHeadLookTarget(headYRot, headXRot);
 		this.animate(dog.animationController.attackAnimationState, DogAnimation.ATTACK, bob);
 		this.animate(dog.animationController.babyAnimationState, DogAnimation.BABY, bob);
-		this.animate(dog.animationController.sitAnimationState, DogAnimation.SIT, bob);
+		this.animate(dog.animationController.crouchAnimationState, DogAnimation.CROUCH, bob);
 		this.animate(dog.animationController.idleAnimationState, DogAnimation.IDLE, bob);
 		this.animate(dog.animationController.idleSitAnimationState, DogAnimation.IDLE_SIT, bob);
-		this.animate(dog.animationController.walkAnimationState, DogAnimation.WALK, bob);
-		this.animate(dog.animationController.sprintAnimationState, DogAnimation.SPRINT, bob);
+		this.animate(dog.animationController.idleSleepAnimationState, DogAnimation.IDLE_SLEEP, bob, IDLE_SLEEP_ANIMATION_SPEED);
 		this.animate(dog.animationController.jumpAnimationState, DogAnimation.JUMP, bob);
+		this.animate(dog.animationController.leapAnimationState, DogAnimation.LEAP, bob);
+		this.animate(dog.animationController.sitAnimationState, DogAnimation.SIT, bob);
+		this.animate(dog.animationController.sleepAnimationState, DogAnimation.SLEEP, bob);
+		this.animate(dog.animationController.sprintAnimationState, DogAnimation.SPRINT, bob);
+		this.animate(dog.animationController.walkAnimationState, DogAnimation.WALK, bob);
 		this.animateInterestAndShaking(dog, this.partialTicks);
 	}
 

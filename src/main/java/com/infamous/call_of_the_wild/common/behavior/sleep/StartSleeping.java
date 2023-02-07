@@ -10,32 +10,37 @@ import net.minecraft.world.entity.ai.behavior.Behavior;
 import net.minecraft.world.entity.ai.memory.MemoryModuleType;
 import net.minecraft.world.entity.ai.memory.MemoryStatus;
 import java.util.Optional;
+import java.util.function.Predicate;
 
 @SuppressWarnings("NullableProblems")
-public class StartSleeping extends Behavior<LivingEntity> {
+public class StartSleeping<E extends LivingEntity> extends Behavior<E> {
     public static final long COOLDOWN_AFTER_BEING_WOKEN = 100L;
+    private final Predicate<E> canSleep;
 
-    public StartSleeping() {
+    public StartSleeping(Predicate<E> canSleep) {
         super(ImmutableMap.of(
                 ABABMemoryModuleTypes.IS_SLEEPING.get(), MemoryStatus.REGISTERED,
                 MemoryModuleType.LAST_WOKEN, MemoryStatus.REGISTERED
         ));
+        this.canSleep = canSleep;
     }
 
-    protected boolean checkExtraStartConditions(ServerLevel level, LivingEntity entity) {
+    protected boolean checkExtraStartConditions(ServerLevel level, E entity) {
         if (entity.isPassenger()) {
             return false;
         } else {
             Optional<Long> lastWoken = entity.getBrain().getMemory(MemoryModuleType.LAST_WOKEN);
             if (lastWoken.isPresent()) {
                 long ticksSinceLastWoken = level.getGameTime() - lastWoken.get();
-                return ticksSinceLastWoken <= 0L || ticksSinceLastWoken >= COOLDOWN_AFTER_BEING_WOKEN;
+                if (ticksSinceLastWoken > 0L && ticksSinceLastWoken < COOLDOWN_AFTER_BEING_WOKEN) {
+                    return this.canSleep.test(entity);
+                }
             }
-            return true;
+            return this.canSleep.test(entity);
         }
     }
 
-    protected void start(ServerLevel level, LivingEntity entity, long gameTime) {
+    protected void start(ServerLevel level, E entity, long gameTime) {
         GenericAi.goToSleep(entity);
         entity.getBrain().eraseMemory(MemoryModuleType.LOOK_TARGET);
         entity.getBrain().setMemory(ABABMemoryModuleTypes.IS_SLEEPING.get(), Unit.INSTANCE);

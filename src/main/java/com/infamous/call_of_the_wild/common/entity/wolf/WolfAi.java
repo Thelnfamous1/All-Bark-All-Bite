@@ -209,22 +209,7 @@ public class WolfAi {
 
         wolf.setAggressive(brain.hasMemoryValue(MemoryModuleType.ATTACK_TARGET));
 
-        boolean inWater = wolf.isInWater();
-        if (inWater || wolf.getTarget() != null || wolf.level.isThundering()) {
-            if(wolf.isSleeping()){
-                GenericAi.wakeUp(wolf);
-            }
-        }
-
-        if (inWater || wolf.isSleeping()) {
-            wolf.setInSittingPose(false);
-        }
-
-        if(wolf.isSleeping()){
-            wolf.setJumping(false);
-            wolf.xxa = 0.0F;
-            wolf.zza = 0.0F;
-        }
+        SharedWolfAi.handleSleeping(wolf);
 
         /*
         if(PackAi.hasFollowers(wolf)){

@@ -1,8 +1,6 @@
 package com.infamous.call_of_the_wild.common.entity.wolf;
 
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.ImmutableSet;
 import com.infamous.call_of_the_wild.common.ABABTags;
 import com.infamous.call_of_the_wild.common.ai.*;
 import com.infamous.call_of_the_wild.common.behavior.*;
@@ -19,23 +17,19 @@ import com.infamous.call_of_the_wild.common.behavior.pet.StopSittingToWalk;
 import com.infamous.call_of_the_wild.common.behavior.sleep.StartSleeping;
 import com.infamous.call_of_the_wild.common.behavior.sleep.WakeUpTrigger;
 import com.infamous.call_of_the_wild.common.entity.SharedWolfAi;
-import com.infamous.call_of_the_wild.common.entity.dog.DogGoalPackages;
 import com.infamous.call_of_the_wild.common.registry.ABABMemoryModuleTypes;
 import com.mojang.datafixers.util.Pair;
-import net.minecraft.core.BlockPos;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.util.TimeUtil;
 import net.minecraft.util.valueproviders.UniformInt;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.Pose;
+import net.minecraft.world.entity.TamableAnimal;
 import net.minecraft.world.entity.ai.Brain;
 import net.minecraft.world.entity.ai.behavior.*;
 import net.minecraft.world.entity.ai.memory.MemoryModuleType;
-import net.minecraft.world.entity.ai.memory.MemoryStatus;
 import net.minecraft.world.entity.animal.Wolf;
-import net.minecraft.world.entity.schedule.Activity;
-import org.jetbrains.annotations.NotNull;
 
 import java.util.Optional;
 import java.util.function.Predicate;
@@ -49,11 +43,9 @@ public class WolfGoalPackages {
                 ImmutableList.of(
                         new Swim(SharedWolfAi.JUMP_CHANCE_IN_WATER),
                         new HurtByTrigger<>(WolfGoalPackages::wasHurtBy),
-                        new WakeUpTrigger<>(WolfGoalPackages::wantsToWakeUp),
+                        new WakeUpTrigger<>(SharedWolfAi::wantsToWakeUp),
                         new ValidateLeader(),
                         new ValidateFollowers(),
-                        new CountDownCooldownTicks(MemoryModuleType.LONG_JUMP_COOLDOWN_TICKS),
-                        new CountDownCooldownTicks(MemoryModuleType.ITEM_PICKUP_COOLDOWN_TICKS),
                         new RunIf<>(SharedWolfAi::shouldPanic, new AnimalPanic(SharedWolfAi.SPEED_MODIFIER_PANICKING), true),
                         new Sprint<>(SharedWolfAi::canSprintCore),
                         new LookAtTargetSink(45, 90),
@@ -61,22 +53,13 @@ public class WolfGoalPackages {
                         new StopSittingToWalk(),
                         new OwnerHurtByTarget<>(SharedWolfAi::canDefendOwner, SharedWolfAi::wantsToAttack),
                         new CopyMemoryWithExpiry<>(
-                                wolf -> GenericAi.isNearDisliked(wolf, SharedWolfAi.DESIRED_DISTANCE_FROM_DISLIKED),
+                                SharedWolfAi::isNearDisliked,
                                 ABABMemoryModuleTypes.NEAREST_VISIBLE_DISLIKED.get(),
                                 MemoryModuleType.AVOID_TARGET,
                                 SharedWolfAi.AVOID_DURATION),
+                        new CountDownCooldownTicks(MemoryModuleType.LONG_JUMP_COOLDOWN_TICKS),
+                        new CountDownCooldownTicks(MemoryModuleType.ITEM_PICKUP_COOLDOWN_TICKS),
                         new StopBeingAngryIfTargetDead<>()));
-    }
-
-    private static boolean wantsToWakeUp(Wolf wolf){
-        Optional<BlockPos> sleepingPos = wolf.getSleepingPos();
-        if (sleepingPos.isEmpty()) {
-            return true;
-        } else {
-            return !wolf.getBrain().isActive(Activity.REST)
-                    || !sleepingPos.get().closerToCenterThan(wolf.position(), 1.14D)
-                    || !SharedWolfAi.canSleep(wolf);
-        }
     }
 
     private static void wasHurtBy(Wolf wolf, LivingEntity attacker) {
@@ -94,7 +77,7 @@ public class WolfGoalPackages {
         SharedWolfAi.reactToAttack(wolf, attacker);
     }
 
-    @NotNull
+    @SuppressWarnings("unchecked")
     static ImmutableList<? extends Pair<Integer, ? extends Behavior<? super Wolf>>> getFightPackage() {
         return BrainUtil.createPriorityPairs(0,
                 ImmutableList.of(
@@ -105,20 +88,15 @@ public class WolfGoalPackages {
                                 WolfGoalPackages::isPreparingToPounce,
                                 WolfGoalPackages::toggleIsPreparingToPounce,
                                 MAX_JUMP_VELOCITY),
-                        BrainUtil.gateBehaviors(
-                                ImmutableMap.of(
-                                        ABABMemoryModuleTypes.IS_STALKING.get(), MemoryStatus.VALUE_ABSENT,
-                                        ABABMemoryModuleTypes.LONG_JUMP_TARGET.get(), MemoryStatus.VALUE_ABSENT
+                        BrainUtil.tryAllBehaviorsInOrderIfAbsent(
+                                BrainUtil.basicWeightedBehaviors(
+                                        new Sprint<>(SharedWolfAi::canMove),
+                                        new SetWalkTargetFromAttackTargetIfTargetOutOfReach(SharedWolfAi.SPEED_MODIFIER_CHASING),
+                                        new LeapAtTarget(SharedWolfAi.LEAP_YD, SharedWolfAi.TOO_CLOSE_TO_LEAP, SharedWolfAi.POUNCE_DISTANCE),
+                                        new MeleeAttack(SharedWolfAi.ATTACK_COOLDOWN_TICKS)
                                 ),
-                                ImmutableSet.of(),
-                                GateBehavior.OrderPolicy.ORDERED,
-                                GateBehavior.RunningPolicy.TRY_ALL,
-                                ImmutableList.of(
-                                        Pair.of(new Sprint<>(SharedWolfAi::canMove), 1),
-                                        Pair.of(new SetWalkTargetFromAttackTargetIfTargetOutOfReach(SharedWolfAi.SPEED_MODIFIER_CHASING), 1),
-                                        Pair.of(new LeapAtTarget(SharedWolfAi.LEAP_YD, SharedWolfAi.TOO_CLOSE_TO_LEAP, SharedWolfAi.POUNCE_DISTANCE), 1),
-                                        Pair.of(new MeleeAttack(SharedWolfAi.ATTACK_COOLDOWN_TICKS), 1)
-                                )
+                                ABABMemoryModuleTypes.IS_STALKING.get(),
+                                ABABMemoryModuleTypes.LONG_JUMP_TARGET.get()
                         ),
                         new RememberIfHuntTargetWasKilled<>(WolfGoalPackages::isHuntTarget, SharedWolfAi.TIME_BETWEEN_HUNTS),
                         new EraseMemoryIf<>(BehaviorUtils::isBreeding, MemoryModuleType.ATTACK_TARGET)));
@@ -149,7 +127,6 @@ public class WolfGoalPackages {
         return target.getType().is(ABABTags.WOLF_HUNT_TARGETS);
     }
 
-    @NotNull
     static ImmutableList<? extends Pair<Integer, ? extends Behavior<? super Wolf>>> getAvoidPackage() {
         return BrainUtil.createPriorityPairs(0,
                 ImmutableList.of(
@@ -174,7 +151,7 @@ public class WolfGoalPackages {
                         Pair.of(new RandomStroll(SharedWolfAi.SPEED_MODIFIER_WALKING), 2),
                         Pair.of(InteractWith.of(EntityType.WOLF, SharedWolfAi.INTERACTION_RANGE, MemoryModuleType.INTERACTION_TARGET, SharedWolfAi.SPEED_MODIFIER_WALKING, SharedWolfAi.CLOSE_ENOUGH_TO_INTERACT), 2),
                         Pair.of(new SetWalkTargetFromLookTarget(SharedWolfAi.SPEED_MODIFIER_WALKING, SharedWolfAi.CLOSE_ENOUGH_TO_LOOK_TARGET), 2),
-                        Pair.of(new RunIf<>(Predicate.not(SharedWolfAi::alertable), new PerchAndSearch<>(Wolf::isInSittingPose, Wolf::setInSittingPose), true), 2),
+                        Pair.of(new RunIf<>(Predicate.not(SharedWolfAi::alertable), new PerchAndSearch<>(TamableAnimal::isInSittingPose, TamableAnimal::setInSittingPose), true), 2),
                         Pair.of(new DoNothing(30, 60), 1)));
     }
 
@@ -193,7 +170,6 @@ public class WolfGoalPackages {
         }
     }
 
-    @NotNull
     static ImmutableList<? extends Pair<Integer, ? extends Behavior<? super Wolf>>> getLongJumpPackage() {
         return BrainUtil.createPriorityPairs(0,
                 ImmutableList.of(
@@ -205,7 +181,6 @@ public class WolfGoalPackages {
         );
     }
 
-    @NotNull
     static ImmutableList<? extends Pair<Integer, ? extends Behavior<? super Wolf>>> getMeetPackage() {
         return BrainUtil.createPriorityPairs(0,
                 ImmutableList.of(
@@ -225,7 +200,6 @@ public class WolfGoalPackages {
         }
     }
 
-    @NotNull
     static ImmutableList<? extends Pair<Integer, ? extends Behavior<? super Wolf>>> getRestPackage() {
         return BrainUtil.createPriorityPairs(0,
                 ImmutableList.of(
@@ -233,71 +207,53 @@ public class WolfGoalPackages {
                 ));
     }
 
-    @NotNull
     static ImmutableList<? extends Pair<Integer, ? extends Behavior<? super Wolf>>> getIdlePackage() {
         return BrainUtil.createPriorityPairs(0, ImmutableList.of(
                 new Sprint<>(SharedWolfAi::canMove, SharedWolfAi.TOO_FAR_FROM_WALK_TARGET),
-                new AnimalMakeLove(EntityType.WOLF, SharedWolfAi.SPEED_MODIFIER_BREEDING),
+                new RunIf<>(SharedWolfAi::canMove, new AnimalMakeLove(EntityType.WOLF, SharedWolfAi.SPEED_MODIFIER_BREEDING), true),
                 new StartAttacking<>(SharedWolfAi::canStartAttacking, SharedWolfAi::findNearestValidAttackTarget),
                 new StartHunting<>(WolfGoalPackages::canHunt, SharedWolfAi::startHunting, SharedWolfAi.TIME_BETWEEN_HUNTS),
                 createInactiveBehaviors()
                 ));
     }
 
+    @SuppressWarnings("unchecked")
     private static GateBehavior<Wolf> createInactiveBehaviors() {
-        return BrainUtil.gateBehaviors(
-                ImmutableMap.of(
-                        MemoryModuleType.BREED_TARGET, MemoryStatus.VALUE_ABSENT,
-                        MemoryModuleType.ATTACK_TARGET, MemoryStatus.VALUE_ABSENT,
-                        MemoryModuleType.ANGRY_AT, MemoryStatus.VALUE_ABSENT
+        return BrainUtil.tryAllBehaviorsInOrderIfAbsent(
+                BrainUtil.basicWeightedBehaviors(
+                        new RunIf<>(SharedWolfAi::wantsToFindShelter, new MoveToNonSkySeeingSpot(SharedWolfAi.SPEED_MODIFIER_WALKING)),
+                        new StartSleeping<>(SharedWolfAi::canSleep),
+                        createAwakeBehaviors()
                 ),
-                ImmutableSet.of(),
-                GateBehavior.OrderPolicy.ORDERED,
-                GateBehavior.RunningPolicy.TRY_ALL,
-                ImmutableList.of(
-                        Pair.of(new RunIf<>(WolfGoalPackages::wantsToFindShelter, new MoveToNonSkySeeingSpot(SharedWolfAi.SPEED_MODIFIER_WALKING)), 1),
-                        Pair.of(new RunIf<>(SharedWolfAi::canSleep, new StartSleeping()), 1),
-                        Pair.of(createAwakeBehaviors(), 1)
-                ));
+                MemoryModuleType.BREED_TARGET,
+                MemoryModuleType.ATTACK_TARGET,
+                MemoryModuleType.ANGRY_AT);
     }
 
+    @SuppressWarnings("unchecked")
     private static GateBehavior<Wolf> createAwakeBehaviors() {
-        return BrainUtil.gateBehaviors(
-                ImmutableMap.of(
-                        ABABMemoryModuleTypes.IS_SLEEPING.get(), MemoryStatus.VALUE_ABSENT,
-                        MemoryModuleType.WALK_TARGET, MemoryStatus.VALUE_ABSENT
+        return BrainUtil.tryAllBehaviorsInOrderIfAbsent(
+                BrainUtil.basicWeightedBehaviors(
+                        new FollowPackLeader<>(SharedWolfAi.ADULT_FOLLOW_RANGE, SharedWolfAi.SPEED_MODIFIER_FOLLOWING_ADULT),
+                        new BabyFollowAdult<>(SharedWolfAi.ADULT_FOLLOW_RANGE, SharedWolfAi.SPEED_MODIFIER_FOLLOWING_ADULT),
+                        new StartHowling<>(SharedWolfAi.TIME_BETWEEN_HOWLS, SharedWolfAi.ADULT_FOLLOW_RANGE.getMaxValue()),
+                        createIdleBehaviors()
                 ),
-                ImmutableSet.of(),
-                GateBehavior.OrderPolicy.ORDERED,
-                GateBehavior.RunningPolicy.TRY_ALL,
-                ImmutableList.of(
-                        Pair.of(new FollowPackLeader<>(SharedWolfAi.ADULT_FOLLOW_RANGE, SharedWolfAi.SPEED_MODIFIER_FOLLOWING_ADULT), 1),
-                        Pair.of(new BabyFollowAdult<>(SharedWolfAi.ADULT_FOLLOW_RANGE, SharedWolfAi.SPEED_MODIFIER_FOLLOWING_ADULT), 1),
-                        Pair.of(new StartHowling<>(SharedWolfAi.TIME_BETWEEN_HOWLS, SharedWolfAi.ADULT_FOLLOW_RANGE.getMaxValue()), 1),
-                        Pair.of(createIdleBehaviors(), 1)
-                )
+                ABABMemoryModuleTypes.IS_SLEEPING.get()
         );
     }
 
+    @SuppressWarnings("unchecked")
     private static GateBehavior<Wolf> createIdleBehaviors() {
-        return BrainUtil.gateBehaviors(
-                ImmutableMap.of(
-                        MemoryModuleType.WALK_TARGET, MemoryStatus.VALUE_ABSENT
+        return BrainUtil.tryAllBehaviorsInOrderIfAbsent(
+                BrainUtil.basicWeightedBehaviors(
+                        SharedWolfAi.createGoToWantedItem(SharedWolfAi::canMove, false),
+                        createIdleLookBehaviors(),
+                        createIdleMovementBehaviors(),
+                        new Eat(SharedWolfAi::setAteRecently, SharedWolfAi.EAT_DURATION)
                 ),
-                ImmutableSet.of(),
-                GateBehavior.OrderPolicy.ORDERED,
-                GateBehavior.RunningPolicy.TRY_ALL,
-                ImmutableList.of(
-                        Pair.of(SharedWolfAi.createGoToWantedItem(DogGoalPackages::canWander, false), 1),
-                        Pair.of(createIdleLookBehaviors(), 1),
-                        Pair.of(createIdleMovementBehaviors(), 1),
-                        Pair.of(new Eat(SharedWolfAi::setAteRecently), 1)
-                )
+                MemoryModuleType.WALK_TARGET
         );
-    }
-
-    private static boolean wantsToFindShelter(LivingEntity livingEntity){
-        return livingEntity.level.isThundering() || livingEntity.level.isDay();
     }
 
     private static boolean canHunt(Wolf wolf){

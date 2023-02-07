@@ -222,6 +222,7 @@ public class Dog extends TamableAnimal implements InterestedMob, ShakingMob, Var
                 boolean willNotBreed = !animalInteractResult.consumesAction() || this.isBaby();
                 if (willNotBreed && this.isOwnedBy(player)) {
                     this.setOrderedToSit(!this.isOrderedToSit());
+                    SharedWolfAi.clearStates(this);
                     this.setJumping(false);
                     CommandAi.yieldAsPet(this);
                     SharedWolfAi.stopHoldingItemInMouth(this);
