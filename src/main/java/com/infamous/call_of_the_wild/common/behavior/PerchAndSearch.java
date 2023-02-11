@@ -6,6 +6,7 @@ import com.infamous.call_of_the_wild.common.util.PositionTrackerImpl;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.entity.PathfinderMob;
+import net.minecraft.world.entity.TamableAnimal;
 import net.minecraft.world.entity.ai.behavior.Behavior;
 import net.minecraft.world.entity.ai.memory.MemoryModuleType;
 import net.minecraft.world.entity.ai.memory.MemoryStatus;
@@ -14,7 +15,7 @@ import net.minecraft.world.phys.Vec3;
 import java.util.function.BiConsumer;
 import java.util.function.Predicate;
 
-@SuppressWarnings({"NullableProblems", "unused"})
+@SuppressWarnings({"unused"})
 public class PerchAndSearch<E extends PathfinderMob> extends Behavior<E> {
     private final Predicate<E> isSitting;
     private final BiConsumer<E, Boolean> toggleSitting;
@@ -70,11 +71,13 @@ public class PerchAndSearch<E extends PathfinderMob> extends Behavior<E> {
 
     @Override
     protected boolean canStillUse(ServerLevel level, E mob, long gameTime) {
-        return this.looksRemaining > 0;
+        return this.looksRemaining > 0 && GenericAi.getWalkTarget(mob).isEmpty();
     }
 
     @Override
     protected void stop(ServerLevel level, E mob, long gameTime) {
-        this.toggleSitting.accept(mob, false);
+        if(mob instanceof TamableAnimal tamableAnimal && !tamableAnimal.isOrderedToSit()){
+            this.toggleSitting.accept(mob, false);
+        }
     }
 }

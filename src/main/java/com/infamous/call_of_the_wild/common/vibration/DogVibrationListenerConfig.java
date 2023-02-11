@@ -5,7 +5,6 @@ import com.infamous.call_of_the_wild.common.entity.dog.Dog;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.level.gameevent.GameEvent;
 
-@SuppressWarnings("NullableProblems")
 public class DogVibrationListenerConfig extends SharedWolfVibrationListenerConfig<Dog> {
 
     @Override

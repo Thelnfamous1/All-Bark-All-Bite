@@ -2,12 +2,9 @@ package com.infamous.call_of_the_wild.common.registry;
 
 import com.infamous.call_of_the_wild.AllBarkAllBite;
 import com.infamous.call_of_the_wild.common.entity.dog.Dog;
+import com.infamous.call_of_the_wild.common.sensor.*;
 import com.infamous.call_of_the_wild.common.vibration.DogVibrationListenerConfig;
 import com.infamous.call_of_the_wild.common.vibration.WolfVibrationListenerConfig;
-import com.infamous.call_of_the_wild.common.sensor.AllySensor;
-import com.infamous.call_of_the_wild.common.sensor.AnimalTemptationSensor;
-import com.infamous.call_of_the_wild.common.sensor.DogSpecificSensor;
-import com.infamous.call_of_the_wild.common.sensor.WolfSpecificSensor;
 import com.infamous.call_of_the_wild.common.sensor.vibration.VibrationSensor;
 import net.minecraft.world.entity.ai.sensing.SensorType;
 import net.minecraft.world.entity.animal.Wolf;
@@ -37,4 +34,5 @@ public class ABABSensorTypes {
     @SuppressWarnings("unused")
     public static final RegistryObject<SensorType<VibrationSensor<Dog, DogVibrationListenerConfig>>> DOG_VIBRATION_SENSOR = SENSOR_TYPES.register("dog_vibration_sensor",
             () -> new SensorType<>(() -> new VibrationSensor<>(DogVibrationListenerConfig::new, ABABMemoryModuleTypes.DOG_VIBRATION_LISTENER.get())));
+
 }

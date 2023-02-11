@@ -13,7 +13,6 @@ import net.minecraftforge.common.util.TriPredicate;
 import java.util.Optional;
 import java.util.function.Predicate;
 
-@SuppressWarnings("NullableProblems")
 public class OwnerHurtByTarget<M extends Mob & OwnableEntity> extends TargetBehavior<M> {
     private LivingEntity ownerLastHurtBy;
     private int timestamp;

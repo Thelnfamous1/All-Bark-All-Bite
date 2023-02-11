@@ -22,8 +22,8 @@ import net.minecraft.world.phys.Vec3;
 import java.util.Optional;
 import java.util.function.Function;
 import java.util.function.Predicate;
+import java.util.function.ToIntFunction;
 
-@SuppressWarnings("NullableProblems")
 public class FollowOwner<E extends PathfinderMob> extends Behavior<E> {
     private static final int MIN_HORIZONTAL_DISTANCE_FROM_PLAYER_WHEN_TELEPORTING = 2;
     private static final int MAX_HORIZONTAL_DISTANCE_FROM_PLAYER_WHEN_TELEPORTING = 3;
@@ -33,30 +33,26 @@ public class FollowOwner<E extends PathfinderMob> extends Behavior<E> {
     private final Function<E, Optional<LivingEntity>> entityGetter;
     private final float speedModifier;
     private final int closeEnough;
-    private final int tooFar;
+    private final ToIntFunction<E> tooFarFunction;
     private int calculatePathCounter;
     private float oldWaterCost;
     private final boolean canFly;
 
     public FollowOwner(Function<E, Optional<LivingEntity>> entityGetter, float speedModifier, int closeEnough, int tooFar){
-        this(mob -> false, entityGetter, speedModifier, closeEnough, tooFar);
+        this(mob -> false, entityGetter, speedModifier, closeEnough, value -> tooFar);
     }
 
-    public FollowOwner(Predicate<E> dontFollowIf, Function<E, Optional<LivingEntity>> entityGetter, float speedModifier, int closeEnough) {
-        this(dontFollowIf, entityGetter, speedModifier, closeEnough, closeEnough, false);
+    public FollowOwner(Predicate<E> dontFollowIf, Function<E, Optional<LivingEntity>> entityGetter, float speedModifier, int closeEnough, ToIntFunction<E> tooFarFunction) {
+        this(dontFollowIf, entityGetter, speedModifier, closeEnough, tooFarFunction, false);
     }
 
-    public FollowOwner(Predicate<E> dontFollowIf, Function<E, Optional<LivingEntity>> entityGetter, float speedModifier, int closeEnough, int tooFar) {
-        this(dontFollowIf, entityGetter, speedModifier, closeEnough, tooFar, false);
-    }
-
-    public FollowOwner(Predicate<E> dontFollowIf, Function<E, Optional<LivingEntity>> entityGetter, float speedModifier, int closeEnough, int tooFar, boolean canFly) {
+    public FollowOwner(Predicate<E> dontFollowIf, Function<E, Optional<LivingEntity>> entityGetter, float speedModifier, int closeEnough, ToIntFunction<E> tooFarFunction, boolean canFly) {
         super(ImmutableMap.of(MemoryModuleType.LOOK_TARGET, MemoryStatus.REGISTERED, MemoryModuleType.WALK_TARGET, MemoryStatus.REGISTERED));
         this.dontFollowIf = dontFollowIf;
         this.entityGetter = entityGetter;
         this.speedModifier = speedModifier;
         this.closeEnough = closeEnough;
-        this.tooFar = tooFar;
+        this.tooFarFunction = tooFarFunction;
         this.canFly = canFly;
     }
 
@@ -70,7 +66,7 @@ public class FollowOwner<E extends PathfinderMob> extends Behavior<E> {
                 return false;
             } else {
                 LivingEntity target = optional.get();
-                return !mob.closerThan(target, tooFar);
+                return !mob.closerThan(target, this.tooFarFunction.applyAsInt(mob));
             }
         }
     }

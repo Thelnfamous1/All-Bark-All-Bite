@@ -11,7 +11,6 @@ import net.minecraft.world.entity.ai.memory.MemoryStatus;
 
 import java.util.function.BiPredicate;
 
-@SuppressWarnings("NullableProblems")
 public class RememberIfHuntTargetWasKilled<E extends LivingEntity> extends Behavior<E> {
 
    private final BiPredicate<E, LivingEntity> huntTargetPredicate;

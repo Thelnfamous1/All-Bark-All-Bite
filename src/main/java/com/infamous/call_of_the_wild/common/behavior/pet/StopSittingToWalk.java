@@ -7,7 +7,6 @@ import net.minecraft.world.entity.ai.behavior.Behavior;
 import net.minecraft.world.entity.ai.memory.MemoryModuleType;
 import net.minecraft.world.entity.ai.memory.MemoryStatus;
 
-@SuppressWarnings("NullableProblems")
 public class StopSittingToWalk extends Behavior<TamableAnimal> {
     public StopSittingToWalk() {
         super(ImmutableMap.of(

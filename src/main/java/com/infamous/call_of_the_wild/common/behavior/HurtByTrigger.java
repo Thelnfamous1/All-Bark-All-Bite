@@ -9,53 +9,38 @@ import net.minecraft.world.entity.ai.memory.MemoryModuleType;
 import net.minecraft.world.entity.ai.memory.MemoryStatus;
 
 import java.util.Optional;
-import java.util.function.BiConsumer;
-import java.util.function.BiPredicate;
+import java.util.function.Consumer;
 
-@SuppressWarnings("NullableProblems")
 public class HurtByTrigger<E extends LivingEntity> extends Behavior<E> {
-    private final BiPredicate<E, LivingEntity> canUse;
-    private final BiConsumer<E, LivingEntity> onHurtBy;
+    private final Consumer<E> onHurt;
     private DamageSource lastHurtBy;
 
-    public HurtByTrigger(BiConsumer<E, LivingEntity> onHurtBy){
-        this((m, le) -> true, onHurtBy);
-    }
-
-    public HurtByTrigger(BiPredicate<E, LivingEntity> canUse, BiConsumer<E, LivingEntity> onHurtBy) {
+    public HurtByTrigger(Consumer<E> onHurt) {
         super(ImmutableMap.of(
-                MemoryModuleType.HURT_BY, MemoryStatus.VALUE_PRESENT,
-                MemoryModuleType.HURT_BY_ENTITY, MemoryStatus.VALUE_PRESENT
+                MemoryModuleType.HURT_BY, MemoryStatus.VALUE_PRESENT
         ));
-        this.canUse = canUse;
-        this.onHurtBy = onHurtBy;
+        this.onHurt = onHurt;
     }
 
-    @SuppressWarnings("OptionalGetWithoutIsPresent")
     @Override
     protected boolean checkExtraStartConditions(ServerLevel level, E mob) {
-        return this.isNotAlreadyRetaliating(mob) && this.canUse.test(mob, this.getHurtByEntity(mob).get());
+        return this.isNotAlreadyReacting(mob);
     }
 
     @SuppressWarnings("OptionalGetWithoutIsPresent")
-    private boolean isNotAlreadyRetaliating(E mob) {
+    private boolean isNotAlreadyReacting(E mob) {
         DamageSource hurtBy = this.getHurtBy(mob).get();
-        LivingEntity hurtByEntity = this.getHurtByEntity(mob).get();
-        return this.lastHurtBy == null || this.lastHurtBy != hurtBy && hurtBy.getEntity() == hurtByEntity;
+        return this.lastHurtBy == null || this.lastHurtBy != hurtBy;
     }
 
     @SuppressWarnings("OptionalGetWithoutIsPresent")
     @Override
     protected void start(ServerLevel level, E mob, long gameTime) {
         this.lastHurtBy = this.getHurtBy(mob).get();
-        this.onHurtBy.accept(mob, this.getHurtByEntity(mob).get());
+        this.onHurt.accept(mob);
     }
 
     private Optional<DamageSource> getHurtBy(LivingEntity mob) {
         return mob.getBrain().getMemory(MemoryModuleType.HURT_BY);
-    }
-
-    private Optional<LivingEntity> getHurtByEntity(LivingEntity mob) {
-        return mob.getBrain().getMemory(MemoryModuleType.HURT_BY_ENTITY);
     }
 }

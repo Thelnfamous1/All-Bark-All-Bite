@@ -15,13 +15,13 @@ import net.minecraft.world.entity.ai.memory.MemoryStatus;
 
 import java.util.Optional;
 
-@SuppressWarnings({"NullableProblems", "unused"})
-public class StartHowling<E extends LivingEntity> extends Behavior<E> {
+@SuppressWarnings({"unused"})
+public class Howl<E extends LivingEntity> extends Behavior<E> {
     private final UniformInt howlCooldown;
     private final int tooFar;
     private long lastCheckTimestamp;
 
-    public StartHowling(UniformInt howlCooldown, int tooFar) {
+    public Howl(UniformInt howlCooldown, int tooFar) {
         super(ImmutableMap.of(
                 ABABMemoryModuleTypes.LEADER.get(), MemoryStatus.REGISTERED,
                 ABABMemoryModuleTypes.FOLLOWERS.get(), MemoryStatus.REGISTERED,

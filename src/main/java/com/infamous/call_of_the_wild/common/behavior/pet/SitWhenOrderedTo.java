@@ -9,7 +9,6 @@ import net.minecraft.world.entity.ai.behavior.Behavior;
 import net.minecraft.world.entity.ai.memory.MemoryModuleType;
 import net.minecraft.world.entity.ai.memory.MemoryStatus;
 
-@SuppressWarnings("NullableProblems")
 public class SitWhenOrderedTo extends Behavior<TamableAnimal> {
     private static final int MAX_DISTANCE = 12;
 
@@ -30,13 +29,9 @@ public class SitWhenOrderedTo extends Behavior<TamableAnimal> {
             if (owner == null) {
                 return true;
             } else {
-                return (!(tamable.distanceToSqr(owner) < MAX_DISTANCE * MAX_DISTANCE) || owner.getLastHurtByMob() == null) && shouldSit(tamable);
+                return (!(tamable.distanceToSqr(owner) < MAX_DISTANCE * MAX_DISTANCE) || owner.getLastHurtByMob() == null) && tamable.isOrderedToSit();
             }
         }
-    }
-
-    private static boolean shouldSit(TamableAnimal tamable) {
-        return tamable.isOrderedToSit() && !tamable.isSleeping();
     }
 
     @Override
@@ -52,7 +47,7 @@ public class SitWhenOrderedTo extends Behavior<TamableAnimal> {
 
     @Override
     protected boolean canStillUse(ServerLevel level, TamableAnimal tamable, long gameTime) {
-        return shouldSit(tamable);
+        return tamable.isOrderedToSit();
     }
 
     @Override

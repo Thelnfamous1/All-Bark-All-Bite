@@ -14,6 +14,7 @@ import net.minecraft.world.entity.ai.sensing.Sensor;
 import net.minecraft.world.entity.ai.sensing.SensorType;
 import net.minecraft.world.entity.schedule.Activity;
 
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -48,30 +49,21 @@ public class BrainUtil {
         return builder.build();
     }
 
-    public static <E extends LivingEntity> GateBehavior<E> gateBehaviors(Map<MemoryModuleType<?>, MemoryStatus> entryCondition, Set<MemoryModuleType<?>> exitErasedMemories, GateBehavior.OrderPolicy orderPolicy, GateBehavior.RunningPolicy runningPolicy, ImmutableList<Pair<Behavior<? super E>, Integer>> behaviors){
-        return new GateBehavior<>(
-                entryCondition,
-                exitErasedMemories,
-                orderPolicy,
-                runningPolicy,
-                behaviors);
-    }
-
-    public static <E extends LivingEntity> GateBehavior<E> tryAllBehaviorsInOrderIfAbsent(ImmutableList<Pair<Behavior<? super E>, Integer>> behaviors, MemoryModuleType<?>... entryTypes){
+    public static <E extends LivingEntity> GateBehavior<E> tryAllBehaviorsInOrderIfAbsent(List<Behavior<? super E>> behaviors, MemoryModuleType<?>... entryTypes){
         ImmutableMap.Builder<MemoryModuleType<?>, MemoryStatus> entryConditions = ImmutableMap.builder();
         for(MemoryModuleType<?> type : entryTypes){
             entryConditions.put(type, MemoryStatus.VALUE_ABSENT);
         }
 
-        return gateBehaviors(
+        return new GateBehavior<>(
                 entryConditions.build(),
                 ImmutableSet.of(),
                 GateBehavior.OrderPolicy.ORDERED,
                 GateBehavior.RunningPolicy.TRY_ALL,
-                behaviors);
+                basicWeightedBehaviors(behaviors));
     }
 
-    public static <E extends LivingEntity> ImmutableList<Pair<Behavior<? super E>, Integer>> basicWeightedBehaviors(Behavior<? super E>... behaviors){
+    private static <E extends LivingEntity> ImmutableList<Pair<Behavior<? super E>, Integer>> basicWeightedBehaviors(List<Behavior<? super E>> behaviors){
         ImmutableList.Builder<Pair<Behavior<? super E>, Integer>> weightedBehaviors = ImmutableList.builder();
         for(Behavior<? super E> behavior : behaviors){
             weightedBehaviors.add(Pair.of(behavior, 1));
@@ -82,4 +74,5 @@ public class BrainUtil {
     public static <E extends LivingEntity> Map<SensorType<? extends Sensor<? super E>>, Sensor<? super E>> getSensors(Brain<E> brain){
         return ReflectionUtil.getField(BRAIN_SENSORS, Brain.class, brain);
     }
+
 }

@@ -2,12 +2,11 @@ package com.infamous.call_of_the_wild.common.sensor;
 
 import com.google.common.collect.ImmutableSet;
 import com.infamous.call_of_the_wild.common.ABABTags;
+import com.infamous.call_of_the_wild.common.ai.AiUtil;
 import com.infamous.call_of_the_wild.common.entity.wolf.WolfAi;
 import com.infamous.call_of_the_wild.common.registry.ABABMemoryModuleTypes;
-import com.infamous.call_of_the_wild.common.ai.AiUtil;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.LivingEntity;
-import net.minecraft.world.entity.Mob;
 import net.minecraft.world.entity.ai.Brain;
 import net.minecraft.world.entity.ai.memory.MemoryModuleType;
 import net.minecraft.world.entity.ai.memory.NearestVisibleLivingEntities;
@@ -17,7 +16,6 @@ import net.minecraft.world.entity.animal.Wolf;
 import java.util.Optional;
 import java.util.Set;
 
-@SuppressWarnings("NullableProblems")
 public class WolfSpecificSensor extends Sensor<Wolf> {
 
     private static final int TARGET_DETECTION_DISTANCE = 16;

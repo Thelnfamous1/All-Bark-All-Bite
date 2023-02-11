@@ -17,6 +17,10 @@ public class DigAi {
         livingEntity.getBrain().setMemory(ABABMemoryModuleTypes.DIG_LOCATION.get(), GlobalPos.of(livingEntity.level.dimension(), blockPos));
     }
 
+    public static boolean hasDigLocation(LivingEntity livingEntity) {
+        return livingEntity.getBrain().hasMemoryValue(ABABMemoryModuleTypes.DIG_LOCATION.get());
+    }
+
     public static Optional<GlobalPos> getDigLocation(LivingEntity livingEntity) {
         return livingEntity.getBrain().getMemory(ABABMemoryModuleTypes.DIG_LOCATION.get());
     }

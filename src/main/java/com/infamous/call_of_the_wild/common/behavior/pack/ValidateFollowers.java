@@ -7,13 +7,11 @@ import com.infamous.call_of_the_wild.common.ai.PackAi;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.ai.behavior.Behavior;
 import net.minecraft.world.entity.ai.memory.MemoryStatus;
 
-@SuppressWarnings("NullableProblems")
 public class ValidateFollowers extends Behavior<LivingEntity> {
-
-    private static final int CLOSE_ENOUGH_TO_RECALL = 64;
 
     public ValidateFollowers() {
         super(ImmutableMap.of(
@@ -37,8 +35,8 @@ public class ValidateFollowers extends Behavior<LivingEntity> {
             return !follower.isDeadOrDying()
                     && follower.level == leader.level
                     && PackAi.isFollower(follower)
-                    && AiUtil.canBeConsideredAnAlly(leader, follower)
-                    && follower.closerThan(leader, CLOSE_ENOUGH_TO_RECALL)
+                    && AiUtil.isSameTypeAndFriendly(leader, follower)
+                    && follower.closerThan(leader, follower.getAttributeValue(Attributes.FOLLOW_RANGE))
                     && leader.level.getWorldBorder().isWithinBounds(follower.getBoundingBox());
         }
         return false;

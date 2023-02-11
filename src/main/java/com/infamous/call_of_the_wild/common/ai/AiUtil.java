@@ -22,6 +22,7 @@ import net.minecraft.world.entity.ai.sensing.Sensor;
 import net.minecraft.world.entity.ai.targeting.TargetingConditions;
 import net.minecraft.world.entity.animal.Animal;
 import net.minecraft.world.entity.animal.Turtle;
+import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.entity.projectile.ProjectileUtil;
 import net.minecraft.world.food.FoodProperties;
@@ -39,7 +40,7 @@ public class AiUtil {
     private static final TargetingConditions TARGET_CONDITIONS_IGNORE_LINE_OF_SIGHT = TargetingConditions.forNonCombat().range(16.0D).ignoreLineOfSight();
     private static final TargetingConditions TARGET_CONDITIONS_IGNORE_LINE_OF_SIGHT_IGNORE_INVISIBILITY_TESTING = TargetingConditions.forNonCombat().range(16.0D).ignoreLineOfSight().ignoreInvisibilityTesting();
 
-    protected static final double NEAR_ZERO_DELTA_MOVEMENT = 1.0E-6D;
+    public static final double NEAR_ZERO_DELTA_MOVEMENT = 1.0E-6D;
 
     public static void addEatEffect(LivingEntity eater, Level level, FoodProperties foodProperties) {
         for(Pair<MobEffectInstance, Float> pair : foodProperties.getEffects()) {
@@ -79,9 +80,8 @@ public class AiUtil {
                 && isAttackable(mob, turtle, requireLineOfSight);
     }
 
-    public static boolean canBeConsideredAnAlly(LivingEntity mob, LivingEntity other) {
-        return mob.isAlliedTo(other)
-                || mob.getType() == other.getType() && mob.getTeam() == null && other.getTeam() == null;
+    public static boolean isSameTypeAndFriendly(LivingEntity mob, LivingEntity other) {
+        return mob.getType() == other.getType() && (mob.isAlliedTo(other) || mob.getTeam() == null && other.getTeam() == null);
     }
 
     public static Optional<LivingEntity> getLivingEntityFromUUID(ServerLevel level, UUID uuid) {
@@ -272,9 +272,31 @@ public class AiUtil {
         return (entity.isOnGround() || entity.isInWaterOrBubble()) && isMoving(entity);
     }
 
-
-
     public static boolean isEntityTargetableIgnoringLineOfSight(LivingEntity entity, LivingEntity target) {
         return entity.getBrain().isMemoryValue(MemoryModuleType.ATTACK_TARGET, target) ? TARGET_CONDITIONS_IGNORE_LINE_OF_SIGHT_IGNORE_INVISIBILITY_TESTING.test(entity, target) : TARGET_CONDITIONS_IGNORE_LINE_OF_SIGHT.test(entity, target);
+    }
+
+    public static boolean isPathClear(LivingEntity entity, LivingEntity target, int horizontalDistance, int verticalDistance) {
+        double zDiff = target.getZ() - entity.getZ();
+        double xDiff = target.getX() - entity.getX();
+        double ratio = zDiff / xDiff;
+
+        for(int horizontalStep = 0; horizontalStep < horizontalDistance; ++horizontalStep) {
+            double zStep = ratio == 0.0D ? 0.0D : zDiff * (double)((float)horizontalStep / horizontalDistance);
+            double xStep = ratio == 0.0D ? xDiff * (double)((float)horizontalStep / horizontalDistance) : zStep / ratio;
+
+            for(int verticalStep = 1; verticalStep < verticalDistance + 1; ++verticalStep) {
+                if (!entity.level.getBlockState(new BlockPos(entity.getX() + xStep, entity.getY() + (double)verticalStep, entity.getZ() + zStep)).getMaterial().isReplaceable()) {
+                    return false;
+                }
+            }
+        }
+
+        return true;
+    }
+
+    public static void dropItemAtPos(LivingEntity entity, BlockPos blockPos, ItemStack itemStack) {
+        ItemEntity drop = new ItemEntity(entity.level, blockPos.getX(), blockPos.getY(), blockPos.getY(), itemStack);
+        entity.level.addFreshEntity(drop);
     }
 }

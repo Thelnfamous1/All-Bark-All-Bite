@@ -3,8 +3,7 @@ package com.infamous.call_of_the_wild.common.sensor;
 import com.google.common.collect.ImmutableSet;
 import com.infamous.call_of_the_wild.common.ABABTags;
 import com.infamous.call_of_the_wild.common.entity.dog.Dog;
-import com.infamous.call_of_the_wild.common.entity.dog.DogGoalPackages;
-import com.infamous.call_of_the_wild.common.entity.SharedWolfAi;
+import com.infamous.call_of_the_wild.common.entity.dog.DogAi;
 import com.infamous.call_of_the_wild.common.registry.ABABMemoryModuleTypes;
 import com.infamous.call_of_the_wild.common.ai.AiUtil;
 import net.minecraft.server.level.ServerLevel;
@@ -18,7 +17,6 @@ import net.minecraft.world.entity.player.Player;
 import java.util.Optional;
 import java.util.Set;
 
-@SuppressWarnings("NullableProblems")
 public class DogSpecificSensor extends Sensor<Dog> {
 
     private static final int TARGET_DETECTION_DISTANCE = 16;
@@ -48,7 +46,7 @@ public class DogSpecificSensor extends Sensor<Dog> {
         for (LivingEntity livingEntity : nvle.findAll((le) -> true)) {
             if(nearestDisliked.isEmpty()
                     && !tame
-                    && SharedWolfAi.isDisliked(livingEntity, ABABTags.DOG_DISLIKED)){
+                    && DogAi.isDisliked(livingEntity)){
                 nearestDisliked = Optional.of(livingEntity);
             } else if(nearestHuntable.isEmpty()
                     && !tame
@@ -60,7 +58,7 @@ public class DogSpecificSensor extends Sensor<Dog> {
             } else if (livingEntity instanceof Player player) {
                 if (nearestPlayerHoldingWantedItem.isEmpty()
                         && !player.isSpectator()
-                        && player.isHolding(is -> DogGoalPackages.isInteresting(dog, is))) {
+                        && player.isHolding(is -> DogAi.isInteresting(dog, is))) {
                     nearestPlayerHoldingWantedItem = Optional.of(player);
                 }
             }

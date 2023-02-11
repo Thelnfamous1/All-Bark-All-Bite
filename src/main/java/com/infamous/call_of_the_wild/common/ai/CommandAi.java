@@ -2,7 +2,6 @@ package com.infamous.call_of_the_wild.common.ai;
 
 import com.infamous.call_of_the_wild.common.behavior.pet.FollowOwner;
 import com.infamous.call_of_the_wild.common.entity.SharedWolfAi;
-import com.infamous.call_of_the_wild.common.entity.dog.DogGoalPackages;
 import com.infamous.call_of_the_wild.common.registry.ABABMemoryModuleTypes;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.util.Unit;
@@ -17,14 +16,11 @@ import net.minecraft.world.phys.EntityHitResult;
 import net.minecraft.world.phys.HitResult;
 
 public class CommandAi {
-    public static void setFollowing(LivingEntity entity) {
-        entity.getBrain().setMemory(ABABMemoryModuleTypes.IS_FOLLOWING.get(), Unit.INSTANCE);
-    }
 
     public static void yieldAsPet(PathfinderMob pathfinderMob) {
         GenericAi.stopWalking(pathfinderMob);
 
-        AiUtil.setItemPickupCooldown(pathfinderMob, DogGoalPackages.ITEM_PICKUP_COOLDOWN);
+        AiUtil.setItemPickupCooldown(pathfinderMob, SharedWolfAi.ITEM_PICKUP_COOLDOWN);
 
         AiUtil.eraseMemories(pathfinderMob,
                 MemoryModuleType.ATTACK_TARGET,
@@ -37,7 +33,7 @@ public class CommandAi {
 
     public static void commandAttack(TamableAnimal tamableAnimal, LivingEntity target, LivingEntity owner) {
         tamableAnimal.setOrderedToSit(false);
-        SharedWolfAi.clearStates(tamableAnimal);
+        SharedWolfAi.clearStates(tamableAnimal, true);
         yieldAsPet(tamableAnimal);
         if(tamableAnimal.canAttack(target) && tamableAnimal.wantsToAttack(target, owner)){
             StartAttacking.setAttackTarget(tamableAnimal, target);
@@ -46,7 +42,7 @@ public class CommandAi {
 
     public static void commandCome(TamableAnimal tamableAnimal, LivingEntity owner, ServerLevel serverLevel) {
         tamableAnimal.setOrderedToSit(false);
-        SharedWolfAi.clearStates(tamableAnimal);
+        SharedWolfAi.clearStates(tamableAnimal, true);
         yieldAsPet(tamableAnimal);
         Path path = tamableAnimal.getNavigation().createPath(owner, 0);
         if(path != null && path.canReach()){
@@ -58,16 +54,26 @@ public class CommandAi {
 
     public static void commandFree(TamableAnimal tamableAnimal) {
         tamableAnimal.setOrderedToSit(false);
-        SharedWolfAi.clearStates(tamableAnimal);
+        SharedWolfAi.clearStates(tamableAnimal, true);
         yieldAsPet(tamableAnimal);
         stopFollowing(tamableAnimal);
+        stopHeeling(tamableAnimal);
+    }
+
+    public static void commandFollow(TamableAnimal tamableAnimal) {
+        tamableAnimal.setOrderedToSit(false);
+        SharedWolfAi.clearStates(tamableAnimal, true);
+        yieldAsPet(tamableAnimal);
+        stopHeeling(tamableAnimal);
+        setFollowing(tamableAnimal);
     }
 
     public static void commandGo(TamableAnimal tamableAnimal, HitResult hitResult) {
         tamableAnimal.setOrderedToSit(false);
-        SharedWolfAi.clearStates(tamableAnimal);
+        SharedWolfAi.clearStates(tamableAnimal, true);
         yieldAsPet(tamableAnimal);
         stopFollowing(tamableAnimal);
+        stopHeeling(tamableAnimal);
         if(hitResult instanceof BlockHitResult blockHitResult){
             AiUtil.setWalkAndLookTargetMemories(tamableAnimal, blockHitResult.getBlockPos(), SharedWolfAi.SPEED_MODIFIER_WALKING, 0);
         } else if(hitResult instanceof EntityHitResult entityHitResult){
@@ -77,23 +83,40 @@ public class CommandAi {
 
     public static void commandHeel(TamableAnimal tamableAnimal) {
         tamableAnimal.setOrderedToSit(false);
-        SharedWolfAi.clearStates(tamableAnimal);
+        SharedWolfAi.clearStates(tamableAnimal, true);
         yieldAsPet(tamableAnimal);
-        setFollowing(tamableAnimal);
+        stopFollowing(tamableAnimal);
+        setHeeling(tamableAnimal);
     }
 
     public static void commandSit(TamableAnimal tamableAnimal) {
         tamableAnimal.setOrderedToSit(true);
-        SharedWolfAi.clearStates(tamableAnimal);
+        SharedWolfAi.clearStates(tamableAnimal, false);
         tamableAnimal.setJumping(false);
         yieldAsPet(tamableAnimal);
     }
 
+    public static void setFollowing(LivingEntity entity) {
+        entity.getBrain().setMemory(ABABMemoryModuleTypes.IS_ORDERED_TO_FOLLOW.get(), Unit.INSTANCE);
+    }
+
     private static void stopFollowing(LivingEntity entity) {
-        entity.getBrain().eraseMemory(ABABMemoryModuleTypes.IS_FOLLOWING.get());
+        entity.getBrain().eraseMemory(ABABMemoryModuleTypes.IS_ORDERED_TO_FOLLOW.get());
     }
 
     public static boolean isFollowing(LivingEntity entity){
-        return entity.getBrain().hasMemoryValue(ABABMemoryModuleTypes.IS_FOLLOWING.get());
+        return entity.getBrain().hasMemoryValue(ABABMemoryModuleTypes.IS_ORDERED_TO_FOLLOW.get());
+    }
+
+    public static void setHeeling(LivingEntity entity) {
+        entity.getBrain().setMemory(ABABMemoryModuleTypes.IS_ORDERED_TO_HEEL.get(), Unit.INSTANCE);
+    }
+
+    public static void stopHeeling(LivingEntity entity) {
+        entity.getBrain().eraseMemory(ABABMemoryModuleTypes.IS_ORDERED_TO_HEEL.get());
+    }
+
+    public static boolean isHeeling(LivingEntity entity){
+        return entity.getBrain().hasMemoryValue(ABABMemoryModuleTypes.IS_ORDERED_TO_HEEL.get());
     }
 }

@@ -12,7 +12,6 @@ import net.minecraft.world.item.ItemStack;
 
 import java.util.function.Consumer;
 
-@SuppressWarnings("NullableProblems")
 public class Eat extends Behavior<Animal> {
     private final Consumer<Animal> onEaten;
     private int eatRemainingTicks;

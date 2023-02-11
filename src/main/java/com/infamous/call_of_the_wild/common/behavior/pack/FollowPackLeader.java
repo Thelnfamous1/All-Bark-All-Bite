@@ -16,7 +16,6 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Stream;
 
-@SuppressWarnings("NullableProblems")
 public class FollowPackLeader<E extends LivingEntity> extends Behavior<E> {
     public static final int INTERVAL_TICKS = 200;
     private final UniformInt followRange;
@@ -49,7 +48,7 @@ public class FollowPackLeader<E extends LivingEntity> extends Behavior<E> {
 
             this.joinOrCreatePack(mob);
 
-            return PackAi.isFollower(mob);
+            return PackAi.isFollower(mob) && this.wantsToFollowLeader(mob);
         }
     }
 
@@ -74,7 +73,6 @@ public class FollowPackLeader<E extends LivingEntity> extends Behavior<E> {
                 .findAny()
                 .orElse(mob);
 
-        //MiscUtil.sendParticlesAroundSelf(level, leader, ParticleTypes.FLAME, leader.getEyeHeight(),  10, 0.2D);
         if(leader != mob){
             PackAi.startFollowing(mob, leader);
         }

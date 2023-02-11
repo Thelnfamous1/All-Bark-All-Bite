@@ -1,27 +1,23 @@
 package com.infamous.call_of_the_wild.common.entity.dog;
 
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableSet;
 import com.infamous.call_of_the_wild.common.ABABTags;
 import com.infamous.call_of_the_wild.common.ai.AiUtil;
 import com.infamous.call_of_the_wild.common.ai.CommandAi;
 import com.infamous.call_of_the_wild.common.ai.DigAi;
 import com.infamous.call_of_the_wild.common.ai.GenericAi;
 import com.infamous.call_of_the_wild.common.entity.SharedWolfAi;
-import com.infamous.call_of_the_wild.common.registry.ABABActivities;
 import com.infamous.call_of_the_wild.common.registry.ABABMemoryModuleTypes;
 import com.infamous.call_of_the_wild.common.registry.ABABSensorTypes;
 import com.infamous.call_of_the_wild.common.util.MiscUtil;
-import com.mojang.datafixers.util.Pair;
 import net.minecraft.core.BlockPos;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
+import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.Mob;
-import net.minecraft.world.entity.ai.Brain;
 import net.minecraft.world.entity.ai.memory.MemoryModuleType;
-import net.minecraft.world.entity.ai.memory.MemoryStatus;
 import net.minecraft.world.entity.ai.sensing.Sensor;
 import net.minecraft.world.entity.ai.sensing.SensorType;
 import net.minecraft.world.entity.item.ItemEntity;
@@ -50,7 +46,6 @@ public class DogAi {
             MemoryModuleType.DIG_COOLDOWN,
             ABABMemoryModuleTypes.DIG_LOCATION.get(),
             ABABMemoryModuleTypes.DISABLE_WALK_TO_FETCH_ITEM.get(),
-            ABABMemoryModuleTypes.DISABLE_WALK_TO_PLAY_ITEM.get(),
             ABABMemoryModuleTypes.DOG_VIBRATION_LISTENER.get(),
             ABABMemoryModuleTypes.FETCHING_DISABLED.get(),
             ABABMemoryModuleTypes.FETCHING_ITEM.get(),
@@ -59,9 +54,12 @@ public class DogAi {
             MemoryModuleType.HURT_BY,
             MemoryModuleType.HURT_BY_ENTITY,
             MemoryModuleType.INTERACTION_TARGET,
-            ABABMemoryModuleTypes.IS_FOLLOWING.get(),
+            ABABMemoryModuleTypes.IS_LEVEL_DAY.get(),
+            ABABMemoryModuleTypes.IS_ORDERED_TO_FOLLOW.get(),
+            ABABMemoryModuleTypes.IS_ORDERED_TO_HEEL.get(),
+            ABABMemoryModuleTypes.IS_ORDERED_TO_SIT.get(),
             MemoryModuleType.IS_PANICKING,
-            ABABMemoryModuleTypes.IS_SLEEPING.get(),
+            ABABMemoryModuleTypes.IS_SHELTERED.get(),
             MemoryModuleType.IS_TEMPTED,
             MemoryModuleType.ITEM_PICKUP_COOLDOWN_TICKS,
             MemoryModuleType.LAST_SLEPT,
@@ -84,12 +82,11 @@ public class DogAi {
             MemoryModuleType.NEAREST_VISIBLE_PLAYER,
             MemoryModuleType.NEAREST_VISIBLE_WANTED_ITEM,
             MemoryModuleType.PATH,
-            ABABMemoryModuleTypes.PLAYING_DISABLED.get(),
-            ABABMemoryModuleTypes.PLAYING_WITH_ITEM.get(),
+            ABABMemoryModuleTypes.POUNCE_TARGET.get(),
+            ABABMemoryModuleTypes.STALK_TARGET.get(),
             MemoryModuleType.TEMPTING_PLAYER,
             MemoryModuleType.TEMPTATION_COOLDOWN_TICKS,
             ABABMemoryModuleTypes.TIME_TRYING_TO_REACH_FETCH_ITEM.get(),
-            ABABMemoryModuleTypes.TIME_TRYING_TO_REACH_PLAY_ITEM.get(),
             MemoryModuleType.UNIVERSAL_ANGER,
             MemoryModuleType.WALK_TARGET
     );
@@ -110,86 +107,6 @@ public class DogAi {
     public static final int DIG_MAX_XZ_DISTANCE = 10;
     public static final int DIG_MAX_Y_DISTANCE = 7;
 
-    public static Brain<?> makeBrain(Brain<Dog> brain) {
-        initCoreActivity(brain);
-        initFightActivity(brain);
-        initRetreatActivity(brain);
-        initDiggingActivity(brain);
-        initFetchActivity(brain);
-        initRestActivity(brain);
-        initIdleActivity(brain);
-        brain.setCoreActivities(ImmutableSet.of(Activity.CORE));
-        brain.setDefaultActivity(Activity.IDLE);
-        brain.useDefaultActivity();
-        return brain;
-    }
-
-    private static void initCoreActivity(Brain<Dog> brain) {
-        brain.addActivityWithConditions(Activity.CORE,
-                DogGoalPackages.getCorePackage(),
-                ImmutableSet.of());
-    }
-
-    private static void initFightActivity(Brain<Dog> brain) {
-        brain.addActivityAndRemoveMemoriesWhenStopped(Activity.FIGHT,
-                DogGoalPackages.getFightPackage(),
-                ImmutableSet.of(
-                        Pair.of(MemoryModuleType.ATTACK_TARGET, MemoryStatus.VALUE_PRESENT),
-                        Pair.of(MemoryModuleType.IS_PANICKING, MemoryStatus.VALUE_ABSENT)
-                ),
-                ImmutableSet.of(MemoryModuleType.ATTACK_TARGET));
-    }
-
-    private static void initRetreatActivity(Brain<Dog> brain) {
-        brain.addActivityAndRemoveMemoriesWhenStopped(Activity.AVOID,
-                DogGoalPackages.getAvoidPackage(),
-                ImmutableSet.of(
-                        Pair.of(MemoryModuleType.AVOID_TARGET, MemoryStatus.VALUE_PRESENT),
-                        Pair.of(MemoryModuleType.IS_PANICKING, MemoryStatus.VALUE_ABSENT)
-                ),
-                ImmutableSet.of(MemoryModuleType.AVOID_TARGET));
-    }
-
-    private static void initDiggingActivity(Brain<Dog> brain) {
-        brain.addActivityAndRemoveMemoriesWhenStopped(Activity.DIG,
-                DogGoalPackages.getDigPackage(),
-                ImmutableSet.of(
-                        Pair.of(ABABMemoryModuleTypes.DIG_LOCATION.get(), MemoryStatus.VALUE_PRESENT),
-                        Pair.of(MemoryModuleType.IS_PANICKING, MemoryStatus.VALUE_ABSENT)
-                ),
-                ImmutableSet.of(ABABMemoryModuleTypes.DIG_LOCATION.get()));
-    }
-
-    private static void initFetchActivity(Brain<Dog> brain) {
-        brain.addActivityAndRemoveMemoriesWhenStopped(ABABActivities.FETCH.get(),
-                DogGoalPackages.getFetchPackage(),
-                ImmutableSet.of(
-                        Pair.of(ABABMemoryModuleTypes.FETCHING_ITEM.get(), MemoryStatus.VALUE_PRESENT),
-                        Pair.of(MemoryModuleType.IS_PANICKING, MemoryStatus.VALUE_ABSENT)
-                ),
-                ImmutableSet.of(ABABMemoryModuleTypes.FETCHING_ITEM.get()));
-    }
-
-    private static void initRestActivity(Brain<Dog> brain) {
-        brain.addActivityAndRemoveMemoriesWhenStopped(Activity.REST,
-                DogGoalPackages.getRestPackage(),
-                ImmutableSet.of(
-                        Pair.of(ABABMemoryModuleTypes.IS_SLEEPING.get(), MemoryStatus.VALUE_PRESENT),
-                        Pair.of(MemoryModuleType.IS_PANICKING, MemoryStatus.VALUE_ABSENT)
-                ),
-                ImmutableSet.of(
-                        ABABMemoryModuleTypes.IS_SLEEPING.get()
-                )
-        );
-    }
-
-    private static void initIdleActivity(Brain<Dog> brain) {
-        brain.addActivityWithConditions(Activity.IDLE, DogGoalPackages.getIdlePackage(),
-                ImmutableSet.of(
-                        Pair.of(MemoryModuleType.IS_PANICKING, MemoryStatus.VALUE_ABSENT)
-                ));
-    }
-
     /**
      * Called by {@link Dog#mobInteract(Player, InteractionHand)}
      */
@@ -200,7 +117,7 @@ public class DogAi {
 
         if(dog.isTame()){
             if (!(item instanceof DyeItem dyeItem)) {
-                if(DogGoalPackages.canBury(stack) && !AiUtil.hasAnyMemory(dog, ABABMemoryModuleTypes.DIG_LOCATION.get(), MemoryModuleType.DIG_COOLDOWN)){
+                if(canBury(stack) && !AiUtil.hasAnyMemory(dog, ABABMemoryModuleTypes.DIG_LOCATION.get(), MemoryModuleType.DIG_COOLDOWN)){
                     Optional<BlockPos> digLocation = DigAi.generateDigLocation(dog, DIG_MAX_XZ_DISTANCE, DIG_MAX_Y_DISTANCE, bp -> level.getBlockState(bp.below()).is(ABABTags.DOG_CAN_DIG));
                     if(digLocation.isPresent()){
                         CommandAi.yieldAsPet(dog);
@@ -231,10 +148,7 @@ public class DogAi {
         } else if(dog.isFood(stack) && !dog.isAggressive()){
             dog.usePlayerItem(player, hand, stack);
             if (MiscUtil.oneInChance(dog.getRandom(), 3) && !ForgeEventFactory.onAnimalTame(dog, player)) {
-                dog.tame(player);
-                dog.setOrderedToSit(true);
-                CommandAi.yieldAsPet(dog);
-                CommandAi.setFollowing(dog);
+                SharedWolfAi.tame(dog, player);
                 level.broadcastEntityEvent(dog, SharedWolfAi.SUCCESSFUL_TAME_ID);
             } else {
                 level.broadcastEntityEvent(dog, SharedWolfAi.FAILED_TAME_ID);
@@ -242,24 +156,6 @@ public class DogAi {
             return Optional.of(InteractionResult.CONSUME);
         }
         return Optional.of(InteractionResult.PASS);
-    }
-
-    /**
-     * Called by {@link Dog#customServerAiStep()}
-     */
-    public static void updateActivity(Dog dog) {
-        Brain<Dog> brain = dog.getBrain();
-        Activity previous = brain.getActiveNonCoreActivity().orElse(null);
-        brain.setActiveActivityToFirstValid(ImmutableList.of(Activity.FIGHT, Activity.AVOID, Activity.DIG, ABABActivities.FETCH.get(), Activity.REST, Activity.IDLE));
-        Activity current = brain.getActiveNonCoreActivity().orElse(null);
-
-        if (previous != current) {
-            getSoundForCurrentActivity(dog).ifPresent(dog::playSoundEvent);
-        }
-
-        dog.setAggressive(brain.hasMemoryValue(MemoryModuleType.ATTACK_TARGET));
-
-        SharedWolfAi.handleSleeping(dog);
     }
 
     public static Optional<SoundEvent> getSoundForCurrentActivity(Dog dog) {
@@ -291,10 +187,19 @@ public class DogAi {
      * Called by {@link Dog#pickUpItem(ItemEntity)}
      */
     public static void pickUpItem(Dog dog, ItemEntity itemEntity) {
-        ItemStack singleton = SharedWolfAi.pickUpAndHoldItem(dog, itemEntity);
-        if(DogGoalPackages.canFetch(singleton)){
-            dog.getBrain().eraseMemory(ABABMemoryModuleTypes.TIME_TRYING_TO_REACH_FETCH_ITEM.get());
-        }
+        SharedWolfAi.pickUpAndHoldItem(dog, itemEntity);
+        dog.getBrain().eraseMemory(ABABMemoryModuleTypes.TIME_TRYING_TO_REACH_FETCH_ITEM.get());
     }
 
+    protected static boolean canBury(ItemStack stack) {
+        return stack.is(ABABTags.DOG_BURIES);
+    }
+
+    public static boolean isDisliked(LivingEntity livingEntity) {
+        return SharedWolfAi.isDisliked(livingEntity, ABABTags.DOG_DISLIKED);
+    }
+
+    public static boolean isInteresting(Dog dog, ItemStack stack) {
+        return canBury(stack) || dog.isFood(stack);
+    }
 }

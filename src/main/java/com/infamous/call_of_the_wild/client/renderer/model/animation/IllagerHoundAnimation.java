@@ -1384,30 +1384,24 @@ public class IllagerHoundAnimation {
                                     AnimationChannel.Interpolations.LINEAR),
                             new Keyframe(0.52f, KeyframeAnimations.posVec(0f, 0f, 0f),
                                     AnimationChannel.Interpolations.LINEAR))).build();
-    public static final AnimationDefinition WOLF_CROUCHING = AnimationDefinition.Builder.withLength(3f)
+    public static final AnimationDefinition WOLF_CROUCHING = AnimationDefinition.Builder.withLength(0.2f)
             .addAnimation(IllagerHoundModel.BODY,
                     new AnimationChannel(AnimationChannel.Targets.POSITION,
                             new Keyframe(0f, KeyframeAnimations.posVec(0f, 0f, 0f),
                                     AnimationChannel.Interpolations.LINEAR),
                             new Keyframe(0.2f, KeyframeAnimations.posVec(0f, -2f, -1f),
-                                    AnimationChannel.Interpolations.LINEAR),
-                            new Keyframe(3f, KeyframeAnimations.posVec(0f, -2f, -1f),
                                     AnimationChannel.Interpolations.LINEAR)))
             .addAnimation(IllagerHoundModel.BODY,
                     new AnimationChannel(AnimationChannel.Targets.ROTATION,
                             new Keyframe(0f, KeyframeAnimations.degreeVec(0f, 0f, 0f),
                                     AnimationChannel.Interpolations.LINEAR),
                             new Keyframe(0.2f, KeyframeAnimations.degreeVec(25f, 0f, 0f),
-                                    AnimationChannel.Interpolations.LINEAR),
-                            new Keyframe(3f, KeyframeAnimations.degreeVec(25f, 0f, 0f),
                                     AnimationChannel.Interpolations.LINEAR)))
             .addAnimation(IllagerHoundModel.HEAD,
                     new AnimationChannel(AnimationChannel.Targets.POSITION,
                             new Keyframe(0f, KeyframeAnimations.posVec(0f, 0f, 0f),
                                     AnimationChannel.Interpolations.LINEAR),
                             new Keyframe(0.2f, KeyframeAnimations.posVec(0f, 0f, 0f),
-                                    AnimationChannel.Interpolations.LINEAR),
-                            new Keyframe(3f, KeyframeAnimations.posVec(0f, 0f, 0f),
                                     AnimationChannel.Interpolations.LINEAR)))
             .addAnimation(IllagerHoundModel.HEAD,
                     new AnimationChannel(AnimationChannel.Targets.ROTATION,
@@ -1434,64 +1428,48 @@ public class IllagerHoundAnimation {
                             new Keyframe(0f, KeyframeAnimations.posVec(0f, 0f, 0f),
                                     AnimationChannel.Interpolations.LINEAR),
                             new Keyframe(0.2f, KeyframeAnimations.posVec(0f, -3.5f, 0f),
-                                    AnimationChannel.Interpolations.LINEAR),
-                            new Keyframe(3f, KeyframeAnimations.posVec(0f, -3.5f, 0f),
                                     AnimationChannel.Interpolations.LINEAR)))
             .addAnimation(IllagerHoundModel.RIGHT_FRONT_LEG,
                     new AnimationChannel(AnimationChannel.Targets.ROTATION,
                             new Keyframe(0f, KeyframeAnimations.degreeVec(0f, 0f, 0f),
                                     AnimationChannel.Interpolations.LINEAR),
                             new Keyframe(0.2f, KeyframeAnimations.degreeVec(-62.5f, 0f, 0f),
-                                    AnimationChannel.Interpolations.LINEAR),
-                            new Keyframe(3f, KeyframeAnimations.degreeVec(-62.5f, 0f, 0f),
                                     AnimationChannel.Interpolations.LINEAR)))
             .addAnimation(IllagerHoundModel.LEFT_FRONT_LEG,
                     new AnimationChannel(AnimationChannel.Targets.POSITION,
                             new Keyframe(0f, KeyframeAnimations.posVec(0f, 0f, 0f),
                                     AnimationChannel.Interpolations.LINEAR),
                             new Keyframe(0.2f, KeyframeAnimations.posVec(0f, -3.5f, 0f),
-                                    AnimationChannel.Interpolations.LINEAR),
-                            new Keyframe(3f, KeyframeAnimations.posVec(0f, -3.5f, 0f),
                                     AnimationChannel.Interpolations.LINEAR)))
             .addAnimation(IllagerHoundModel.LEFT_FRONT_LEG,
                     new AnimationChannel(AnimationChannel.Targets.ROTATION,
                             new Keyframe(0f, KeyframeAnimations.degreeVec(0f, 0f, 0f),
                                     AnimationChannel.Interpolations.LINEAR),
                             new Keyframe(0.2f, KeyframeAnimations.degreeVec(-62.5f, 0f, 0f),
-                                    AnimationChannel.Interpolations.LINEAR),
-                            new Keyframe(3f, KeyframeAnimations.degreeVec(-62.5f, 0f, 0f),
                                     AnimationChannel.Interpolations.LINEAR)))
             .addAnimation(IllagerHoundModel.TAIL,
                     new AnimationChannel(AnimationChannel.Targets.POSITION,
                             new Keyframe(0f, KeyframeAnimations.posVec(0f, 0f, -2f),
                                     AnimationChannel.Interpolations.LINEAR),
                             new Keyframe(0.2f, KeyframeAnimations.posVec(0f, -0.5f, -3.5f),
-                                    AnimationChannel.Interpolations.LINEAR),
-                            new Keyframe(3f, KeyframeAnimations.posVec(0f, -0.5f, -3.5f),
                                     AnimationChannel.Interpolations.LINEAR)))
             .addAnimation(IllagerHoundModel.TAIL,
                     new AnimationChannel(AnimationChannel.Targets.ROTATION,
                             new Keyframe(0f, KeyframeAnimations.degreeVec(30f, 0f, 0f),
                                     AnimationChannel.Interpolations.LINEAR),
                             new Keyframe(0.2f, KeyframeAnimations.degreeVec(155f, 0f, 0f),
-                                    AnimationChannel.Interpolations.LINEAR),
-                            new Keyframe(3f, KeyframeAnimations.degreeVec(155f, 0f, 0f),
                                     AnimationChannel.Interpolations.LINEAR)))
             .addAnimation(IllagerHoundModel.UPPER_BODY,
                     new AnimationChannel(AnimationChannel.Targets.POSITION,
                             new Keyframe(0f, KeyframeAnimations.posVec(0f, 0f, 0f),
                                     AnimationChannel.Interpolations.LINEAR),
                             new Keyframe(0.2f, KeyframeAnimations.posVec(0f, -3f, -3f),
-                                    AnimationChannel.Interpolations.LINEAR),
-                            new Keyframe(3f, KeyframeAnimations.posVec(0f, -3f, -3f),
                                     AnimationChannel.Interpolations.LINEAR)))
             .addAnimation(IllagerHoundModel.UPPER_BODY,
                     new AnimationChannel(AnimationChannel.Targets.ROTATION,
                             new Keyframe(0f, KeyframeAnimations.degreeVec(0f, 0f, 0f),
                                     AnimationChannel.Interpolations.LINEAR),
                             new Keyframe(0.2f, KeyframeAnimations.degreeVec(0f, 0f, 0f),
-                                    AnimationChannel.Interpolations.LINEAR),
-                            new Keyframe(3f, KeyframeAnimations.degreeVec(0f, 0f, 0f),
                                     AnimationChannel.Interpolations.LINEAR)))
             .addAnimation(IllagerHoundModel.MOUTH,
                     new AnimationChannel(AnimationChannel.Targets.ROTATION,
@@ -1499,7 +1477,8 @@ public class IllagerHoundAnimation {
                                     AnimationChannel.Interpolations.LINEAR),
                             new Keyframe(0.2f, KeyframeAnimations.degreeVec(2.5f, 0f, 0f),
                                     AnimationChannel.Interpolations.LINEAR))).build();
-    public static final AnimationDefinition WOLF_LEAPING = AnimationDefinition.Builder.withLength(0.48f)
+
+    public static final AnimationDefinition WOLF_LEAPING = AnimationDefinition.Builder.withLength(0.36f) // original: 0.48f
             .addAnimation(IllagerHoundModel.BODY,
                     new AnimationChannel(AnimationChannel.Targets.POSITION,
                             new Keyframe(0f, KeyframeAnimations.posVec(0f, -2f, -1f),

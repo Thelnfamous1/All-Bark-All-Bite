@@ -18,6 +18,8 @@ public class ABABInstruments {
 
     public static final RegistryObject<Instrument> COME_WHISTLE = registerWhistle("come");
 
+    public static final RegistryObject<Instrument> FOLLOW_WHISTLE = registerWhistle("follow");
+
     public static final RegistryObject<Instrument> FREE_WHISTLE = registerWhistle("free");
 
     public static final RegistryObject<Instrument> GO_WHISTLE = registerWhistle("go");

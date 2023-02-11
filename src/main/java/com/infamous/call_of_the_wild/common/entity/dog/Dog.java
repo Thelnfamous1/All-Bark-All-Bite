@@ -2,7 +2,6 @@ package com.infamous.call_of_the_wild.common.entity.dog;
 
 import com.infamous.call_of_the_wild.common.ABABTags;
 import com.infamous.call_of_the_wild.common.ai.AiUtil;
-import com.infamous.call_of_the_wild.common.ai.CommandAi;
 import com.infamous.call_of_the_wild.common.ai.GenericAi;
 import com.infamous.call_of_the_wild.common.entity.*;
 import com.infamous.call_of_the_wild.common.registry.ABABDogVariants;
@@ -53,7 +52,6 @@ import org.jetbrains.annotations.Nullable;
 import java.util.Collection;
 import java.util.Optional;
 
-@SuppressWarnings("NullableProblems")
 public class Dog extends TamableAnimal implements InterestedMob, ShakingMob, VariantMob, CollaredMob {
     @SuppressWarnings("unused")
     private static final int FLAG_SITTING = 1; // Used by TamableAnimal
@@ -151,10 +149,6 @@ public class Dog extends TamableAnimal implements InterestedMob, ShakingMob, Var
         return 0.4F;
     }
 
-    protected void playSoundEvent(SoundEvent soundEvent) {
-        this.playSound(soundEvent, this.getSoundVolume(), this.getVoicePitch());
-    }
-
     @Override
     public void aiStep() {
         super.aiStep();
@@ -221,12 +215,7 @@ public class Dog extends TamableAnimal implements InterestedMob, ShakingMob, Var
                 InteractionResult animalInteractResult = super.mobInteract(player, hand);
                 boolean willNotBreed = !animalInteractResult.consumesAction() || this.isBaby();
                 if (willNotBreed && this.isOwnedBy(player)) {
-                    this.setOrderedToSit(!this.isOrderedToSit());
-                    SharedWolfAi.clearStates(this);
-                    this.setJumping(false);
-                    CommandAi.yieldAsPet(this);
-                    SharedWolfAi.stopHoldingItemInMouth(this);
-                    CommandAi.setFollowing(this);
+                    SharedWolfAi.manualCommand(this);
                     return InteractionResult.CONSUME;
                 }
                 return animalInteractResult;
@@ -366,7 +355,7 @@ public class Dog extends TamableAnimal implements InterestedMob, ShakingMob, Var
 
     @Override
     protected Brain<?> makeBrain(Dynamic<?> dynamic) {
-        return DogAi.makeBrain(this.brainProvider().makeBrain(dynamic));
+        return DogBrain.makeBrain(this.brainProvider().makeBrain(dynamic));
     }
 
     @SuppressWarnings("unchecked")
@@ -379,9 +368,6 @@ public class Dog extends TamableAnimal implements InterestedMob, ShakingMob, Var
     protected void customServerAiStep() {
         this.level.getProfiler().push("dogBrain");
         this.getBrain().tick((ServerLevel)this.level, this);
-        this.level.getProfiler().pop();
-        this.level.getProfiler().push("dogActivityUpdate");
-        DogAi.updateActivity(this);
         this.level.getProfiler().pop();
         super.customServerAiStep();
     }

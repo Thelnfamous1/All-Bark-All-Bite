@@ -8,8 +8,10 @@ import com.infamous.call_of_the_wild.common.ai.BrainUtil;
 import com.infamous.call_of_the_wild.common.ai.CommandAi;
 import com.infamous.call_of_the_wild.common.entity.DogSpawner;
 import com.infamous.call_of_the_wild.common.entity.EntityAnimationController;
+import com.infamous.call_of_the_wild.common.entity.SharedWolfAi;
 import com.infamous.call_of_the_wild.common.entity.dog.Dog;
 import com.infamous.call_of_the_wild.common.entity.wolf.WolfAi;
+import com.infamous.call_of_the_wild.common.entity.wolf.WolfBrain;
 import com.infamous.call_of_the_wild.common.event.BrainEvent;
 import com.infamous.call_of_the_wild.common.registry.ABABEntityTypes;
 import com.infamous.call_of_the_wild.common.registry.ABABInstruments;
@@ -79,7 +81,7 @@ public class ForgeEventHandler {
     @SubscribeEvent
     static void onMakeBrain(BrainEvent.MakeBrain event){
         if(event.getEntity().getType() == EntityType.WOLF){
-            Brain<Wolf> replacement = WolfAi.makeBrain(event.makeBrain(WolfAi.MEMORY_TYPES, WolfAi.SENSOR_TYPES));
+            Brain<Wolf> replacement = WolfBrain.makeBrain(event.makeBrain(WolfAi.MEMORY_TYPES, WolfAi.SENSOR_TYPES));
             event.setNewBrain(replacement);
         }
     }
@@ -206,20 +208,17 @@ public class ForgeEventHandler {
     }
 
     @SubscribeEvent
-    static void onSleepPosCheck(SleepingLocationCheckEvent event){
-        EntityType<?> type = event.getEntity().getType();
-        if(type == EntityType.WOLF || type == ABABEntityTypes.DOG.get()){
-            event.setResult(Event.Result.ALLOW);
+    static void onLivingFall(LivingFallEvent event){
+        if(event.getEntity().getType() == EntityType.WOLF){
+            event.setDistance(event.getDistance() - 5.0F);
         }
     }
 
     @SubscribeEvent
-    static void onLivingFall(LivingFallEvent event){
-        LivingEntity livingEntity = event.getEntity();
-        if(!event.isCanceled()
-                && livingEntity instanceof Wolf
-                && livingEntity.getType() == EntityType.WOLF){
-            event.setDistance(event.getDistance() - 5);
+    static void onSleepPosCheck(SleepingLocationCheckEvent event){
+        EntityType<?> type = event.getEntity().getType();
+        if(type == EntityType.WOLF || type == ABABEntityTypes.DOG.get()){
+            event.setResult(Event.Result.ALLOW);
         }
     }
 
@@ -247,7 +246,7 @@ public class ForgeEventHandler {
         if(child instanceof Wolf wolf && child.getType() == EntityType.WOLF){
             Player player = event.getCausedByPlayer();
             if(player != null){
-                wolf.tame(player);
+                SharedWolfAi.tame(wolf, player);
             }
         }
     }
@@ -269,6 +268,9 @@ public class ForgeEventHandler {
                 }
                 if(instrument == ABABInstruments.COME_WHISTLE.get()){
                     commandPet(petManager, dog -> CommandAi.commandCome(dog, user, serverLevel));
+                }
+                if(instrument == ABABInstruments.FOLLOW_WHISTLE.get()){
+                    commandPet(petManager, CommandAi::commandFollow);
                 }
                 if(instrument == ABABInstruments.FREE_WHISTLE.get()){
                     commandPet(petManager, CommandAi::commandFree);

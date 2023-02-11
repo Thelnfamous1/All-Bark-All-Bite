@@ -4,8 +4,11 @@ import com.google.common.collect.ImmutableList;
 import com.infamous.call_of_the_wild.common.registry.ABABMemoryModuleTypes;
 import com.infamous.call_of_the_wild.common.util.ReflectionUtil;
 import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.Mob;
 import net.minecraft.world.entity.PathfinderMob;
 import net.minecraft.world.entity.ai.Brain;
+import net.minecraft.world.entity.ai.behavior.BehaviorUtils;
+import net.minecraft.world.entity.ai.behavior.StartAttacking;
 import net.minecraft.world.entity.ai.memory.MemoryModuleType;
 import net.minecraft.world.entity.ai.memory.NearestVisibleLivingEntities;
 import net.minecraft.world.entity.ai.memory.WalkTarget;
@@ -19,20 +22,29 @@ import java.util.Optional;
 
 public class GenericAi {
 
-    public static List<LivingEntity> getNearbyAdults(LivingEntity ageableMob) {
-        return ageableMob.getBrain().getMemory(ABABMemoryModuleTypes.NEAREST_ADULTS.get()).orElse(ImmutableList.of());
+    @SuppressWarnings("unchecked")
+    public static <E extends LivingEntity> List<E> getNearbyAdults(E ageableMob) {
+        return (List<E>) ageableMob.getBrain().getMemory(ABABMemoryModuleTypes.NEAREST_ADULTS.get()).orElse(ImmutableList.of());
     }
 
-    public static List<LivingEntity> getNearbyVisibleAdults(LivingEntity ageableMob) {
-        return ageableMob.getBrain().getMemory(ABABMemoryModuleTypes.NEAREST_VISIBLE_ADULTS.get()).orElse(ImmutableList.of());
+    @SuppressWarnings("unchecked")
+    public static <E extends LivingEntity> List<E> getNearbyVisibleAdults(E ageableMob) {
+        return (List<E>) ageableMob.getBrain().getMemory(ABABMemoryModuleTypes.NEAREST_VISIBLE_ADULTS.get()).orElse(ImmutableList.of());
     }
 
-    public static List<LivingEntity> getNearbyAllies(LivingEntity ageableMob) {
-        return ageableMob.getBrain().getMemory(ABABMemoryModuleTypes.NEAREST_ALLIES.get()).orElse(ImmutableList.of());
+    @SuppressWarnings("unchecked")
+    public static  <E extends LivingEntity> List<E> getNearbyAllies(E ageableMob) {
+        return (List<E>) ageableMob.getBrain().getMemory(ABABMemoryModuleTypes.NEAREST_ALLIES.get()).orElse(ImmutableList.of());
     }
 
-    public static List<LivingEntity> getNearbyVisibleAllies(LivingEntity ageableMob) {
-        return ageableMob.getBrain().getMemory(ABABMemoryModuleTypes.NEAREST_VISIBLE_ALLIES.get()).orElse(ImmutableList.of());
+    @SuppressWarnings("unchecked")
+    public static <E extends LivingEntity> List<E> getNearbyVisibleAllies(E ageableMob) {
+        return (List<E>) ageableMob.getBrain().getMemory(ABABMemoryModuleTypes.NEAREST_VISIBLE_ALLIES.get()).orElse(ImmutableList.of());
+    }
+
+    @SuppressWarnings("unchecked")
+    public static <E extends LivingEntity> List<E> getNearestVisibleBabies(E ageableMob) {
+        return (List<E>) ageableMob.getBrain().getMemory(ABABMemoryModuleTypes.NEAREST_VISIBLE_BABIES.get()).orElse(ImmutableList.of());
     }
 
     public static Optional<Player> getNearestVisibleTargetablePlayer(LivingEntity livingEntity) {
@@ -89,7 +101,7 @@ public class GenericAi {
         if(mob instanceof Fox fox){
             ReflectionUtil.callMethod("m_28626_", fox, true);
         }
-        mob.startSleeping(mob.blockPosition());
+        mob.startSleeping(mob.getOnPos());
         mob.getBrain().setMemory(MemoryModuleType.LAST_SLEPT, mob.level.getGameTime());
         mob.getBrain().eraseMemory(MemoryModuleType.WALK_TARGET);
         mob.getBrain().eraseMemory(MemoryModuleType.CANT_REACH_WALK_TARGET_SINCE);
@@ -115,5 +127,15 @@ public class GenericAi {
 
     public static boolean isOnPickupCooldown(LivingEntity livingEntity) {
         return livingEntity.getBrain().hasMemoryValue(MemoryModuleType.ITEM_PICKUP_COOLDOWN_TICKS);
+    }
+
+    public static void broadcastAttackTarget(List<? extends Mob> alertables, LivingEntity target) {
+        alertables.forEach(alertable -> setAttackTargetIfCloserThanCurrent(alertable, target));
+    }
+
+    private static void setAttackTargetIfCloserThanCurrent(Mob p_34640_, LivingEntity target) {
+        Optional<LivingEntity> optional = p_34640_.getBrain().getMemory(MemoryModuleType.ATTACK_TARGET);
+        LivingEntity livingentity = BehaviorUtils.getNearestTarget(p_34640_, optional, target);
+        StartAttacking.setAttackTarget(p_34640_, livingentity);
     }
 }

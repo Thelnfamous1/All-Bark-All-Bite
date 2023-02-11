@@ -32,17 +32,6 @@ public class ABABMemoryModuleTypes {
 
     public static final RegistryObject<MemoryModuleType<LivingEntity>> NEAREST_VISIBLE_DISLIKED = MEMORY_MODULE_TYPES.register("nearest_visible_disliked",
             () -> new MemoryModuleType<>(Optional.empty()));
-    public static RegistryObject<MemoryModuleType<Boolean>> PLAYING_WITH_ITEM = MEMORY_MODULE_TYPES.register(
-            "playing_with_item",
-            () -> new MemoryModuleType<>(Optional.of(Codec.BOOL)));
-
-    public static RegistryObject<MemoryModuleType<Integer>> TIME_TRYING_TO_REACH_PLAY_ITEM = MEMORY_MODULE_TYPES.register(
-            "time_trying_to_reach_play_item",
-            () -> new MemoryModuleType<>(Optional.empty()));
-
-    public static RegistryObject<MemoryModuleType<Boolean>> DISABLE_WALK_TO_PLAY_ITEM = MEMORY_MODULE_TYPES.register(
-            "disable_walk_to_play_item",
-            () -> new MemoryModuleType<>(Optional.empty()));
 
     public static RegistryObject<MemoryModuleType<GlobalPos>> DIG_LOCATION = MEMORY_MODULE_TYPES.register(
             "dig_location",
@@ -50,10 +39,6 @@ public class ABABMemoryModuleTypes {
 
     public static final RegistryObject<MemoryModuleType<LivingEntity>> NEAREST_VISIBLE_HUNTABLE = MEMORY_MODULE_TYPES.register("nearest_visible_huntable",
             () -> new MemoryModuleType<>(Optional.empty()));
-
-    public static RegistryObject<MemoryModuleType<Boolean>> PLAYING_DISABLED = MEMORY_MODULE_TYPES.register(
-            "playing_disabled",
-            () -> new MemoryModuleType<>(Optional.of(Codec.BOOL)));
 
     public static RegistryObject<MemoryModuleType<Boolean>> FETCHING_ITEM = MEMORY_MODULE_TYPES.register(
             "fetching_item",
@@ -98,14 +83,6 @@ public class ABABMemoryModuleTypes {
     public static final RegistryObject<MemoryModuleType<PositionTracker>> LONG_JUMP_TARGET = MEMORY_MODULE_TYPES.register("long_jump_target",
             () -> new MemoryModuleType<>(Optional.empty()));
 
-    public static RegistryObject<MemoryModuleType<Unit>> IS_STALKING = MEMORY_MODULE_TYPES.register(
-            "is_stalking",
-            () -> new MemoryModuleType<>(Optional.empty()));
-
-    public static RegistryObject<MemoryModuleType<Unit>> IS_SLEEPING = MEMORY_MODULE_TYPES.register(
-            "is_sleeping",
-            () -> new MemoryModuleType<>(Optional.of(Codec.unit(Unit.INSTANCE))));
-
     public static RegistryObject<MemoryModuleType<EntityVibrationListener<Wolf, WolfVibrationListenerConfig>>> WOLF_VIBRATION_LISTENER = MEMORY_MODULE_TYPES.register(
             "wolf_vibration_listener",
             () -> new MemoryModuleType<>(Optional.of(EntityVibrationListener.codec(WolfVibrationListenerConfig::new))));
@@ -118,8 +95,32 @@ public class ABABMemoryModuleTypes {
             "howl_location",
             () -> new MemoryModuleType<>(Optional.of(GlobalPos.CODEC)));
 
-    public static RegistryObject<MemoryModuleType<Unit>> IS_FOLLOWING = MEMORY_MODULE_TYPES.register(
-            "is_following",
+    public static RegistryObject<MemoryModuleType<Unit>> IS_ORDERED_TO_FOLLOW = MEMORY_MODULE_TYPES.register(
+            "is_ordered_to_follow",
+            () -> new MemoryModuleType<>(Optional.of(Codec.unit(Unit.INSTANCE))));
+
+    public static RegistryObject<MemoryModuleType<Unit>> IS_SHELTERED = MEMORY_MODULE_TYPES.register(
+            "is_sheltered",
+            () -> new MemoryModuleType<>(Optional.of(Codec.unit(Unit.INSTANCE))));
+
+    public static RegistryObject<MemoryModuleType<Unit>> IS_ORDERED_TO_SIT = MEMORY_MODULE_TYPES.register(
+            "is_ordered_to_sit",
+            () -> new MemoryModuleType<>(Optional.of(Codec.unit(Unit.INSTANCE))));
+
+    public static RegistryObject<MemoryModuleType<Unit>> IS_LEVEL_DAY = MEMORY_MODULE_TYPES.register(
+            "is_level_day",
+            () -> new MemoryModuleType<>(Optional.of(Codec.unit(Unit.INSTANCE))));
+
+    public static RegistryObject<MemoryModuleType<LivingEntity>> STALK_TARGET = MEMORY_MODULE_TYPES.register(
+            "stalk_target",
+            () -> new MemoryModuleType<>(Optional.empty()));
+
+    public static RegistryObject<MemoryModuleType<LivingEntity>> POUNCE_TARGET = MEMORY_MODULE_TYPES.register(
+            "pounce_target",
+            () -> new MemoryModuleType<>(Optional.empty()));
+
+    public static RegistryObject<MemoryModuleType<Unit>> IS_ORDERED_TO_HEEL = MEMORY_MODULE_TYPES.register(
+            "is_ordered_to_heel",
             () -> new MemoryModuleType<>(Optional.of(Codec.unit(Unit.INSTANCE))));
 
 }

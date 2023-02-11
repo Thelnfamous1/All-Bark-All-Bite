@@ -14,7 +14,6 @@ import java.util.Optional;
 import java.util.function.BiConsumer;
 import java.util.function.BiPredicate;
 
-@SuppressWarnings("NullableProblems")
 public class Beg<T extends LivingEntity> extends Behavior<T> {
     private final BiPredicate<T, ItemStack> isInteresting;
     private final BiConsumer<T, Boolean> toggleInterest;

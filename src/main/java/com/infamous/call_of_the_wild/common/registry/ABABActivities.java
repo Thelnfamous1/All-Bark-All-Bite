@@ -10,7 +10,22 @@ public class ABABActivities {
 
     public static DeferredRegister<Activity> ACTIVITIES = DeferredRegister.create(ForgeRegistries.ACTIVITIES, AllBarkAllBite.MODID);
 
-    private static final String FETCH_NAME = "fetch";
-    public static RegistryObject<Activity> FETCH = ACTIVITIES.register(FETCH_NAME, () -> new Activity(FETCH_NAME));
+    public static RegistryObject<Activity> FETCH = registerActivity("fetch");
+
+    public static RegistryObject<Activity> COUNT_DOWN = registerActivity("count_down");
+
+    public static RegistryObject<Activity> SIT = registerActivity("sit");
+
+    public static RegistryObject<Activity> TARGET = registerActivity("target");
+
+    public static RegistryObject<Activity> UPDATE = registerActivity("update");
+
+    public static RegistryObject<Activity> STALK = registerActivity("stalk");
+
+    public static RegistryObject<Activity> POUNCE = registerActivity("pounce");
+
+    private static RegistryObject<Activity> registerActivity(String fetchName) {
+        return ACTIVITIES.register(fetchName, () -> new Activity(fetchName));
+    }
 
 }

@@ -27,4 +27,27 @@ public class HunterAi {
         return mob.getBrain().getMemory(ABABMemoryModuleTypes.NEAREST_VISIBLE_HUNTABLE.get());
     }
 
+    public static Optional<LivingEntity> getStalkTarget(LivingEntity mob){
+        return mob.getBrain().getMemory(ABABMemoryModuleTypes.STALK_TARGET.get());
+    }
+
+    public static Optional<LivingEntity> getPounceTarget(LivingEntity mob){
+        return mob.getBrain().getMemory(ABABMemoryModuleTypes.POUNCE_TARGET.get());
+    }
+
+    public static void setStalkTarget(LivingEntity mob, LivingEntity target) {
+        mob.getBrain().setMemory(ABABMemoryModuleTypes.STALK_TARGET.get(), target);
+    }
+
+    public static void stopStalking(LivingEntity mob) {
+        mob.getBrain().eraseMemory(ABABMemoryModuleTypes.STALK_TARGET.get());
+    }
+
+    public static void setPounceTarget(LivingEntity mob, LivingEntity target) {
+        mob.getBrain().setMemory(ABABMemoryModuleTypes.POUNCE_TARGET.get(), target);
+    }
+
+    public static void stopPouncing(LivingEntity mob) {
+        mob.getBrain().eraseMemory(ABABMemoryModuleTypes.POUNCE_TARGET.get());
+    }
 }

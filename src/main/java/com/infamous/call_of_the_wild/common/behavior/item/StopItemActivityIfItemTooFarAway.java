@@ -10,7 +10,6 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.function.Predicate;
 
-@SuppressWarnings("NullableProblems")
 public class StopItemActivityIfItemTooFarAway<E extends LivingEntity> extends Behavior<E> {
    private final int maxDistanceToItem;
    private final Predicate<E> canStopPlaying;

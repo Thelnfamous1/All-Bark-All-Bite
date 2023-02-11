@@ -5,7 +5,6 @@ import net.minecraft.tags.TagKey;
 import net.minecraft.world.entity.animal.Wolf;
 import net.minecraft.world.level.gameevent.GameEvent;
 
-@SuppressWarnings("NullableProblems")
 public class WolfVibrationListenerConfig extends SharedWolfVibrationListenerConfig<Wolf> {
 
     @Override

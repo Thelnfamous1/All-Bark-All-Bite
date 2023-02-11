@@ -22,6 +22,7 @@ public class ABABInstrumentTagsProvider extends InstrumentTagsProvider {
         this.tag(ABABTags.WHISTLES)
                 .add(ABABInstruments.ATTACK_WHISTLE.get())
                 .add(ABABInstruments.COME_WHISTLE.get())
+                .add(ABABInstruments.FOLLOW_WHISTLE.get())
                 .add(ABABInstruments.FREE_WHISTLE.get())
                 .add(ABABInstruments.GO_WHISTLE.get())
                 .add(ABABInstruments.HEEL_WHISTLE.get())

@@ -10,7 +10,6 @@ import net.minecraft.world.entity.ai.memory.MemoryStatus;
 
 import java.util.function.Predicate;
 
-@SuppressWarnings("NullableProblems")
 public class Sprint<E extends Mob> extends Behavior<E> {
     private final Predicate<E> canSprint;
     private final int tooFar;

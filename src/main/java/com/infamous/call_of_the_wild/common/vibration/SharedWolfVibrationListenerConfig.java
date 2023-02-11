@@ -61,7 +61,7 @@ public abstract class SharedWolfVibrationListenerConfig<T extends TamableAnimal>
     }
 
     private boolean wantsToRespond(LivingEntity other){
-        return !this.entity.closerThan(other, SharedWolfAi.ADULT_FOLLOW_RANGE.getMaxValue());
+        return !this.entity.closerThan(other, SharedWolfAi.ADULT_FOLLOW_RANGE.getMaxValue()) && !this.entity.isTame();
     }
 
     private boolean canJoinOrCreatePackWith(LivingEntity other){

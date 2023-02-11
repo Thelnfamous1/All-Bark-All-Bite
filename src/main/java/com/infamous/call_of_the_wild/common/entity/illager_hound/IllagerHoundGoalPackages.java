@@ -3,7 +3,7 @@ package com.infamous.call_of_the_wild.common.entity.illager_hound;
 import com.google.common.collect.ImmutableList;
 import com.infamous.call_of_the_wild.common.ABABTags;
 import com.infamous.call_of_the_wild.common.ai.AiUtil;
-import com.infamous.call_of_the_wild.common.behavior.HurtByTrigger;
+import com.infamous.call_of_the_wild.common.behavior.HurtByEntityTrigger;
 import com.infamous.call_of_the_wild.common.behavior.LeapAtTarget;
 import com.infamous.call_of_the_wild.common.behavior.Sprint;
 import com.infamous.call_of_the_wild.common.behavior.pet.FollowOwner;
@@ -29,7 +29,7 @@ public class IllagerHoundGoalPackages {
         return BrainUtil.createPriorityPairs(0,
                 ImmutableList.of(
                         new Swim(SharedWolfAi.JUMP_CHANCE_IN_WATER),
-                        new HurtByTrigger<>(IllagerHoundGoalPackages::onHurtBy),
+                        new HurtByEntityTrigger<>(IllagerHoundGoalPackages::onHurtBy),
                         new LookAtTargetSink(45, 90),
                         new MoveToTargetSink(),
                         new OwnerHurtByTarget<>(),
@@ -39,7 +39,7 @@ public class IllagerHoundGoalPackages {
 
     private static void onHurtBy(IllagerHound victim, LivingEntity attacker){
         retaliate(victim, attacker);
-        GenericAi.getNearbyAllies(victim).stream().map(IllagerHound.class::cast).forEach(nearbyAlly -> retaliate(nearbyAlly, attacker));
+        GenericAi.getNearbyAllies(victim).forEach(nearbyAlly -> retaliate(nearbyAlly, attacker));
     }
 
     private static void retaliate(IllagerHound victim, LivingEntity attacker) {
@@ -53,7 +53,7 @@ public class IllagerHoundGoalPackages {
                 ImmutableList.of(
                         new Sprint<>(),
                         new SetWalkTargetFromAttackTargetIfTargetOutOfReach(SharedWolfAi.SPEED_MODIFIER_CHASING),
-                        new LeapAtTarget(SharedWolfAi.LEAP_YD, SharedWolfAi.TOO_CLOSE_TO_LEAP, SharedWolfAi.POUNCE_DISTANCE),
+                        new LeapAtTarget(SharedWolfAi.LEAP_CHANCE, SharedWolfAi.LEAP_YD, SharedWolfAi.TOO_CLOSE_TO_LEAP, SharedWolfAi.TOO_FAR_TO_LEAP),
                         new MeleeAttack(SharedWolfAi.ATTACK_COOLDOWN_TICKS),
                         new StopAttackingIfTargetInvalid<>()
                 ));
@@ -63,7 +63,7 @@ public class IllagerHoundGoalPackages {
         return BrainUtil.createPriorityPairs(0,
                 ImmutableList.of(
                         new Sprint<>(SharedWolfAi.TOO_FAR_FROM_WALK_TARGET),
-                        new FollowOwner<>(AiUtil::getOwner, SharedWolfAi.SPEED_MODIFIER_WALKING, SharedWolfAi.CLOSE_ENOUGH_TO_OWNER, SharedWolfAi.TOO_FAR_FROM_WALK_TARGET),
+                        new FollowOwner<>(AiUtil::getOwner, SharedWolfAi.SPEED_MODIFIER_WALKING, SharedWolfAi.CLOSE_ENOUGH_TO_OWNER, SharedWolfAi.TOO_FAR_FROM_OWNER),
                         new StartAttacking<>(IllagerHoundGoalPackages::findNearestValidAttackTarget),
                         createIdleLookBehavior(),
                         createIdleMovementBehaviors()

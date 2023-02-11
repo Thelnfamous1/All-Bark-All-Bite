@@ -32,6 +32,7 @@ public class ABABLangProvider extends LanguageProvider {
         this.add(ABABItems.WHISTLE.get(), "Whistle");
         this.add(makeInstrumentDescriptionId(ABABInstruments.ATTACK_WHISTLE), "Attack");
         this.add(makeInstrumentDescriptionId(ABABInstruments.COME_WHISTLE), "Come");
+        this.add(makeInstrumentDescriptionId(ABABInstruments.FOLLOW_WHISTLE), "Follow");
         this.add(makeInstrumentDescriptionId(ABABInstruments.FREE_WHISTLE), "Free");
         this.add(makeInstrumentDescriptionId(ABABInstruments.GO_WHISTLE), "Go");
         this.add(makeInstrumentDescriptionId(ABABInstruments.HEEL_WHISTLE), "Heel");
