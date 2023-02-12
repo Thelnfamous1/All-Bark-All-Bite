@@ -121,7 +121,19 @@ public class LongJumpAi {
        return mob.getBrain().hasMemoryValue(MemoryModuleType.LONG_JUMP_MID_JUMP);
     }
 
+    public static void setMidJump(LivingEntity mob){
+        mob.getBrain().setMemory(MemoryModuleType.LONG_JUMP_MID_JUMP, true);
+    }
+
+    public static void clearMidJump(LivingEntity mob){
+        mob.getBrain().eraseMemory(MemoryModuleType.LONG_JUMP_MID_JUMP);
+    }
+
     public static boolean isOnJumpCooldown(LivingEntity wolf){
         return wolf.getBrain().hasMemoryValue(MemoryModuleType.LONG_JUMP_COOLDOWN_TICKS);
+    }
+
+    public static void setLongJumpCooldown(LivingEntity mob, int cooldownTicks) {
+       mob.getBrain().setMemory(MemoryModuleType.LONG_JUMP_COOLDOWN_TICKS, cooldownTicks);
     }
 }

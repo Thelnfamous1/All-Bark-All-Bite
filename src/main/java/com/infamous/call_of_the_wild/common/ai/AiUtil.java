@@ -1,6 +1,7 @@
 package com.infamous.call_of_the_wild.common.ai;
 
 import com.infamous.call_of_the_wild.mixin.LivingEntityAccessor;
+import com.infamous.call_of_the_wild.mixin.MobAccessor;
 import com.mojang.datafixers.util.Pair;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.particles.ItemParticleOption;
@@ -11,7 +12,10 @@ import net.minecraft.util.Mth;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.effect.MobEffectInstance;
-import net.minecraft.world.entity.*;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.Mob;
+import net.minecraft.world.entity.OwnableEntity;
 import net.minecraft.world.entity.ai.Brain;
 import net.minecraft.world.entity.ai.behavior.BlockPosTracker;
 import net.minecraft.world.entity.ai.behavior.EntityTracker;
@@ -29,7 +33,11 @@ import net.minecraft.world.food.FoodProperties;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.ClipContext;
 import net.minecraft.world.level.Level;
-import net.minecraft.world.phys.*;
+import net.minecraft.world.level.gameevent.GameEvent;
+import net.minecraft.world.phys.AABB;
+import net.minecraft.world.phys.EntityHitResult;
+import net.minecraft.world.phys.HitResult;
+import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.event.ForgeEventFactory;
 import org.apache.commons.lang3.function.TriFunction;
 
@@ -37,6 +45,7 @@ import java.util.Optional;
 import java.util.UUID;
 
 public class AiUtil {
+    public static final float DEFAULT_FALL_REDUCTION = 3.0F;
     private static final TargetingConditions TARGET_CONDITIONS_IGNORE_LINE_OF_SIGHT = TargetingConditions.forNonCombat().range(16.0D).ignoreLineOfSight();
     private static final TargetingConditions TARGET_CONDITIONS_IGNORE_LINE_OF_SIGHT_IGNORE_INVISIBILITY_TESTING = TargetingConditions.forNonCombat().range(16.0D).ignoreLineOfSight().ignoreInvisibilityTesting();
 
@@ -98,10 +107,10 @@ public class AiUtil {
         return dot > 1.0D - offset / distance && target.hasLineOfSight(me);
     }
 
-    public static <T extends Entity> InteractionResult interactOn(Player player, T entity, InteractionHand hand, TriFunction<T, Player, InteractionHand, InteractionResult> interactCallback){
+    public static <T extends Mob> InteractionResult interactOn(Player player, T entity, InteractionHand hand, TriFunction<T, Player, InteractionHand, InteractionResult> mobInteract){
         ItemStack itemInHand = player.getItemInHand(hand);
         ItemStack itemInHandCopy = itemInHand.copy();
-        InteractionResult interactionResult = interactCallback.apply(entity, player, hand); // replaces Entity#interact(Player, InteractionHand);
+        InteractionResult interactionResult = interact(entity, player, hand, mobInteract); // replaces Entity#interact(Player, InteractionHand);
         if (interactionResult.consumesAction()) {
             if (player.getAbilities().instabuild && itemInHand == player.getItemInHand(hand) && itemInHand.getCount() < itemInHandCopy.getCount()) {
                 itemInHand.setCount(itemInHandCopy.getCount());
@@ -112,23 +121,45 @@ public class AiUtil {
             }
             return interactionResult;
         } else {
-            if (!itemInHand.isEmpty() && entity instanceof LivingEntity) {
+            if (!itemInHand.isEmpty()) {
                 if (player.getAbilities().instabuild) {
                     itemInHand = itemInHandCopy;
                 }
 
-                InteractionResult interactLivingEntity = itemInHand.interactLivingEntity(player, (LivingEntity)entity, hand);
-                if (interactLivingEntity.consumesAction()) {
+                InteractionResult livingEntityInteractionResult = itemInHand.interactLivingEntity(player, entity, hand);
+                if (livingEntityInteractionResult.consumesAction()) {
                     if (itemInHand.isEmpty() && !player.getAbilities().instabuild) {
                         ForgeEventFactory.onPlayerDestroyItem(player, itemInHandCopy, hand);
                         player.setItemInHand(hand, ItemStack.EMPTY);
                     }
 
-                    return interactLivingEntity;
+                    return livingEntityInteractionResult;
                 }
             }
 
             return InteractionResult.PASS;
+        }
+    }
+
+    private static <T extends Mob> InteractionResult interact(T mob, Player player, InteractionHand hand, TriFunction<T, Player, InteractionHand, InteractionResult> mobInteract) {
+        if (!mob.isAlive()) {
+            return InteractionResult.PASS;
+        } else if (mob.getLeashHolder() == player) {
+            mob.dropLeash(true, !player.getAbilities().instabuild);
+            return InteractionResult.sidedSuccess(mob.level.isClientSide);
+        } else {
+            InteractionResult importantInteractionResult = ((MobAccessor)mob).callCheckAndHandleImportantInteractions(player, hand);
+            if (importantInteractionResult != null && importantInteractionResult.consumesAction()) {
+                return importantInteractionResult;
+            } else {
+                importantInteractionResult = mobInteract.apply(mob, player, hand);
+                if (importantInteractionResult.consumesAction()) {
+                    mob.gameEvent(GameEvent.ENTITY_INTERACT);
+                    return importantInteractionResult;
+                } else {
+                    return InteractionResult.PASS;
+                }
+            }
         }
     }
 

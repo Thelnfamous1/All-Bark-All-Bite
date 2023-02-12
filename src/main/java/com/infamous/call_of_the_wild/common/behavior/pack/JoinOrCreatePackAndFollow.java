@@ -16,13 +16,13 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Stream;
 
-public class FollowPackLeader<E extends LivingEntity> extends Behavior<E> {
+public class JoinOrCreatePackAndFollow<E extends LivingEntity> extends Behavior<E> {
     public static final int INTERVAL_TICKS = 200;
     private final UniformInt followRange;
     private long lastCheckTimestamp;
     private final float speedModifier;
 
-    public FollowPackLeader(UniformInt followRange, float speedModifier) {
+    public JoinOrCreatePackAndFollow(UniformInt followRange, float speedModifier) {
         super(ImmutableMap.of(
                 ABABMemoryModuleTypes.LEADER.get(), MemoryStatus.REGISTERED,
                 ABABMemoryModuleTypes.FOLLOWERS.get(), MemoryStatus.REGISTERED,

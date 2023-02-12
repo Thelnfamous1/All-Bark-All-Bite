@@ -69,7 +69,7 @@ public class DogBrain {
         brainMaker.initCoreActivity(ABABActivities.COUNT_DOWN.get(),
                 getCountDownPackage());
         brainMaker.initCoreActivity(ABABActivities.TARGET.get(),
-                SharedWolfBrain.getTargetPackage(DogBrain::wasHurtBy, DogBrain::canStartHunting));
+                SharedWolfBrain.getTargetPackage(DogBrain::wasHurtBy, DogBrain::canStartHunting, DogBrain::canStartStalking));
         brainMaker.initCoreActivity(ABABActivities.UPDATE.get(),
                 SharedWolfBrain.getUpdatePackage(brainMaker.getActivities(), DogBrain::onActivityChanged));
 
@@ -114,8 +114,11 @@ public class DogBrain {
     }
 
     private static boolean canStartHunting(Dog dog){
-        return !dog.isTame()
-                && SharedWolfBrain.canStartHunting(dog);
+        return !dog.isTame() && SharedWolfBrain.canStartHunting(dog);
+    }
+
+    private static boolean canStartStalking(Dog dog){
+        return (!dog.isTame() || dog.isBaby()) && SharedWolfBrain.canStartStalking(dog);
     }
 
     private static void onActivityChanged(Dog dog, Pair<Activity, Activity> ignoredActivityChange){
@@ -126,6 +129,7 @@ public class DogBrain {
         return BrainUtil.createPriorityPairs(0, ImmutableList.of(
                 new HurtByTrigger<>(SharedWolfBrain::onHurtBy),
                 new WakeUpTrigger<>(SharedWolfAi::wantsToWakeUp),
+                new AgeChangeTrigger<>(SharedWolfBrain::onAgeChanged),
                 new Swim(SharedWolfAi.JUMP_CHANCE_IN_WATER),
                 new RunIf<>(SharedWolfAi::shouldPanic, new AnimalPanic(SharedWolfAi.SPEED_MODIFIER_PANICKING), true),
                 new RunIf<>(TamableAnimal::isTame, new StartItemActivityWithItemIfSeen<>(DogBrain::canFetchItemEntity, ABABMemoryModuleTypes.FETCHING_ITEM.get(), ABABMemoryModuleTypes.FETCHING_DISABLED.get(), ABABMemoryModuleTypes.DISABLE_WALK_TO_FETCH_ITEM.get())),
@@ -153,6 +157,8 @@ public class DogBrain {
         return BrainUtil.createPriorityPairs(0,
                 ImmutableList.of(
                         new CountDownCooldownTicks(MemoryModuleType.ITEM_PICKUP_COOLDOWN_TICKS),
+                        new CountDownCooldownTicks(MemoryModuleType.LONG_JUMP_COOLDOWN_TICKS),
+                        new CountDownCooldownTicks(ABABMemoryModuleTypes.POUNCE_COOLDOWN_TICKS.get()),
                         new CountDownCooldownTicks(MemoryModuleType.TEMPTATION_COOLDOWN_TICKS)
                 ));
     }

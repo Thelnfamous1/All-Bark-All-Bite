@@ -123,4 +123,8 @@ public class ABABMemoryModuleTypes {
             "is_ordered_to_heel",
             () -> new MemoryModuleType<>(Optional.of(Codec.unit(Unit.INSTANCE))));
 
+    public static RegistryObject<MemoryModuleType<Integer>> POUNCE_COOLDOWN_TICKS = MEMORY_MODULE_TYPES.register(
+            "pounce_cooldown_ticks",
+            () -> new MemoryModuleType<>(Optional.of(Codec.INT)));
+
 }

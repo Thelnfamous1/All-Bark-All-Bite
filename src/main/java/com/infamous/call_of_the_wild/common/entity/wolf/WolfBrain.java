@@ -6,8 +6,8 @@ import com.infamous.call_of_the_wild.common.ai.AiUtil;
 import com.infamous.call_of_the_wild.common.ai.BrainMaker;
 import com.infamous.call_of_the_wild.common.ai.BrainUtil;
 import com.infamous.call_of_the_wild.common.behavior.*;
-import com.infamous.call_of_the_wild.common.behavior.pack.FollowPackLeader;
-import com.infamous.call_of_the_wild.common.behavior.pack.Howl;
+import com.infamous.call_of_the_wild.common.behavior.pack.JoinOrCreatePackAndFollow;
+import com.infamous.call_of_the_wild.common.behavior.pack.HowlForPack;
 import com.infamous.call_of_the_wild.common.behavior.pack.ValidateFollowers;
 import com.infamous.call_of_the_wild.common.behavior.pack.ValidateLeader;
 import com.infamous.call_of_the_wild.common.behavior.sleep.WakeUpTrigger;
@@ -55,7 +55,7 @@ public class WolfBrain {
         brainMaker.initCoreActivity(ABABActivities.COUNT_DOWN.get(),
                 getCountDownPackage());
         brainMaker.initCoreActivity(ABABActivities.TARGET.get(),
-                SharedWolfBrain.getTargetPackage(WolfBrain::wasHurtBy, SharedWolfBrain::canStartHunting));
+                SharedWolfBrain.getTargetPackage(WolfBrain::wasHurtBy, SharedWolfBrain::canStartHunting, SharedWolfBrain::canStartStalking));
         brainMaker.initCoreActivity(ABABActivities.UPDATE.get(),
                 SharedWolfBrain.getUpdatePackage(brainMaker.getActivities(), WolfBrain::onActivityChanged));
 
@@ -70,6 +70,7 @@ public class WolfBrain {
         return BrainUtil.createPriorityPairs(0, ImmutableList.of(
                 new HurtByTrigger<>(SharedWolfBrain::onHurtBy),
                 new WakeUpTrigger<>(SharedWolfAi::wantsToWakeUp),
+                new AgeChangeTrigger<>(SharedWolfBrain::onAgeChanged),
                 new Swim(SharedWolfAi.JUMP_CHANCE_IN_WATER),
                 new RunIf<>(SharedWolfAi::shouldPanic, new AnimalPanic(SharedWolfAi.SPEED_MODIFIER_PANICKING), true),
                 new Eat(SharedWolfAi::setAteRecently, SharedWolfAi.EAT_DURATION),
@@ -91,7 +92,9 @@ public class WolfBrain {
     private static ImmutableList<? extends Pair<Integer, ? extends Behavior<? super Wolf>>> getCountDownPackage(){
         return BrainUtil.createPriorityPairs(0,
                 ImmutableList.of(
-                    new CountDownCooldownTicks(MemoryModuleType.ITEM_PICKUP_COOLDOWN_TICKS)
+                        new CountDownCooldownTicks(MemoryModuleType.ITEM_PICKUP_COOLDOWN_TICKS),
+                        new CountDownCooldownTicks(MemoryModuleType.LONG_JUMP_COOLDOWN_TICKS),
+                        new CountDownCooldownTicks(ABABMemoryModuleTypes.POUNCE_COOLDOWN_TICKS.get())
                 ));
     }
 
@@ -138,8 +141,8 @@ public class WolfBrain {
                                         // tempt goes here
                                         SharedWolfBrain.createBreedBehavior(EntityType.WOLF),
                                         new RunIf<>(SharedWolfAi::wantsToFindShelter, new MoveToNonSkySeeingSpot(SharedWolfAi.SPEED_MODIFIER_WALKING), true),
-                                        new Howl<>(SharedWolfAi.TIME_BETWEEN_HOWLS, SharedWolfAi.ADULT_FOLLOW_RANGE.getMaxValue()),
-                                        new FollowPackLeader<>(SharedWolfAi.ADULT_FOLLOW_RANGE, SharedWolfAi.SPEED_MODIFIER_FOLLOWING_ADULT),
+                                        new HowlForPack<>(SharedWolfAi.TIME_BETWEEN_HOWLS, SharedWolfAi.ADULT_FOLLOW_RANGE.getMaxValue()),
+                                        new JoinOrCreatePackAndFollow<>(SharedWolfAi.ADULT_FOLLOW_RANGE, SharedWolfAi.SPEED_MODIFIER_FOLLOWING_ADULT),
                                         new BabyFollowAdult<>(SharedWolfAi.ADULT_FOLLOW_RANGE, SharedWolfAi.SPEED_MODIFIER_FOLLOWING_ADULT)
                                 ),
                                 ABABMemoryModuleTypes.IS_ORDERED_TO_FOLLOW.get(),

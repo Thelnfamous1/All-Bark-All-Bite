@@ -17,12 +17,12 @@ import net.minecraft.world.entity.ai.memory.MemoryStatus;
 import java.util.Optional;
 import java.util.function.Predicate;
 
-public class StartHunting<E extends Mob> extends Behavior<E> {
+public class StartHuntingPrey<E extends Mob> extends Behavior<E> {
 
    private final Predicate<E> canHuntPredicate;
    private final UniformInt huntCooldown;
 
-   public StartHunting(Predicate<E> canHuntPredicate, UniformInt huntCooldown) {
+   public StartHuntingPrey(Predicate<E> canHuntPredicate, UniformInt huntCooldown) {
       super(ImmutableMap.of(
               ABABMemoryModuleTypes.NEAREST_VISIBLE_HUNTABLE.get(), MemoryStatus.VALUE_PRESENT,
               MemoryModuleType.ATTACK_TARGET, MemoryStatus.VALUE_ABSENT,

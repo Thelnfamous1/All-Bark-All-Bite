@@ -15,13 +15,12 @@ import net.minecraft.world.entity.ai.memory.MemoryStatus;
 
 import java.util.Optional;
 
-@SuppressWarnings({"unused"})
-public class Howl<E extends LivingEntity> extends Behavior<E> {
+public class HowlForPack<E extends LivingEntity> extends Behavior<E> {
     private final UniformInt howlCooldown;
     private final int tooFar;
     private long lastCheckTimestamp;
 
-    public Howl(UniformInt howlCooldown, int tooFar) {
+    public HowlForPack(UniformInt howlCooldown, int tooFar) {
         super(ImmutableMap.of(
                 ABABMemoryModuleTypes.LEADER.get(), MemoryStatus.REGISTERED,
                 ABABMemoryModuleTypes.FOLLOWERS.get(), MemoryStatus.REGISTERED,
@@ -34,7 +33,9 @@ public class Howl<E extends LivingEntity> extends Behavior<E> {
     @SuppressWarnings("OptionalGetWithoutIsPresent")
     @Override
     protected boolean checkExtraStartConditions(ServerLevel level, E mob) {
-        if(AiUtil.onCheckCooldown(level, this.lastCheckTimestamp, FollowPackLeader.INTERVAL_TICKS)){
+        if(mob.isSleeping()){
+            return false;
+        } else if(AiUtil.onCheckCooldown(level, this.lastCheckTimestamp, JoinOrCreatePackAndFollow.INTERVAL_TICKS)){
             return false;
         } else{
             if(PackAi.isFollower(mob)){
@@ -65,6 +66,5 @@ public class Howl<E extends LivingEntity> extends Behavior<E> {
         SharedWolfAi.howl(mob);
         int howlCooldownInTicks = this.howlCooldown.sample(mob.getRandom());
         SharedWolfAi.setHowledRecently(mob, howlCooldownInTicks);
-        //GenericAi.getNearbyAllies(mob).forEach(le -> SharedWolfAi.setHowledRecently(le, this.howlCooldown.sample(le.getRandom())));
     }
 }

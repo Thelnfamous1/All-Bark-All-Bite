@@ -24,7 +24,6 @@ import java.util.Optional;
 import java.util.function.Function;
 import java.util.function.Predicate;
 
-@SuppressWarnings("NullableProblems")
 public class LongJumpToTarget<E extends Mob> extends Behavior<E> {
    private static final int TIME_OUT_DURATION = 200;
    private final UniformInt timeBetweenLongJumps;
@@ -64,7 +63,7 @@ public class LongJumpToTarget<E extends Mob> extends Behavior<E> {
               && !level.getBlockState(mob.blockPosition()).is(Blocks.HONEY_BLOCK)
               && this.hasValidJumpTarget(mob);
       if (!canStart) {
-         mob.getBrain().setMemory(MemoryModuleType.LONG_JUMP_COOLDOWN_TICKS, this.timeBetweenLongJumps.sample(level.random) / 2);
+         LongJumpAi.setLongJumpCooldown(mob, this.timeBetweenLongJumps.sample(level.random) / 2);
          LongJumpAi.clearLongJumpTarget(mob);
       }
 
@@ -128,7 +127,7 @@ public class LongJumpToTarget<E extends Mob> extends Behavior<E> {
               && !mob.isInWaterOrBubble()
               && (this.chosenJump != null || this.hasValidJumpTarget(mob));
       if (!canStillUse && !LongJumpAi.isMidJump(mob)) {
-         mob.getBrain().setMemory(MemoryModuleType.LONG_JUMP_COOLDOWN_TICKS, this.timeBetweenLongJumps.sample(level.random) / 2);
+         LongJumpAi.setLongJumpCooldown(mob, this.timeBetweenLongJumps.sample(level.random) / 2);
          mob.getBrain().eraseMemory(MemoryModuleType.LOOK_TARGET);
          LongJumpAi.clearLongJumpTarget(mob);
       }

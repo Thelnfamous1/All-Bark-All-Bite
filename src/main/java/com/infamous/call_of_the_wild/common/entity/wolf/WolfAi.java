@@ -25,10 +25,7 @@ import net.minecraft.world.entity.ai.sensing.SensorType;
 import net.minecraft.world.entity.animal.Wolf;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.entity.schedule.Activity;
-import net.minecraft.world.item.DyeColor;
-import net.minecraft.world.item.DyeItem;
-import net.minecraft.world.item.Item;
-import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.*;
 import net.minecraftforge.event.entity.living.LivingEvent;
 import org.jetbrains.annotations.Nullable;
 
@@ -61,6 +58,8 @@ public class WolfAi {
             MemoryModuleType.LAST_SLEPT,
             MemoryModuleType.LAST_WOKEN,
             ABABMemoryModuleTypes.LEADER.get(),
+            MemoryModuleType.LONG_JUMP_COOLDOWN_TICKS,
+            MemoryModuleType.LONG_JUMP_MID_JUMP,
             MemoryModuleType.LOOK_TARGET,
             ABABMemoryModuleTypes.NEAREST_ADULTS.get(),
             ABABMemoryModuleTypes.NEAREST_BABIES.get(),
@@ -79,6 +78,7 @@ public class WolfAi {
             MemoryModuleType.NEAREST_VISIBLE_PLAYER,
             MemoryModuleType.NEAREST_VISIBLE_WANTED_ITEM,
             MemoryModuleType.PATH,
+            ABABMemoryModuleTypes.POUNCE_COOLDOWN_TICKS.get(),
             ABABMemoryModuleTypes.POUNCE_TARGET.get(),
             ABABMemoryModuleTypes.STALK_TARGET.get(),
             MemoryModuleType.UNIVERSAL_ANGER,
@@ -152,7 +152,13 @@ public class WolfAi {
     public static InteractionResult mobInteract(Wolf wolf, Player player, InteractionHand hand) {
         ItemStack itemInHand = player.getItemInHand(hand);
         Item item = itemInHand.getItem();
-        if (!wolf.level.isClientSide) {
+        if (wolf.level.isClientSide) {
+            if (wolf.isTame() && wolf.isOwnedBy(player)) {
+                return InteractionResult.SUCCESS;
+            } else {
+                return !wolf.isFood(itemInHand) || !AiUtil.isInjured(wolf) && wolf.isTame() ? InteractionResult.PASS : InteractionResult.SUCCESS;
+            }
+        } else {
             if (wolf.isTame() && wolf.isOwnedBy(player)) {
                 if (wolf.isFood(itemInHand) && AiUtil.isInjured(wolf)) {
                     AiUtil.animalEat(wolf, itemInHand);
@@ -182,7 +188,7 @@ public class WolfAi {
                     return InteractionResult.SUCCESS;
                 }
             }
+            return AnimalAccessor.cast(wolf).animalInteract(player, hand);
         }
-        return AnimalAccessor.cast(wolf).animalInteract(player, hand);
     }
 }

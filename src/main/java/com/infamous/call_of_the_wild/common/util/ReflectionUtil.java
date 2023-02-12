@@ -16,15 +16,20 @@ public class ReflectionUtil {
 
     private static final Map<String, Method> CACHED_METHODS = Maps.newHashMap();
 
-    @SuppressWarnings("unchecked")
     @Nullable
     public static <T> T callMethod(String methodName, Object obj, Object... args){
+        return callMethod(methodName, obj.getClass(), obj, args);
+    }
+
+    @SuppressWarnings("unchecked")
+    @Nullable
+    public static <T> T callMethod(String methodName, Class<?> targetClass, Object obj, Object... args){
         Method method = CACHED_METHODS.computeIfAbsent(methodName, k -> {
             Class<?>[] argClasses = new Class[args.length];
             for(int i = 0; i < args.length; i++){
                 argClasses[i] = args[i].getClass();
             }
-            return ObfuscationReflectionHelper.findMethod(obj.getClass(), methodName, argClasses);
+            return ObfuscationReflectionHelper.findMethod(targetClass, methodName, argClasses);
         });
 
         try {

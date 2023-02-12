@@ -53,7 +53,7 @@ public class IllagerHoundGoalPackages {
                 ImmutableList.of(
                         new Sprint<>(),
                         new SetWalkTargetFromAttackTargetIfTargetOutOfReach(SharedWolfAi.SPEED_MODIFIER_CHASING),
-                        new LeapAtTarget(SharedWolfAi.LEAP_CHANCE, SharedWolfAi.LEAP_YD, SharedWolfAi.TOO_CLOSE_TO_LEAP, SharedWolfAi.TOO_FAR_TO_LEAP),
+                        new LeapAtTarget(SharedWolfAi.LEAP_YD, SharedWolfAi.TOO_CLOSE_TO_LEAP, SharedWolfAi.TOO_FAR_TO_LEAP, SharedWolfAi.LEAP_COOLDOWN),
                         new MeleeAttack(SharedWolfAi.ATTACK_COOLDOWN_TICKS),
                         new StopAttackingIfTargetInvalid<>()
                 ));

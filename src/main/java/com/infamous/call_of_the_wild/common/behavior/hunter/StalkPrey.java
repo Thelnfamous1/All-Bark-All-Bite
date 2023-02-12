@@ -16,22 +16,23 @@ import net.minecraft.world.entity.ai.memory.MemoryModuleType;
 import net.minecraft.world.entity.ai.memory.MemoryStatus;
 
 import java.util.Optional;
+import java.util.function.ToIntFunction;
 
 public class StalkPrey extends Behavior<PathfinderMob> {
     private static final int CROUCH_ANIMATION_DURATION = 15;
     private static final int PATH_INTERVAL = 10;
     public static final double INITIAL_VISION_OFFSET = 0.5D; // dot initially only needs to be greater than 1 - (0.5 / 0.5) == 0
     private final float speedModifier;
-    private final int pounceDistance;
+    private final ToIntFunction<PathfinderMob> pounceDistance;
+    private final ToIntFunction<PathfinderMob> pounceHeight;
     private int calculatePathCounter;
     private int crouchAnimationTimer;
     private StalkPrey.State state = StalkPrey.State.DONE;
-    private final int pounceHeight;
 
-    public StalkPrey(float speedModifier, int pounceDistance, int pounceHeight) {
+    public StalkPrey(float speedModifier, ToIntFunction<PathfinderMob> pounceDistance, ToIntFunction<PathfinderMob> pounceHeight) {
         super(ImmutableMap.of(
                 ABABMemoryModuleTypes.STALK_TARGET.get(), MemoryStatus.VALUE_PRESENT,
-                ABABMemoryModuleTypes.POUNCE_TARGET.get(), MemoryStatus.VALUE_ABSENT,
+                ABABMemoryModuleTypes.POUNCE_COOLDOWN_TICKS.get(), MemoryStatus.VALUE_ABSENT,
                 MemoryModuleType.WALK_TARGET, MemoryStatus.REGISTERED,
                 MemoryModuleType.LOOK_TARGET, MemoryStatus.REGISTERED
         ));
@@ -83,7 +84,8 @@ public class StalkPrey extends Behavior<PathfinderMob> {
             return stalkTarget != null
                     && stalkTarget.isAlive()
                     && !AiUtil.isLookingAtMe(mob, stalkTarget, INITIAL_VISION_OFFSET)
-                    && mob.distanceToSqr(stalkTarget) > Mth.square(this.pounceDistance)
+                    && HunterAi.getPounceTarget(mob).isEmpty()
+                    //&& mob.distanceToSqr(stalkTarget) >= Mth.square(this.pounceDistance)
                     && !mob.hasPose(Pose.CROUCHING);
         }
     }
@@ -104,7 +106,7 @@ public class StalkPrey extends Behavior<PathfinderMob> {
         BehaviorUtils.lookAtEntity(mob, stalkTarget);
         switch (this.state){
             case MOVE_TO_TARGET -> {
-                if (mob.distanceToSqr(stalkTarget) <= Mth.square(this.pounceDistance)) {
+                if (mob.distanceToSqr(stalkTarget) <= Mth.square(this.pounceDistance.applyAsInt(mob))) {
                     mob.setPose(Pose.CROUCHING);
                     GenericAi.stopWalking(mob);
                     this.crouchAnimationTimer = 0;
@@ -127,15 +129,14 @@ public class StalkPrey extends Behavior<PathfinderMob> {
     }
 
     private void setWalkAndLookTarget(PathfinderMob mob, LivingEntity target) {
-        AiUtil.setWalkAndLookTargetMemories(mob, target, this.speedModifier, this.pounceDistance - 1);
+        AiUtil.setWalkAndLookTargetMemories(mob, target, this.speedModifier, this.pounceDistance.applyAsInt(mob) - 1);
     }
 
     @Override
     protected void stop(ServerLevel level, PathfinderMob mob, long gameTime) {
-        HunterAi.stopPouncing(mob);
         LivingEntity stalkTarget = this.getStalkTarget(mob).orElse(null);
         if (this.state == State.DONE) {
-            if (stalkTarget != null && AiUtil.isPathClear(mob, stalkTarget, this.pounceDistance, this.pounceHeight)) {
+            if (stalkTarget != null && AiUtil.isPathClear(mob, stalkTarget, this.pounceDistance.applyAsInt(mob), this.pounceHeight.applyAsInt(mob))) {
                 HunterAi.setPounceTarget(mob, stalkTarget);
                 GenericAi.stopWalking(mob);
                 BehaviorUtils.lookAtEntity(mob, stalkTarget);
@@ -146,6 +147,7 @@ public class StalkPrey extends Behavior<PathfinderMob> {
             this.state = State.DONE;
             if (mob.hasPose(Pose.CROUCHING)) mob.setPose(Pose.STANDING);
         }
+        HunterAi.stopStalking(mob);
     }
 
     enum State {

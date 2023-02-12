@@ -11,8 +11,11 @@ import java.util.Optional;
 public class HunterAi {
     @SuppressWarnings("BooleanMethodIsAlwaysInverted")
     public static boolean hasAnyoneNearbyHuntedRecently(LivingEntity mob, List<? extends LivingEntity> nearby) {
-       return mob.getBrain().hasMemoryValue(MemoryModuleType.HUNTED_RECENTLY)
-               || nearby.stream().anyMatch((le) -> le.getBrain().hasMemoryValue(MemoryModuleType.HUNTED_RECENTLY));
+       return hasHuntedRecently(mob) || nearby.stream().anyMatch(HunterAi::hasHuntedRecently);
+    }
+
+    public static boolean hasHuntedRecently(LivingEntity mob) {
+        return mob.getBrain().hasMemoryValue(MemoryModuleType.HUNTED_RECENTLY);
     }
 
     public static void setHuntedRecently(LivingEntity mob, int huntCooldownInTicks) {
@@ -49,5 +52,17 @@ public class HunterAi {
 
     public static void stopPouncing(LivingEntity mob) {
         mob.getBrain().eraseMemory(ABABMemoryModuleTypes.POUNCE_TARGET.get());
+    }
+
+    public static boolean isOnPounceCooldown(LivingEntity wolf){
+        return wolf.getBrain().hasMemoryValue(ABABMemoryModuleTypes.POUNCE_COOLDOWN_TICKS.get());
+    }
+
+    public static void setPounceCooldown(LivingEntity mob, int cooldownTicks) {
+        mob.getBrain().setMemory(ABABMemoryModuleTypes.POUNCE_COOLDOWN_TICKS.get(), cooldownTicks);
+    }
+
+    public static void clearPounceCooldown(LivingEntity wolf) {
+        wolf.getBrain().eraseMemory(ABABMemoryModuleTypes.POUNCE_COOLDOWN_TICKS.get());
     }
 }

@@ -3,8 +3,10 @@ package com.infamous.call_of_the_wild.common.behavior;
 import com.google.common.collect.ImmutableMap;
 import com.infamous.call_of_the_wild.common.ai.AiUtil;
 import com.infamous.call_of_the_wild.common.ai.GenericAi;
+import com.infamous.call_of_the_wild.common.ai.LongJumpAi;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.util.Mth;
+import net.minecraft.util.valueproviders.UniformInt;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.PathfinderMob;
 import net.minecraft.world.entity.Pose;
@@ -14,21 +16,25 @@ import net.minecraft.world.entity.ai.memory.MemoryStatus;
 import net.minecraft.world.phys.Vec3;
 
 public class LeapAtTarget extends Behavior<PathfinderMob> {
+
+    private static final double MIN_Y_DELTA = 0.05D;
     private static final int CROUCH_ANIMATION_DURATION = 4;
     private final float yD;
     private final int tooClose;
     private final int tooFar;
     private int crouchAnimationTimer;
     private LeapAtTarget.State state = LeapAtTarget.State.DONE;
-    private final float chance;
+    private final UniformInt jumpCooldown;
 
-    public LeapAtTarget(float chance, float yD, int tooClose, int tooFar) {
+    public LeapAtTarget(float yD, int tooClose, int tooFar, UniformInt jumpCooldown) {
         super(ImmutableMap.of(
-                MemoryModuleType.ATTACK_TARGET, MemoryStatus.VALUE_PRESENT), 100);
-        this.chance = chance;
+                MemoryModuleType.ATTACK_TARGET, MemoryStatus.VALUE_PRESENT,
+                MemoryModuleType.LONG_JUMP_COOLDOWN_TICKS, MemoryStatus.VALUE_ABSENT,
+                MemoryModuleType.LONG_JUMP_MID_JUMP, MemoryStatus.VALUE_ABSENT), 100);
         this.yD = yD;
         this.tooClose = tooClose;
         this.tooFar = tooFar;
+        this.jumpCooldown = jumpCooldown;
     }
 
     @SuppressWarnings("OptionalGetWithoutIsPresent")
@@ -39,11 +45,7 @@ public class LeapAtTarget extends Behavior<PathfinderMob> {
         } else {
             LivingEntity attackTarget = GenericAi.getAttackTarget(mob).get();
             if (!mob.closerThan(attackTarget, this.tooClose) && mob.distanceToSqr(attackTarget) <= Mth.square(this.tooFar)) {
-                if (!mob.isOnGround()) {
-                    return false;
-                } else {
-                    return mob.getRandom().nextFloat() < this.chance;
-                }
+                return mob.isOnGround();
             } else {
                 return false;
             }
@@ -67,7 +69,8 @@ public class LeapAtTarget extends Behavior<PathfinderMob> {
                     return attackTarget.isAlive() && mob.hasPose(Pose.CROUCHING);
                 }
                 case MID_LEAP -> {
-                    return !mob.isOnGround();
+                    double yD = mob.getDeltaMovement().y;
+                    return (Mth.square(yD) >= MIN_Y_DELTA || !mob.isOnGround());
                 }
                 default -> {
                     return false;
@@ -90,6 +93,7 @@ public class LeapAtTarget extends Behavior<PathfinderMob> {
             }
             case LEAP -> {
                 mob.setPose(Pose.LONG_JUMPING);
+                LongJumpAi.setMidJump(mob);
                 Vec3 deltaMovement = mob.getDeltaMovement();
                 Vec3 xzD = new Vec3(target.getX() - mob.getX(), 0.0D, target.getZ() - mob.getZ());
                 if (xzD.lengthSqr() > AiUtil.NEAR_ZERO_DELTA_MOVEMENT) {
@@ -108,6 +112,8 @@ public class LeapAtTarget extends Behavior<PathfinderMob> {
         if(mob.hasPose(Pose.CROUCHING) || mob.hasPose(Pose.LONG_JUMPING)){
             mob.setPose(Pose.STANDING);
         }
+        LongJumpAi.clearMidJump(mob);
+        LongJumpAi.setLongJumpCooldown(mob, this.jumpCooldown.sample(mob.getRandom()));
     }
 
     enum State {

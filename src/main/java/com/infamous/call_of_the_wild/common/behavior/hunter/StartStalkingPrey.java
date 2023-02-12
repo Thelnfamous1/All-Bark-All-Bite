@@ -13,14 +13,16 @@ import java.util.Optional;
 import java.util.function.Function;
 import java.util.function.Predicate;
 
-public class StartStalking<E extends Mob> extends Behavior<E> {
+public class StartStalkingPrey<E extends Mob> extends Behavior<E> {
    private final Predicate<E> canStalk;
 
    private final Function<E, Optional<? extends LivingEntity>> targetFinder;
 
-   public StartStalking(Predicate<E> canStalk, Function<E, Optional<? extends LivingEntity>> targetFinder) {
+   public StartStalkingPrey(Predicate<E> canStalk, Function<E, Optional<? extends LivingEntity>> targetFinder) {
       super(ImmutableMap.of(
-              ABABMemoryModuleTypes.STALK_TARGET.get(), MemoryStatus.VALUE_ABSENT)
+              ABABMemoryModuleTypes.STALK_TARGET.get(), MemoryStatus.VALUE_ABSENT,
+              ABABMemoryModuleTypes.POUNCE_TARGET.get(), MemoryStatus.VALUE_ABSENT,
+              ABABMemoryModuleTypes.POUNCE_COOLDOWN_TICKS.get(), MemoryStatus.VALUE_ABSENT)
       );
       this.canStalk = canStalk;
       this.targetFinder = targetFinder;

@@ -210,7 +210,7 @@ public class ForgeEventHandler {
     @SubscribeEvent
     static void onLivingFall(LivingFallEvent event){
         if(event.getEntity().getType() == EntityType.WOLF){
-            event.setDistance(event.getDistance() - 5.0F);
+            event.setDistance(event.getDistance() - (SharedWolfAi.FALL_REDUCTION - AiUtil.DEFAULT_FALL_REDUCTION));
         }
     }
 
@@ -291,9 +291,9 @@ public class ForgeEventHandler {
         }
     }
 
-    private static void commandPet(MultiEntityManager petManager, Consumer<Dog> command) {
+    private static void commandPet(MultiEntityManager petManager, Consumer<TamableAnimal> command) {
         petManager.stream().forEach(pet -> {
-            if(pet instanceof Dog dog){
+            if(pet instanceof TamableAnimal dog){
                 command.accept(dog);
             }
         });

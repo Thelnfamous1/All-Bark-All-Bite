@@ -101,7 +101,7 @@ public class GenericAi {
         if(mob instanceof Fox fox){
             ReflectionUtil.callMethod("m_28626_", fox, true);
         }
-        mob.startSleeping(mob.getOnPos());
+        mob.startSleeping(mob.blockPosition());
         mob.getBrain().setMemory(MemoryModuleType.LAST_SLEPT, mob.level.getGameTime());
         mob.getBrain().eraseMemory(MemoryModuleType.WALK_TARGET);
         mob.getBrain().eraseMemory(MemoryModuleType.CANT_REACH_WALK_TARGET_SINCE);

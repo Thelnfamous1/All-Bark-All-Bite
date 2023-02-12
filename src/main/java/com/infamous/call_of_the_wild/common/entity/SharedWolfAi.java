@@ -39,7 +39,7 @@ public class SharedWolfAi {
     public static final UniformInt AVOID_DURATION = TimeUtil.rangeOfSeconds(5, 7);
     public static final UniformInt RETREAT_DURATION = TimeUtil.rangeOfSeconds(5, 20);
     public static final UniformInt TIME_BETWEEN_HOWLS = TimeUtil.rangeOfSeconds(30, 120);
-    public static final UniformInt TIME_BETWEEN_HUNTS = TimeUtil.rangeOfSeconds(5, 7); // 30-120
+    public static final UniformInt TIME_BETWEEN_HUNTS = TimeUtil.rangeOfSeconds(30, 120); // 30-120
     public static final float JUMP_CHANCE_IN_WATER = 0.8F;
     public static final float SPEED_MODIFIER_BREEDING = 1.0F;
     public static final float SPEED_MODIFIER_CHASING = 1.0F; // Dog will sprint with 30% extra speed, meaning final speed is effectively ~1.3F
@@ -61,16 +61,21 @@ public class SharedWolfAi {
     public static final int MAX_ALERTABLE_XZ = 12;
     public static final int MAX_ALERTABLE_Y = 6;
     public static final float SPEED_MODIFIER_FETCHING = 1.0F; // Dog will sprint with 30% extra speed, meaning final speed is effectively ~1.3F
-    public static final float LEAP_CHANCE = 0.2F;
     public static final int POUNCE_HEIGHT = 3;
     public static final int TOO_FAR_TO_LEAP = 4;
     public static final int ITEM_PICKUP_COOLDOWN = 60;
     public static final int MAX_FETCH_DISTANCE = 16;
     public static final int DISABLE_FETCH_TIME = 200;
     public static final int MAX_TIME_TO_REACH_ITEM = 200;
+    public static final float FALL_REDUCTION = 5.0F;
+    public static final UniformInt LEAP_COOLDOWN = TimeUtil.rangeOfSeconds(4, 6);
+    public static final UniformInt PLAY_POUNCE_COOLDOWN = TimeUtil.rangeOfSeconds(30, 60);
+    public static final UniformInt HUNT_POUNCE_COOLDOWN = TimeUtil.rangeOfSeconds(5, 7);
+    public static final int BABY_POUNCE_DISTANCE = 4;
+    public static final int BABY_POUNCE_HEIGHT = 2;
     private static final int HOWL_VOLUME = 4;
     public static final int EAT_DURATION = MiscUtil.seconds(3);
-    public static final int MIN_TICKS_BEFORE_EAT = MiscUtil.seconds(30);
+    public static final int EAT_COOLDOWN = MiscUtil.seconds(30);
     public static final long DIG_DURATION = 100L;
 
     public static void initMemories(TamableAnimal wolf, RandomSource randomSource) {
@@ -245,7 +250,7 @@ public class SharedWolfAi {
     }
 
     public static void setAteRecently(Animal animal){
-        animal.getBrain().setMemoryWithExpiry(MemoryModuleType.ATE_RECENTLY, true, MIN_TICKS_BEFORE_EAT - EAT_DURATION);
+        animal.getBrain().setMemoryWithExpiry(MemoryModuleType.ATE_RECENTLY, true, EAT_COOLDOWN - EAT_DURATION);
     }
 
     public static void stopHoldingItemInMouth(LivingEntity livingEntity) {
@@ -321,7 +326,9 @@ public class SharedWolfAi {
 
     public static void handleSleeping(TamableAnimal wolf) {
         if (wolf.isSleeping()) {
-            wolf.setInSittingPose(false);
+            if(wolf.isInSittingPose()){
+                wolf.setInSittingPose(false);
+            }
             wolf.setJumping(false);
             wolf.xxa = 0.0F;
             wolf.zza = 0.0F;

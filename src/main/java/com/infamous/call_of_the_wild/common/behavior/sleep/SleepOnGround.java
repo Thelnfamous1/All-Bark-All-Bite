@@ -60,7 +60,7 @@ public class SleepOnGround<E extends LivingEntity> extends Behavior<E> {
             BlockPos sleepingPos = optionalSleepingPos.get();
             return this.canSleep.test(entity)
                     && entity.getBrain().isActive(Activity.REST)
-                    && entity.getY() > (double)sleepingPos.getY() + MIN_Y_DIST_FROM_SLEEPING_POS
+                    //&& entity.getY() > (double)sleepingPos.getY() + MIN_Y_DIST_FROM_SLEEPING_POS
                     && sleepingPos.closerToCenterThan(entity.position(), MAX_DIST_FROM_SLEEPING_POS);
         }
     }
