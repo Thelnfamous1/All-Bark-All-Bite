@@ -11,6 +11,7 @@ import com.infamous.all_bark_all_bite.common.behavior.pet.SitWhenOrderedTo;
 import com.infamous.all_bark_all_bite.common.behavior.sleep.SleepOnGround;
 import com.infamous.all_bark_all_bite.common.registry.ABABMemoryModuleTypes;
 import com.mojang.datafixers.util.Pair;
+import net.minecraft.Util;
 import net.minecraft.world.entity.*;
 import net.minecraft.world.entity.ai.Brain;
 import net.minecraft.world.entity.ai.behavior.*;
@@ -18,6 +19,7 @@ import net.minecraft.world.entity.ai.memory.MemoryModuleType;
 import net.minecraft.world.entity.ai.memory.MemoryStatus;
 import net.minecraft.world.entity.schedule.Activity;
 
+import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -184,11 +186,14 @@ public class SharedWolfBrain {
     }
 
     public static Set<Pair<MemoryModuleType<?>, MemoryStatus>> getRestConditions() {
-        return ImmutableSet.of(
-                Pair.of(ABABMemoryModuleTypes.IS_SHELTERED.get(), MemoryStatus.VALUE_PRESENT),
-                Pair.of(ABABMemoryModuleTypes.IS_LEVEL_DAY.get(), MemoryStatus.VALUE_PRESENT),
-                Pair.of(ABABMemoryModuleTypes.IS_ORDERED_TO_FOLLOW.get(), MemoryStatus.VALUE_ABSENT),
-                Pair.of(ABABMemoryModuleTypes.IS_ORDERED_TO_HEEL.get(), MemoryStatus.VALUE_ABSENT));
+        return Util.make(() -> {
+            Set<Pair<MemoryModuleType<?>, MemoryStatus>> restConditions = new HashSet<>();
+            restConditions.add(Pair.of(ABABMemoryModuleTypes.IS_SHELTERED.get(), MemoryStatus.VALUE_PRESENT));
+            restConditions.add(Pair.of(ABABMemoryModuleTypes.IS_LEVEL_DAY.get(), MemoryStatus.VALUE_PRESENT));
+            restConditions.add(Pair.of(ABABMemoryModuleTypes.IS_ORDERED_TO_FOLLOW.get(), MemoryStatus.VALUE_ABSENT));
+            restConditions.add(Pair.of(ABABMemoryModuleTypes.IS_ORDERED_TO_HEEL.get(), MemoryStatus.VALUE_ABSENT));
+            return restConditions;
+        });
     }
 
     public static boolean isFollowingOwner(TamableAnimal dog) {

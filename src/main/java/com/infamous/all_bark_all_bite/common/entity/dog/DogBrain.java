@@ -26,6 +26,7 @@ import net.minecraft.world.entity.*;
 import net.minecraft.world.entity.ai.Brain;
 import net.minecraft.world.entity.ai.behavior.*;
 import net.minecraft.world.entity.ai.memory.MemoryModuleType;
+import net.minecraft.world.entity.ai.memory.MemoryStatus;
 import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.entity.schedule.Activity;
 import net.minecraft.world.item.ItemStack;
@@ -37,6 +38,7 @@ import net.minecraft.world.level.storage.loot.parameters.LootContextParams;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Optional;
+import java.util.Set;
 import java.util.function.Predicate;
 
 public class DogBrain {
@@ -60,7 +62,7 @@ public class DogBrain {
         brainMaker.initActivityWithMemoryGate(ABABActivities.FETCH.get(),
                 getFetchPackage(), ABABMemoryModuleTypes.FETCHING_ITEM.get());
         brainMaker.initActivityWithConditions(Activity.REST,
-                SharedWolfBrain.getRestPackage(createIdleLookBehaviors()), SharedWolfBrain.getRestConditions());
+                SharedWolfBrain.getRestPackage(createIdleLookBehaviors()), DogBrain.getRestConditions());
         brainMaker.initActivity(Activity.IDLE,
                 getIdlePackage());
 
@@ -100,6 +102,12 @@ public class DogBrain {
                 return false;
             }
         }
+    }
+
+    private static Set<Pair<MemoryModuleType<?>, MemoryStatus>> getRestConditions(){
+        Set<Pair<MemoryModuleType<?>, MemoryStatus>> restConditions = SharedWolfBrain.getRestConditions();
+        restConditions.add(Pair.of(MemoryModuleType.TEMPTING_PLAYER, MemoryStatus.VALUE_ABSENT));
+        return restConditions;
     }
 
     private static void wasHurtBy(Dog dog, LivingEntity attacker) {
