@@ -156,7 +156,7 @@ public class WolfAi {
             if (wolf.isTame() && wolf.isOwnedBy(player)) {
                 return InteractionResult.SUCCESS;
             } else {
-                return !wolf.isFood(itemInHand) || !AiUtil.isInjured(wolf) && wolf.isTame() ? InteractionResult.PASS : InteractionResult.SUCCESS;
+                return (!wolf.isFood(itemInHand) || !AiUtil.isInjured(wolf) && wolf.isTame() && !wolf.isAngry()) ? InteractionResult.PASS : InteractionResult.SUCCESS;
             }
         } else {
             if (wolf.isTame() && wolf.isOwnedBy(player)) {

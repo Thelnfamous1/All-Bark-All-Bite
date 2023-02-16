@@ -1,10 +1,11 @@
 package com.infamous.all_bark_all_bite.data;
 
 import com.infamous.all_bark_all_bite.AllBarkAllBite;
-import com.infamous.all_bark_all_bite.common.item.CyclableInstrumentItem;
+import com.infamous.all_bark_all_bite.common.item.AdjustableInstrumentItem;
 import com.infamous.all_bark_all_bite.common.registry.ABABEntityTypes;
 import com.infamous.all_bark_all_bite.common.registry.ABABInstruments;
 import com.infamous.all_bark_all_bite.common.registry.ABABItems;
+import com.infamous.all_bark_all_bite.common.util.InstrumentUtil;
 import net.minecraft.Util;
 import net.minecraft.data.DataGenerator;
 import net.minecraft.world.item.Instrument;
@@ -38,12 +39,12 @@ public class ABABLangProvider extends LanguageProvider {
         this.add(makeInstrumentDescriptionId(ABABInstruments.HEEL_WHISTLE), "Heel");
         this.add(makeInstrumentDescriptionId(ABABInstruments.SIT_WHISTLE), "Sit");
 
-        this.add(CyclableInstrumentItem.SECONDARY_USE_TOOLTIP, "Sneak & Use to Cycle");
+        this.add(AdjustableInstrumentItem.SECONDARY_USE_TOOLTIP, "Sneak & Use to Adjust");
     }
 
     @SuppressWarnings("SameParameterValue")
     private static String makeInstrumentDescriptionId(RegistryObject<Instrument> instrumentRegistryObject) {
-        return Util.makeDescriptionId("instrument", instrumentRegistryObject.getId());
+        return Util.makeDescriptionId(InstrumentUtil.INSTRUMENT_TAG, instrumentRegistryObject.getId());
     }
 
 }

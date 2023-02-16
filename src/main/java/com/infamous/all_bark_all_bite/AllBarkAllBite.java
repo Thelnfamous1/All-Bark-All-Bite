@@ -1,8 +1,12 @@
 package com.infamous.all_bark_all_bite;
 
 import com.infamous.all_bark_all_bite.common.registry.*;
+import com.infamous.all_bark_all_bite.common.util.proxy.ClientProxy;
+import com.infamous.all_bark_all_bite.common.util.proxy.CommonProxy;
+import com.infamous.all_bark_all_bite.common.util.proxy.ServerProxy;
 import com.mojang.logging.LogUtils;
 import net.minecraftforge.eventbus.api.IEventBus;
+import net.minecraftforge.fml.DistExecutor;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
 import org.slf4j.Logger;
@@ -16,6 +20,8 @@ public class AllBarkAllBite
     // Directly reference a slf4j logger
     @SuppressWarnings("unused")
     public static final Logger LOGGER = LogUtils.getLogger();
+    public static final CommonProxy PROXY = DistExecutor.safeRunForDist(() -> ClientProxy::new, () -> ServerProxy::new);
+
     public AllBarkAllBite()
     {
         IEventBus modEventBus = FMLJavaModLoadingContext.get().getModEventBus();

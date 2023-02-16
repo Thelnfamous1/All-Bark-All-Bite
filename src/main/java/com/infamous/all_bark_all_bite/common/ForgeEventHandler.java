@@ -231,12 +231,14 @@ public class ForgeEventHandler {
         }
     }
 
-    @SubscribeEvent
+    @SubscribeEvent(priority = EventPriority.LOWEST)
     static void onEntityInteract(PlayerInteractEvent.EntityInteract event){
-        Entity target = event.getTarget();
-        if(target instanceof Wolf wolf && target.getType() == EntityType.WOLF){
-            event.setCanceled(true);
-            event.setCancellationResult(AiUtil.interactOn(event.getEntity(), wolf, event.getHand(), WolfAi::mobInteract));
+        if(!event.isCanceled() && !event.getItemStack().is(ABABTags.HAS_WOLF_INTERACTION) && !event.getEntity().isSecondaryUseActive()){
+            Entity target = event.getTarget();
+            if(target instanceof Wolf wolf && target.getType() == EntityType.WOLF){
+                event.setCanceled(true);
+                event.setCancellationResult(AiUtil.interactOn(event.getEntity(), wolf, event.getHand(), WolfAi::mobInteract));
+            }
         }
     }
 

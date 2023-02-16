@@ -2,7 +2,7 @@ package com.infamous.all_bark_all_bite.common.registry;
 
 import com.infamous.all_bark_all_bite.AllBarkAllBite;
 import com.infamous.all_bark_all_bite.common.ABABTags;
-import com.infamous.all_bark_all_bite.common.item.CyclableInstrumentItem;
+import com.infamous.all_bark_all_bite.common.item.AdjustableInstrumentItem;
 import net.minecraft.world.item.CreativeModeTab;
 import net.minecraft.world.item.Item;
 import net.minecraftforge.common.ForgeSpawnEggItem;
@@ -24,6 +24,6 @@ public class ABABItems {
             () -> new ForgeSpawnEggItem(ABABEntityTypes.HOUNDMASTER, 9804699, 1973274, new Item.Properties().tab(CreativeModeTab.TAB_MISC)));
 
     public static final String WHISTLE_NAME = "whistle";
-    public static final RegistryObject<CyclableInstrumentItem> WHISTLE = ITEMS.register(WHISTLE_NAME,
-            () -> new CyclableInstrumentItem(new Item.Properties().tab(CreativeModeTab.TAB_MISC).stacksTo(1), ABABTags.WHISTLES));
+    public static final RegistryObject<AdjustableInstrumentItem> WHISTLE = ITEMS.register(WHISTLE_NAME,
+            () -> new AdjustableInstrumentItem(new Item.Properties().tab(CreativeModeTab.TAB_MISC).stacksTo(1), ABABTags.WHISTLES));
 }

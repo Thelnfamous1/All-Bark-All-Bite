@@ -26,5 +26,6 @@ public class ABABItemTagProvider extends ItemTagsProvider {
 
         this.tag(ABABTags.WOLF_LOVED).add(Items.BONE);
         this.tag(ABABTags.WOLF_FOOD);
+        this.tag(ABABTags.HAS_WOLF_INTERACTION);
     }
 }
