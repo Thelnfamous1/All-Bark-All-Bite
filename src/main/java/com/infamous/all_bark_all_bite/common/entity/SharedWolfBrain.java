@@ -12,6 +12,7 @@ import com.infamous.all_bark_all_bite.common.behavior.sleep.SleepOnGround;
 import com.infamous.all_bark_all_bite.common.registry.ABABMemoryModuleTypes;
 import com.mojang.datafixers.util.Pair;
 import net.minecraft.Util;
+import net.minecraft.util.Unit;
 import net.minecraft.world.entity.*;
 import net.minecraft.world.entity.ai.Brain;
 import net.minecraft.world.entity.ai.behavior.*;
@@ -169,10 +170,10 @@ public class SharedWolfBrain {
         }
     }
 
-    public static ImmutableList<? extends Pair<Integer, ? extends Behavior<? super TamableAnimal>>> getRestPackage(RunOne<TamableAnimal> idleLookBehaviors){
+    public static ImmutableList<? extends Pair<Integer, ? extends Behavior<? super TamableAnimal>>> getRestPackage(RunOne<TamableAnimal> idleLookBehaviors, boolean nocturnal){
         return BrainUtil.createPriorityPairs(0,
                 ImmutableList.of(
-                        new SleepOnGround<>(SharedWolfAi::canSleep, SharedWolfAi::handleSleeping),
+                        new SleepOnGround<>(wolf -> SharedWolfAi.canSleep(wolf, nocturnal), SharedWolfAi::handleSleeping),
                         new RunIf<>(Predicate.not(LivingEntity::isSleeping), idleLookBehaviors, true)
                 ));
     }
@@ -185,11 +186,11 @@ public class SharedWolfBrain {
         return ImmutableSet.of(Pair.of(ABABMemoryModuleTypes.IS_ORDERED_TO_SIT.get(), MemoryStatus.VALUE_PRESENT));
     }
 
-    public static Set<Pair<MemoryModuleType<?>, MemoryStatus>> getRestConditions() {
+    public static Set<Pair<MemoryModuleType<?>, MemoryStatus>> getRestConditions(MemoryModuleType<Unit> timeMemory) {
         return Util.make(() -> {
             Set<Pair<MemoryModuleType<?>, MemoryStatus>> restConditions = new HashSet<>();
             restConditions.add(Pair.of(ABABMemoryModuleTypes.IS_SHELTERED.get(), MemoryStatus.VALUE_PRESENT));
-            restConditions.add(Pair.of(ABABMemoryModuleTypes.IS_LEVEL_DAY.get(), MemoryStatus.VALUE_PRESENT));
+            restConditions.add(Pair.of(timeMemory, MemoryStatus.VALUE_PRESENT));
             restConditions.add(Pair.of(ABABMemoryModuleTypes.IS_ORDERED_TO_FOLLOW.get(), MemoryStatus.VALUE_ABSENT));
             restConditions.add(Pair.of(ABABMemoryModuleTypes.IS_ORDERED_TO_HEEL.get(), MemoryStatus.VALUE_ABSENT));
             return restConditions;

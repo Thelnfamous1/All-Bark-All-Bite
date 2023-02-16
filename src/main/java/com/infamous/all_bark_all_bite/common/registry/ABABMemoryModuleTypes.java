@@ -127,4 +127,8 @@ public class ABABMemoryModuleTypes {
             "pounce_cooldown_ticks",
             () -> new MemoryModuleType<>(Optional.of(Codec.INT)));
 
+    public static RegistryObject<MemoryModuleType<Unit>> IS_LEVEL_NIGHT = MEMORY_MODULE_TYPES.register(
+            "is_level_night",
+            () -> new MemoryModuleType<>(Optional.of(Codec.unit(Unit.INSTANCE))));
+
 }

@@ -34,6 +34,19 @@ public class InstrumentUtil {
     }
 
     public static MutableComponent getInstrumentTooltip(Holder<Instrument> instrument) {
-        return Component.translatable(Util.makeDescriptionId(INSTRUMENT_TAG, getInstrumentLocation(instrument)));
+        return Component.translatable(makeInstrumentDescriptionId(getInstrumentLocation(instrument)));
+    }
+
+    public static MutableComponent getInstrumentDescriptionTooltip(Holder<Instrument> instrument){
+        return Component.translatable(makeInstrumentDescription(getInstrumentLocation(instrument)));
+    }
+
+    @SuppressWarnings("SameParameterValue")
+    public static String makeInstrumentDescriptionId(ResourceLocation location) {
+        return Util.makeDescriptionId(INSTRUMENT_TAG, location);
+    }
+
+    public static String makeInstrumentDescription(ResourceLocation location) {
+        return makeInstrumentDescriptionId(location) + ".description";
     }
 }

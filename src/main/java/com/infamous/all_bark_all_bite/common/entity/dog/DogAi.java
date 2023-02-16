@@ -54,7 +54,7 @@ public class DogAi {
             MemoryModuleType.HURT_BY,
             MemoryModuleType.HURT_BY_ENTITY,
             MemoryModuleType.INTERACTION_TARGET,
-            ABABMemoryModuleTypes.IS_LEVEL_DAY.get(),
+            ABABMemoryModuleTypes.IS_LEVEL_NIGHT.get(),
             ABABMemoryModuleTypes.IS_ORDERED_TO_FOLLOW.get(),
             ABABMemoryModuleTypes.IS_ORDERED_TO_HEEL.get(),
             ABABMemoryModuleTypes.IS_ORDERED_TO_SIT.get(),

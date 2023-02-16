@@ -46,7 +46,7 @@ public class WolfBrain {
         brainMaker.initActivityWithMemoryGate(ABABActivities.STALK.get(),
                 SharedWolfBrain.getStalkPackage(), ABABMemoryModuleTypes.STALK_TARGET.get());
         brainMaker.initActivityWithConditions(Activity.REST,
-                SharedWolfBrain.getRestPackage(createIdleLookBehaviors()), SharedWolfBrain.getRestConditions());
+                SharedWolfBrain.getRestPackage(createIdleLookBehaviors(), true), SharedWolfBrain.getRestConditions(ABABMemoryModuleTypes.IS_LEVEL_DAY.get()));
         brainMaker.initActivity(Activity.IDLE,
                 getIdlePackage());
 
@@ -140,7 +140,7 @@ public class WolfBrain {
                                 ImmutableList.of(
                                         // tempt goes here
                                         SharedWolfBrain.createBreedBehavior(EntityType.WOLF),
-                                        new RunIf<>(SharedWolfAi::wantsToFindShelter, new MoveToNonSkySeeingSpot(SharedWolfAi.SPEED_MODIFIER_WALKING), true),
+                                        new RunIf<>(livingEntity -> SharedWolfAi.wantsToFindShelter(livingEntity, true), new MoveToNonSkySeeingSpot(SharedWolfAi.SPEED_MODIFIER_WALKING), true),
                                         new HowlForPack<>(SharedWolfAi.TIME_BETWEEN_HOWLS, SharedWolfAi.ADULT_FOLLOW_RANGE.getMaxValue()),
                                         new JoinOrCreatePackAndFollow<>(SharedWolfAi.ADULT_FOLLOW_RANGE, SharedWolfAi.SPEED_MODIFIER_FOLLOWING_ADULT),
                                         new BabyFollowAdult<>(SharedWolfAi.ADULT_FOLLOW_RANGE, SharedWolfAi.SPEED_MODIFIER_FOLLOWING_ADULT)

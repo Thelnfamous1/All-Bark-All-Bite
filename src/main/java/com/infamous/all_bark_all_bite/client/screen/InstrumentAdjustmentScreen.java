@@ -62,6 +62,8 @@ public class InstrumentAdjustmentScreen extends Screen {
         this.hand = hand;
         this.instruments = ImmutableList.copyOf(instruments);
         this.minecraft = Minecraft.getInstance(); // need to do this to prevent NPEs
+        this.itemRenderer = this.minecraft.getItemRenderer();
+        this.font = this.minecraft.font; // need to do this to prevent NPEs
     }
 
     @Override
@@ -91,13 +93,13 @@ public class InstrumentAdjustmentScreen extends Screen {
     }
 
     @Override
-    public void render(PoseStack p_99337_, int p_99338_, int p_99339_, float p_99340_) {
-        this.renderBg(p_99337_, p_99338_, p_99339_);
-        this.renderTooltip(p_99337_, p_99338_, p_99339_);
-        super.render(p_99337_, p_99338_, p_99339_, p_99340_);
+    public void render(PoseStack poseStack, int mouseX, int mouseY, float partialTick) {
+        this.renderBg(poseStack, mouseX, mouseY);
+        this.renderTooltip(poseStack, mouseX, mouseY);
+        super.render(poseStack, mouseX, mouseY, partialTick);
     }
 
-    protected void renderBg(PoseStack poseStack, int p_99330_, int p_99331_) {
+    protected void renderBg(PoseStack poseStack, int mouseX, int mouseY) {
         this.renderBackground(poseStack);
         this.setFocused(null);
         RenderSystem.setShader(GameRenderer::getPositionTexShader);
@@ -110,23 +112,23 @@ public class InstrumentAdjustmentScreen extends Screen {
         this.blit(poseStack, i + 119, j + SCROLLER_HEIGHT + k, this.imageWidth + (this.isScrollBarActive() ? 0 : SCROLLER_WIDTH), 0, SCROLLER_WIDTH, SCROLLER_HEIGHT);
         int instrumentsLeftPos = this.leftPos + INSTRUMENTS_X;
         int instrumentsTopPos = this.topPos + INSTRUMENTS_Y;
-        int j1 = this.startIndex + SCROLLER_WIDTH;
-        this.renderButtons(poseStack, p_99330_, p_99331_, instrumentsLeftPos, instrumentsTopPos, j1);
-        this.renderInstruments(poseStack, instrumentsLeftPos, instrumentsTopPos, j1);
+        int stopIndex = this.startIndex + this.getMaxDisplayButtons();
+        this.renderButtons(poseStack, mouseX, mouseY, instrumentsLeftPos, instrumentsTopPos, stopIndex);
+        this.renderInstruments(poseStack, instrumentsLeftPos, instrumentsTopPos, stopIndex);
     }
 
-    protected void renderTooltip(PoseStack p_99333_, int p_99334_, int p_99335_) {
-        //super.renderTooltip(p_99333_, p_99334_, p_99335_);
-        int i = this.leftPos + INSTRUMENTS_X;
-        int j = this.topPos + INSTRUMENTS_Y;
-        int k = this.startIndex + SCROLLER_WIDTH;
+    protected void renderTooltip(PoseStack poseStack, int mouseX, int mouseY) {
+        //super.renderTooltip(poseStack, mouseX, mouseY);
+        int instrumentsLeftPos = this.leftPos + INSTRUMENTS_X;
+        int instrumentsTopPos = this.topPos + INSTRUMENTS_Y;
+        int stopIndex = this.startIndex + this.getMaxDisplayButtons();
 
-        for(int l = this.startIndex; l < k && l < this.instruments.size(); ++l) {
-            int i1 = l - this.startIndex;
-            int j1 = i + i1 % INSTRUMENTS_COLUMNS * INSTRUMENTS_IMAGE_SIZE_WIDTH;
-            int k1 = j + i1 / INSTRUMENTS_COLUMNS * INSTRUMENTS_IMAGE_SIZE_HEIGHT + 2;
-            if (p_99334_ >= j1 && p_99334_ < j1 + INSTRUMENTS_IMAGE_SIZE_WIDTH && p_99335_ >= k1 && p_99335_ < k1 + INSTRUMENTS_IMAGE_SIZE_HEIGHT) {
-                this.renderTooltip(p_99333_, getInstrumentTooltipLines(this.instruments.get(l)), Optional.empty(), p_99334_, p_99335_);
+        for(int index = this.startIndex; index < stopIndex && index < this.instruments.size(); ++index) {
+            int indexDiff = index - this.startIndex;
+            int x = instrumentsLeftPos + indexDiff % INSTRUMENTS_COLUMNS * INSTRUMENTS_IMAGE_SIZE_WIDTH;
+            int y = instrumentsTopPos + indexDiff / INSTRUMENTS_COLUMNS * INSTRUMENTS_IMAGE_SIZE_HEIGHT + 2;
+            if (mouseX >= x && mouseX < x + INSTRUMENTS_IMAGE_SIZE_WIDTH && mouseY >= y && mouseY < y + INSTRUMENTS_IMAGE_SIZE_HEIGHT) {
+                this.renderTooltip(poseStack, getInstrumentTooltipLines(this.instruments.get(index)), Optional.empty(), mouseX, mouseY);
             }
         }
     }
@@ -135,36 +137,38 @@ public class InstrumentAdjustmentScreen extends Screen {
         List<Component> tooltipLines = Lists.newArrayList();
         MutableComponent instrumentTooltip = InstrumentUtil.getInstrumentTooltip(instrument);
         tooltipLines.add(instrumentTooltip.withStyle(ChatFormatting.WHITE));
+        MutableComponent descriptionTooltip = InstrumentUtil.getInstrumentDescriptionTooltip(instrument);
+        tooltipLines.add(descriptionTooltip.withStyle(ChatFormatting.GRAY, ChatFormatting.ITALIC));
         return tooltipLines;
     }
 
-    private void renderButtons(PoseStack poseStack, int p_99343_, int p_99344_, int instrumentsLeftPos, int instrumentsTopPos, int p_99347_) {
-        for(int i = this.startIndex; i < p_99347_ && i < this.instruments.size(); ++i) {
-            int j = i - this.startIndex;
-            int k = instrumentsLeftPos + j % INSTRUMENTS_COLUMNS * INSTRUMENTS_IMAGE_SIZE_WIDTH;
-            int l = j / INSTRUMENTS_COLUMNS;
-            int i1 = instrumentsTopPos + l * INSTRUMENTS_IMAGE_SIZE_HEIGHT + 2;
-            int j1 = this.imageHeight;
-            if (i == this.selectedInstrumentIndex) {
-                j1 += INSTRUMENTS_IMAGE_SIZE_HEIGHT;
-            } else if (p_99343_ >= k && p_99344_ >= i1 && p_99343_ < k + INSTRUMENTS_IMAGE_SIZE_WIDTH && p_99344_ < i1 + INSTRUMENTS_IMAGE_SIZE_HEIGHT) {
-                j1 += INSTRUMENTS_IMAGE_SIZE_HEIGHT * 2;
+    private void renderButtons(PoseStack poseStack, int mouseX, int mouseY, int instrumentsLeftPos, int instrumentsTopPos, int stopIndex) {
+        for(int index = this.startIndex; index < stopIndex && index < this.instruments.size(); ++index) {
+            int indexDiff = index - this.startIndex;
+            int x = instrumentsLeftPos + indexDiff % INSTRUMENTS_COLUMNS * INSTRUMENTS_IMAGE_SIZE_WIDTH;
+            int columns = indexDiff / INSTRUMENTS_COLUMNS;
+            int y = instrumentsTopPos + columns * INSTRUMENTS_IMAGE_SIZE_HEIGHT + 2;
+            int buttonY = this.imageHeight;
+            if (index == this.selectedInstrumentIndex) {
+                buttonY += INSTRUMENTS_IMAGE_SIZE_HEIGHT;
+            } else if (mouseX >= x && mouseY >= y && mouseX < x + INSTRUMENTS_IMAGE_SIZE_WIDTH && mouseY < y + INSTRUMENTS_IMAGE_SIZE_HEIGHT) {
+                buttonY += INSTRUMENTS_IMAGE_SIZE_HEIGHT * 2;
             }
 
-            this.blit(poseStack, k, i1 - 1, 0, j1, INSTRUMENTS_IMAGE_SIZE_WIDTH, INSTRUMENTS_IMAGE_SIZE_HEIGHT);
+            this.blit(poseStack, x, y - 1, 0, buttonY, INSTRUMENTS_IMAGE_SIZE_WIDTH, INSTRUMENTS_IMAGE_SIZE_HEIGHT);
         }
 
     }
 
-    private void renderInstruments(PoseStack poseStack, int instrumentsLeftPos, int instrumentsTopPos, int p_99351_) {
-        for(int i = this.startIndex; i < p_99351_ && i < this.instruments.size(); ++i) {
-            int j = i - this.startIndex;
-            int k = instrumentsLeftPos + j % INSTRUMENTS_COLUMNS * INSTRUMENTS_IMAGE_SIZE_WIDTH;
-            int l = j / INSTRUMENTS_COLUMNS;
-            int i1 = instrumentsTopPos + l * INSTRUMENTS_IMAGE_SIZE_HEIGHT + 2;
+    private void renderInstruments(PoseStack poseStack, int instrumentsLeftPos, int instrumentsTopPos, int stopIndex) {
+        for(int index = this.startIndex; index < stopIndex && index < this.instruments.size(); ++index) {
+            int indexDiff = index - this.startIndex;
+            int x = instrumentsLeftPos + indexDiff % INSTRUMENTS_COLUMNS * INSTRUMENTS_IMAGE_SIZE_WIDTH + (INSTRUMENTS_IMAGE_SIZE_WIDTH / 4);
+            int columns = indexDiff / INSTRUMENTS_COLUMNS;
+            int y = instrumentsTopPos + columns * INSTRUMENTS_IMAGE_SIZE_HEIGHT + 2 + (INSTRUMENTS_IMAGE_SIZE_HEIGHT / 3);
 
-            this.font.draw(poseStack, InstrumentUtil.getInstrumentTooltip(this.instruments.get(i)), (float)k, (float)i1, INSTRUMENT_NAME_COLOR);
-            //this.minecraft.getItemRenderer().renderAndDecorateItem(this.instruments.get(i).getResultItem(), k, i1);
+            this.font.draw(poseStack, InstrumentUtil.getInstrumentTooltip(this.instruments.get(index)), (float)x, (float)y, INSTRUMENT_NAME_COLOR);
+            //this.minecraft.getItemRenderer().renderAndDecorateItem(this.instruments.get(index).getResultItem(), x, y);
         }
     }
 
@@ -173,16 +177,16 @@ public class InstrumentAdjustmentScreen extends Screen {
         this.scrolling = false;
         int instrumentsLeftPos = this.leftPos + INSTRUMENTS_X;
         int instrumentsTopPos = this.topPos + INSTRUMENTS_Y;
-        int width = this.startIndex + SCROLLER_WIDTH;
+        int width = this.startIndex + this.getMaxDisplayButtons();
 
-        for(int l = this.startIndex; l < width; ++l) {
-            int i1 = l - this.startIndex;
+        for(int index = this.startIndex; index < width; ++index) {
+            int i1 = index - this.startIndex;
             double adjustedClickX = x - (double)(instrumentsLeftPos + i1 % INSTRUMENTS_COLUMNS * INSTRUMENTS_IMAGE_SIZE_WIDTH);
             double adjustedClickY = y - (double)(instrumentsTopPos + i1 / INSTRUMENTS_COLUMNS * INSTRUMENTS_IMAGE_SIZE_HEIGHT);
-            if (adjustedClickX >= 0.0D && adjustedClickY >= 0.0D && adjustedClickX < INSTRUMENTS_IMAGE_SIZE_WIDTH && adjustedClickY < INSTRUMENTS_IMAGE_SIZE_HEIGHT && this.clickMenuButton(l)) {
-                Minecraft.getInstance().getSoundManager().play(SimpleSoundInstance.forUI(SoundEvents.BEACON_POWER_SELECT, 1.0F));
+            if (adjustedClickX >= 0.0D && adjustedClickY >= 0.0D && adjustedClickX < INSTRUMENTS_IMAGE_SIZE_WIDTH && adjustedClickY < INSTRUMENTS_IMAGE_SIZE_HEIGHT && this.clickMenuButton(index)) {
+                Minecraft.getInstance().getSoundManager().play(SimpleSoundInstance.forUI(SoundEvents.UI_BUTTON_CLICK, 1.0F));
                 this.updateInstrument(this.instruments.get(this.selectedInstrumentIndex));
-                //this.minecraft.gameMode.handleInventoryButtonClick((this.menu).containerId, l);
+                //this.minecraft.gameMode.handleInventoryButtonClick((this.menu).containerId, index);
                 return true;
             }
         }
@@ -236,7 +240,11 @@ public class InstrumentAdjustmentScreen extends Screen {
     }
 
     private boolean isScrollBarActive() {
-        return this.instruments.size() > (INSTRUMENTS_COLUMNS * INSTRUMENTS_ROWS);
+        return this.instruments.size() > this.getMaxDisplayButtons();
+    }
+
+    private int getMaxDisplayButtons(){
+        return INSTRUMENTS_COLUMNS * INSTRUMENTS_ROWS;
     }
 
     protected int getOffscreenRows() {

@@ -62,7 +62,7 @@ public class DogBrain {
         brainMaker.initActivityWithMemoryGate(ABABActivities.FETCH.get(),
                 getFetchPackage(), ABABMemoryModuleTypes.FETCHING_ITEM.get());
         brainMaker.initActivityWithConditions(Activity.REST,
-                SharedWolfBrain.getRestPackage(createIdleLookBehaviors()), DogBrain.getRestConditions());
+                SharedWolfBrain.getRestPackage(createIdleLookBehaviors(), false), DogBrain.getRestConditions());
         brainMaker.initActivity(Activity.IDLE,
                 getIdlePackage());
 
@@ -105,7 +105,7 @@ public class DogBrain {
     }
 
     private static Set<Pair<MemoryModuleType<?>, MemoryStatus>> getRestConditions(){
-        Set<Pair<MemoryModuleType<?>, MemoryStatus>> restConditions = SharedWolfBrain.getRestConditions();
+        Set<Pair<MemoryModuleType<?>, MemoryStatus>> restConditions = SharedWolfBrain.getRestConditions(ABABMemoryModuleTypes.IS_LEVEL_NIGHT.get());
         restConditions.add(Pair.of(MemoryModuleType.TEMPTING_PLAYER, MemoryStatus.VALUE_ABSENT));
         return restConditions;
     }
@@ -151,7 +151,7 @@ public class DogBrain {
                         SharedWolfAi.AVOID_DURATION),
                 new UpdateUnitMemory<>(TamableAnimal::isOrderedToSit, ABABMemoryModuleTypes.IS_ORDERED_TO_SIT.get()),
                 new UpdateUnitMemory<>(SharedWolfAi::hasShelter, ABABMemoryModuleTypes.IS_SHELTERED.get()),
-                new UpdateUnitMemory<>(SharedWolfAi::isInDayTime, ABABMemoryModuleTypes.IS_LEVEL_DAY.get())
+                new UpdateUnitMemory<>(SharedWolfAi::isInNightTime, ABABMemoryModuleTypes.IS_LEVEL_NIGHT.get())
         ));
     }
 
@@ -267,7 +267,7 @@ public class DogBrain {
                                 ImmutableList.of(
                                         new FollowTemptation(SharedWolfAi::getSpeedModifierTempted),
                                         SharedWolfBrain.createBreedBehavior(ABABEntityTypes.DOG.get()),
-                                        new RunIf<>(SharedWolfAi::wantsToFindShelter, new MoveToNonSkySeeingSpot(SharedWolfAi.SPEED_MODIFIER_WALKING), true),
+                                        new RunIf<>(livingEntity -> SharedWolfAi.wantsToFindShelter(livingEntity, false), new MoveToNonSkySeeingSpot(SharedWolfAi.SPEED_MODIFIER_WALKING), true),
                                         new BabyFollowAdult<>(SharedWolfAi.ADULT_FOLLOW_RANGE, SharedWolfAi.SPEED_MODIFIER_FOLLOWING_ADULT)
                                 ),
                                 ABABMemoryModuleTypes.IS_ORDERED_TO_FOLLOW.get(),

@@ -167,8 +167,8 @@ public class SharedWolfAi {
         }
     }
 
-    public static boolean canSleep(TamableAnimal wolf) {
-        return wolf.level.isDay()
+    public static boolean canSleep(TamableAnimal wolf, boolean nocturnal) {
+        return nocturnal ? wolf.level.isDay() : wolf.level.isNight()
                 && hasShelter(wolf)
                 && !alertable(wolf)
                 && !wolf.isInPowderSnow;
@@ -306,12 +306,16 @@ public class SharedWolfAi {
         }
     }
 
-    public static boolean wantsToFindShelter(LivingEntity livingEntity){
-        return livingEntity.level.isThundering() || livingEntity.level.isDay();
+    public static boolean wantsToFindShelter(LivingEntity livingEntity, boolean nocturnal){
+        return livingEntity.level.isThundering() || nocturnal ? livingEntity.level.isDay() : livingEntity.level.isNight();
     }
 
     public static boolean isInDayTime(LivingEntity livingEntity){
         return livingEntity.level.isDay();
+    }
+
+    public static boolean isInNightTime(LivingEntity livingEntity){
+        return livingEntity.level.isNight();
     }
 
     public static boolean wantsToWakeUp(TamableAnimal wolf){

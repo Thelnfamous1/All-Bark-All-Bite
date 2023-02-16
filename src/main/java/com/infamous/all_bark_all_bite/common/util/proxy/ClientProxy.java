@@ -11,7 +11,7 @@ public class ClientProxy extends CommonProxy{
     private static final Minecraft MINECRAFT = Minecraft.getInstance();
     @Override
     public void openItemGui(Player player, ItemStack stack, InteractionHand hand) {
-        if(stack.getItem() instanceof AdjustableInstrumentItem adjustableInstrumentItem){
+        if(player.level.isClientSide && stack.getItem() instanceof AdjustableInstrumentItem adjustableInstrumentItem){
             MINECRAFT.setScreen(new InstrumentAdjustmentScreen(player, stack, hand, adjustableInstrumentItem.getInstruments()));
         }
     }

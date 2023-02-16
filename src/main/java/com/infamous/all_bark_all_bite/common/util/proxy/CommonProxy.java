@@ -6,6 +6,5 @@ import net.minecraft.world.item.ItemStack;
 
 public abstract class CommonProxy {
 
-    public void openItemGui(Player player, ItemStack stack, InteractionHand hand) {
-    }
+    public abstract void openItemGui(Player player, ItemStack stack, InteractionHand hand);
 }
