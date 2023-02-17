@@ -193,6 +193,7 @@ public class SharedWolfBrain {
             restConditions.add(Pair.of(timeMemory, MemoryStatus.VALUE_PRESENT));
             restConditions.add(Pair.of(ABABMemoryModuleTypes.IS_ORDERED_TO_FOLLOW.get(), MemoryStatus.VALUE_ABSENT));
             restConditions.add(Pair.of(ABABMemoryModuleTypes.IS_ORDERED_TO_HEEL.get(), MemoryStatus.VALUE_ABSENT));
+            restConditions.add(Pair.of(ABABMemoryModuleTypes.IS_ALERT.get(), MemoryStatus.VALUE_ABSENT));
             return restConditions;
         });
     }

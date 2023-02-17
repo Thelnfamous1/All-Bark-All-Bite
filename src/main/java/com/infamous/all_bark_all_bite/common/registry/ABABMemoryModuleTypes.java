@@ -131,4 +131,8 @@ public class ABABMemoryModuleTypes {
             "is_level_night",
             () -> new MemoryModuleType<>(Optional.of(Codec.unit(Unit.INSTANCE))));
 
+    public static RegistryObject<MemoryModuleType<Unit>> IS_ALERT = MEMORY_MODULE_TYPES.register(
+            "is_alert",
+            () -> new MemoryModuleType<>(Optional.of(Codec.unit(Unit.INSTANCE))));
+
 }

@@ -49,6 +49,7 @@ public class WolfAi {
             MemoryModuleType.HURT_BY_ENTITY,
             MemoryModuleType.INTERACTION_TARGET,
             MemoryModuleType.ITEM_PICKUP_COOLDOWN_TICKS,
+            ABABMemoryModuleTypes.IS_ALERT.get(),
             ABABMemoryModuleTypes.IS_LEVEL_DAY.get(),
             ABABMemoryModuleTypes.IS_ORDERED_TO_FOLLOW.get(),
             ABABMemoryModuleTypes.IS_ORDERED_TO_HEEL.get(),

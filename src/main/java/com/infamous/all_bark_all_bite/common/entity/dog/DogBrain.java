@@ -151,8 +151,13 @@ public class DogBrain {
                         SharedWolfAi.AVOID_DURATION),
                 new UpdateUnitMemory<>(TamableAnimal::isOrderedToSit, ABABMemoryModuleTypes.IS_ORDERED_TO_SIT.get()),
                 new UpdateUnitMemory<>(SharedWolfAi::hasShelter, ABABMemoryModuleTypes.IS_SHELTERED.get()),
-                new UpdateUnitMemory<>(SharedWolfAi::isInNightTime, ABABMemoryModuleTypes.IS_LEVEL_NIGHT.get())
+                new UpdateUnitMemory<>(SharedWolfAi::isInNightTime, ABABMemoryModuleTypes.IS_LEVEL_NIGHT.get()),
+                new UpdateUnitMemory<>(DogBrain::isAlert, ABABMemoryModuleTypes.IS_ALERT.get())
         ));
+    }
+
+    private static boolean isAlert(Dog dog) {
+        return SharedWolfAi.alertable(dog, ABABTags.DOG_HUNT_TARGETS, ABABTags.DOG_ALWAYS_HOSTILES);
     }
 
     private static boolean canFetchItemEntity(Dog dog, ItemEntity itemEntity){
@@ -298,7 +303,7 @@ public class DogBrain {
                         Pair.of(InteractWith.of(EntityType.PLAYER, SharedWolfAi.INTERACTION_RANGE, MemoryModuleType.INTERACTION_TARGET, SharedWolfAi.SPEED_MODIFIER_WALKING, SharedWolfAi.CLOSE_ENOUGH_TO_INTERACT), 2),
                         Pair.of(InteractWith.of(EntityType.VILLAGER, SharedWolfAi.INTERACTION_RANGE, MemoryModuleType.INTERACTION_TARGET, SharedWolfAi.SPEED_MODIFIER_WALKING, SharedWolfAi.CLOSE_ENOUGH_TO_INTERACT), 2),
                         Pair.of(new RunIf<>(Predicate.not(GenericAi::seesPlayerHoldingWantedItem), new SetWalkTargetFromLookTarget(SharedWolfAi.SPEED_MODIFIER_WALKING, SharedWolfAi.CLOSE_ENOUGH_TO_LOOK_TARGET)), 2),
-                        Pair.of(new RunIf<>(Predicate.not(SharedWolfAi::alertable), new PerchAndSearch<>(TamableAnimal::isInSittingPose, TamableAnimal::setInSittingPose), true), 2),
+                        Pair.of(new RunIf<>(Predicate.not(SharedWolfAi::isAlert), new PerchAndSearch<>(TamableAnimal::isInSittingPose, TamableAnimal::setInSittingPose), true), 2),
                         Pair.of(new DoNothing(30, 60), 1)));
     }
 

@@ -31,7 +31,7 @@ import java.util.List;
 import java.util.Optional;
 
 public class InstrumentAdjustmentScreen extends Screen {
-    private static final ResourceLocation BG_LOCATION = new ResourceLocation(AllBarkAllBite.MODID, "textures/gui/instrument_adjustment.png");
+    private static final ResourceLocation BG_LOCATION = new ResourceLocation(AllBarkAllBite.MODID, "textures/gui/instrument_adjustment_pure.png");
     private static final int SCROLLER_WIDTH = 12;
     private static final int SCROLLER_HEIGHT = 15;
     private static final int INSTRUMENTS_COLUMNS = 1; // 4 for stonecutter buttons

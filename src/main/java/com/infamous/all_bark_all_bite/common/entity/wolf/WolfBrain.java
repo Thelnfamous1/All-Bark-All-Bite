@@ -84,9 +84,14 @@ public class WolfBrain {
                 new UpdateUnitMemory<>(TamableAnimal::isOrderedToSit, ABABMemoryModuleTypes.IS_ORDERED_TO_SIT.get()),
                 new UpdateUnitMemory<>(SharedWolfAi::hasShelter, ABABMemoryModuleTypes.IS_SHELTERED.get()),
                 new UpdateUnitMemory<>(SharedWolfAi::isInDayTime, ABABMemoryModuleTypes.IS_LEVEL_DAY.get()),
+                new UpdateUnitMemory<>(WolfBrain::isAlert, ABABMemoryModuleTypes.IS_ALERT.get()),
                 new ValidateLeader(),
                 new ValidateFollowers()
         ));
+    }
+
+    private static boolean isAlert(Wolf wolf) {
+        return SharedWolfAi.alertable(wolf, ABABTags.WOLF_HUNT_TARGETS, ABABTags.WOLF_ALWAYS_HOSTILES);
     }
 
     private static ImmutableList<? extends Pair<Integer, ? extends Behavior<? super Wolf>>> getCountDownPackage(){
@@ -169,7 +174,7 @@ public class WolfBrain {
                         Pair.of(new RandomStroll(SharedWolfAi.SPEED_MODIFIER_WALKING), 3),
                         Pair.of(InteractWith.of(EntityType.WOLF, SharedWolfAi.INTERACTION_RANGE, MemoryModuleType.INTERACTION_TARGET, SharedWolfAi.SPEED_MODIFIER_WALKING, SharedWolfAi.CLOSE_ENOUGH_TO_INTERACT), 2),
                         Pair.of(new SetWalkTargetFromLookTarget(SharedWolfAi.SPEED_MODIFIER_WALKING, SharedWolfAi.CLOSE_ENOUGH_TO_LOOK_TARGET), 2),
-                        Pair.of(new RunIf<>(Predicate.not(SharedWolfAi::alertable), new PerchAndSearch<>(TamableAnimal::isInSittingPose, TamableAnimal::setInSittingPose), true), 2),
+                        Pair.of(new RunIf<>(Predicate.not(SharedWolfAi::isAlert), new PerchAndSearch<>(TamableAnimal::isInSittingPose, TamableAnimal::setInSittingPose), true), 2),
                         Pair.of(new DoNothing(30, 60), 1)));
     }
 }

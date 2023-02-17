@@ -15,11 +15,15 @@ import net.minecraft.util.TimeUtil;
 import net.minecraft.util.valueproviders.UniformInt;
 import net.minecraft.world.entity.*;
 import net.minecraft.world.entity.ai.Brain;
-import net.minecraft.world.entity.ai.behavior.*;
+import net.minecraft.world.entity.ai.behavior.BehaviorUtils;
+import net.minecraft.world.entity.ai.behavior.BlockPosTracker;
+import net.minecraft.world.entity.ai.behavior.GoToWantedItem;
+import net.minecraft.world.entity.ai.behavior.PositionTracker;
 import net.minecraft.world.entity.ai.memory.MemoryModuleType;
 import net.minecraft.world.entity.ai.sensing.Sensor;
 import net.minecraft.world.entity.animal.Animal;
 import net.minecraft.world.entity.item.ItemEntity;
+import net.minecraft.world.entity.monster.Monster;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.entity.schedule.Activity;
 import net.minecraft.world.item.ItemStack;
@@ -170,8 +174,12 @@ public class SharedWolfAi {
     public static boolean canSleep(TamableAnimal wolf, boolean nocturnal) {
         return nocturnal ? wolf.level.isDay() : wolf.level.isNight()
                 && hasShelter(wolf)
-                && !alertable(wolf)
+                && !isAlert(wolf)
                 && !wolf.isInPowderSnow;
+    }
+
+    public static boolean isAlert(LivingEntity wolf) {
+        return wolf.getBrain().hasMemoryValue(ABABMemoryModuleTypes.IS_ALERT.get());
     }
 
     public static void followHowl(TamableAnimal wolf, BlockPos blockPos) {
@@ -208,23 +216,25 @@ public class SharedWolfAi {
     }
 
     @SuppressWarnings("BooleanMethodIsAlwaysInverted")
-    public static boolean alertable(TamableAnimal wolf) {
+    public static boolean alertable(TamableAnimal wolf, TagKey<EntityType<?>> huntTargets, TagKey<EntityType<?>> alwaysHostiles) {
         List<LivingEntity> livingEntities = GenericAi.getNearestLivingEntities(wolf);
         for(LivingEntity livingEntity : livingEntities){
             if(livingEntity.closerThan(wolf, MAX_ALERTABLE_XZ, MAX_ALERTABLE_Y)
                     && AiUtil.isEntityTargetableIgnoringLineOfSight(wolf, livingEntity)
-                    && canBeAlertedBy(wolf, livingEntity)){
+                    && canBeAlertedBy(wolf, livingEntity, huntTargets, alwaysHostiles)){
                 return true;
             }
         }
         return false;
     }
 
-    public static boolean canBeAlertedBy(TamableAnimal wolf, LivingEntity target){
+    public static boolean canBeAlertedBy(TamableAnimal wolf, LivingEntity target, TagKey<EntityType<?>> huntTargets, TagKey<EntityType<?>> alwaysHostiles){
         if (AiUtil.isSameTypeAndFriendly(wolf, target)) {
             return false;
-        } else {
-            if (EntitySelector.NO_CREATIVE_OR_SPECTATOR.test(target)) {
+        } else if (!target.getType().is(huntTargets) && !target.getType().is(alwaysHostiles) && !(target instanceof Monster)) {
+            if (target instanceof TamableAnimal tamableAnimal) {
+                return !tamableAnimal.isTame();
+            } else if (EntitySelector.NO_CREATIVE_OR_SPECTATOR.test(target)) {
                 if (wolf.isOwnedBy(target)) {
                     return false;
                 } else {
@@ -233,6 +243,8 @@ public class SharedWolfAi {
             } else {
                 return false;
             }
+        } else {
+            return true;
         }
     }
 
