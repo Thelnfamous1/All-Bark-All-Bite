@@ -78,6 +78,7 @@ public class SharedWolfAi {
     public static final UniformInt HUNT_POUNCE_COOLDOWN = TimeUtil.rangeOfSeconds(5, 7);
     public static final int BABY_POUNCE_DISTANCE = 4;
     public static final int BABY_POUNCE_HEIGHT = 2;
+    public static final float LONG_JUMPING_SCALE = 0.7F;
     private static final int HOWL_VOLUME = 4;
     public static final int EAT_DURATION = MiscUtil.seconds(3);
     public static final int EAT_COOLDOWN = MiscUtil.seconds(30);

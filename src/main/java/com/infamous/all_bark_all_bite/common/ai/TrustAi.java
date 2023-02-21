@@ -18,12 +18,12 @@ public class TrustAi {
         wolf.getBrain().setMemory(MemoryModuleType.LIKED_PLAYER, likedPlayer.getUUID());
     }
 
-    public static void incrementTrust(LivingEntity wolf){
-        setTrust(wolf, getTrust(wolf) + 1);
+    public static void incrementTrust(LivingEntity wolf, int toAdd){
+        setTrust(wolf, getTrust(wolf) + toAdd);
     }
 
-    public static void decrementTrust(LivingEntity wolf){
-        setTrust(wolf, getTrust(wolf) - 1);
+    public static void decrementTrust(LivingEntity wolf, int toSubtract){
+        setTrust(wolf, getTrust(wolf) - toSubtract);
     }
 
     public static void setTrust(LivingEntity wolf, int trust) {
@@ -56,5 +56,13 @@ public class TrustAi {
 
     public static void eraseMaxTrust(LivingEntity wolf) {
         wolf.getBrain().eraseMemory(ABABMemoryModuleTypes.MAX_TRUST.get());
+    }
+
+    public static boolean isFullyTrusting(Wolf wolf) {
+        return getTrust(wolf) >= getMaxTrust(wolf);
+    }
+
+    public static void setRandomMaxTrust(LivingEntity wolf, int maxTrust) {
+        setMaxTrust(wolf, wolf.getRandom().nextInt(maxTrust) + 1);
     }
 }

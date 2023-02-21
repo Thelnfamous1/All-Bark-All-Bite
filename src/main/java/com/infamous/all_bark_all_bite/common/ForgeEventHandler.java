@@ -3,10 +3,8 @@ package com.infamous.all_bark_all_bite.common;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Maps;
 import com.infamous.all_bark_all_bite.AllBarkAllBite;
-import com.infamous.all_bark_all_bite.common.ai.TrustAi;
-import com.infamous.all_bark_all_bite.common.util.AiUtil;
-import com.infamous.all_bark_all_bite.common.util.BrainUtil;
 import com.infamous.all_bark_all_bite.common.ai.CommandAi;
+import com.infamous.all_bark_all_bite.common.ai.TrustAi;
 import com.infamous.all_bark_all_bite.common.entity.DogSpawner;
 import com.infamous.all_bark_all_bite.common.entity.EntityAnimationController;
 import com.infamous.all_bark_all_bite.common.entity.SharedWolfAi;
@@ -14,12 +12,14 @@ import com.infamous.all_bark_all_bite.common.entity.dog.Dog;
 import com.infamous.all_bark_all_bite.common.entity.wolf.WolfAi;
 import com.infamous.all_bark_all_bite.common.entity.wolf.WolfBrain;
 import com.infamous.all_bark_all_bite.common.event.BrainEvent;
+import com.infamous.all_bark_all_bite.common.logic.PetManagement;
+import com.infamous.all_bark_all_bite.common.logic.entity_manager.MultiEntityManager;
 import com.infamous.all_bark_all_bite.common.registry.ABABEntityTypes;
 import com.infamous.all_bark_all_bite.common.registry.ABABInstruments;
 import com.infamous.all_bark_all_bite.common.registry.ABABItems;
+import com.infamous.all_bark_all_bite.common.util.AiUtil;
+import com.infamous.all_bark_all_bite.common.util.BrainUtil;
 import com.infamous.all_bark_all_bite.common.util.DebugUtil;
-import com.infamous.all_bark_all_bite.common.logic.entity_manager.MultiEntityManager;
-import com.infamous.all_bark_all_bite.common.logic.PetManagement;
 import net.minecraft.core.Holder;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.server.MinecraftServer;
@@ -46,7 +46,10 @@ import net.minecraft.world.phys.HitResult;
 import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.event.entity.EntityEvent;
 import net.minecraftforge.event.entity.EntityJoinLevelEvent;
-import net.minecraftforge.event.entity.living.*;
+import net.minecraftforge.event.entity.living.BabyEntitySpawnEvent;
+import net.minecraftforge.event.entity.living.LivingEntityUseItemEvent;
+import net.minecraftforge.event.entity.living.LivingEvent;
+import net.minecraftforge.event.entity.living.LivingFallEvent;
 import net.minecraftforge.event.entity.player.PlayerInteractEvent;
 import net.minecraftforge.event.entity.player.SleepingLocationCheckEvent;
 import net.minecraftforge.eventbus.api.Event;
@@ -186,14 +189,42 @@ public class ForgeEventHandler {
 
     @SubscribeEvent
     static void onEntitySize(EntityEvent.Size event){
-        if(event.getEntity().getType() == EntityType.WOLF){
+        Entity entity = event.getEntity();
+        if(entity.getType() == EntityType.WOLF){
             EntityDimensions newSize = event.getNewSize();
+            newSize = resetIfSleeping(entity, newSize);
+            newSize = unfixIfNeeded(newSize);
             EntityDimensions resize = newSize.scale(WolfAi.WOLF_SIZE_SCALE);
-            if(event.getEntity().hasPose(Pose.LONG_JUMPING)){
-                resize = resize.scale(WolfAi.WOLF_SIZE_LONG_JUMPING_SCALE);
-            }
+            resize = resizeForLongJumpIfNeeded(entity, resize);
             event.setNewSize(resize, true);
+        } else if(entity.getType() == ABABEntityTypes.DOG.get()){
+            EntityDimensions newSize = event.getNewSize();
+            newSize = resetIfSleeping(entity, newSize);
+            newSize = unfixIfNeeded(newSize);
+            newSize = resizeForLongJumpIfNeeded(entity, newSize);
+            event.setNewSize(newSize, true);
         }
+    }
+
+    private static EntityDimensions resetIfSleeping(Entity entity, EntityDimensions newSize) {
+        if(entity.hasPose(Pose.SLEEPING)){
+            newSize = entity.getDimensions(Pose.STANDING);
+        }
+        return newSize;
+    }
+
+    private static EntityDimensions unfixIfNeeded(EntityDimensions newSize) {
+        if(newSize.fixed){
+            newSize = new EntityDimensions(newSize.width, newSize.height, false);
+        }
+        return newSize;
+    }
+
+    private static EntityDimensions resizeForLongJumpIfNeeded(Entity entity, EntityDimensions resize) {
+        if(entity.hasPose(Pose.LONG_JUMPING)){
+            resize = resize.scale(SharedWolfAi.LONG_JUMPING_SCALE);
+        }
+        return resize;
     }
 
     @SubscribeEvent
@@ -241,7 +272,7 @@ public class ForgeEventHandler {
             Player player = event.getCausedByPlayer();
             if(player != null){
                 TrustAi.setTrust(pup, 0);
-                TrustAi.setMaxTrust(pup, pup.getRandom().nextInt(WolfAi.MAX_TRUST) + 1);
+                TrustAi.setRandomMaxTrust(pup, WolfAi.MAX_TRUST);
                 TrustAi.setLikedPlayer(pup, player);
             }
         }

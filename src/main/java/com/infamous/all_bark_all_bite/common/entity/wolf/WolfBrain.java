@@ -114,7 +114,7 @@ public class WolfBrain {
                 ABABMemoryModuleTypes.HOWL_LOCATION.get());
 
         if(TrustAi.likes(wolf, attacker)){
-            TrustAi.decrementTrust(wolf);
+            TrustAi.decrementTrust(wolf, WolfAi.TRUST_INCREMENT);
         }
 
         SharedWolfAi.reactToAttack(wolf, attacker);

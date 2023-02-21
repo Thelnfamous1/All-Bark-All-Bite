@@ -112,8 +112,8 @@ public class WolfAi {
             ABABSensorTypes.WOLF_VIBRATION_SENSOR.get()
     );
     public static final float WOLF_SIZE_SCALE = 1.25F;
-    public static final float WOLF_SIZE_LONG_JUMPING_SCALE = 0.7F;
-    public static final int MAX_TRUST = 20;
+    public static final int MAX_TRUST = 100;
+    public static final int TRUST_INCREMENT = 5;
 
     public static Optional<SoundEvent> getSoundForCurrentActivity(Wolf wolf) {
         return wolf.getBrain().getActiveNonCoreActivity().map((a) -> getSoundForActivity(wolf, a));
@@ -221,8 +221,8 @@ public class WolfAi {
     }
 
     private static void updateTrust(Wolf wolf, Player player) {
-        TrustAi.incrementTrust(wolf);
-        if(TrustAi.getTrust(wolf) >= TrustAi.getMaxTrust(wolf) && !ForgeEventFactory.onAnimalTame(wolf, player)){
+        TrustAi.incrementTrust(wolf, TRUST_INCREMENT);
+        if(TrustAi.isFullyTrusting(wolf) && !ForgeEventFactory.onAnimalTame(wolf, player)){
             wolf.level.broadcastEntityEvent(wolf, SharedWolfAi.SUCCESSFUL_TAME_ID);
             SharedWolfAi.tame(wolf, player);
             TrustAi.eraseTrust(wolf);
