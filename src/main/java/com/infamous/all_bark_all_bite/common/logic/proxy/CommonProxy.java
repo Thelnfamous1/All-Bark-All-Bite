@@ -1,4 +1,4 @@
-package com.infamous.all_bark_all_bite.common.util.proxy;
+package com.infamous.all_bark_all_bite.common.logic.proxy;
 
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.player.Player;

@@ -5,7 +5,7 @@ import com.infamous.all_bark_all_bite.common.ABABTags;
 import com.infamous.all_bark_all_bite.common.entity.dog.Dog;
 import com.infamous.all_bark_all_bite.common.entity.dog.DogAi;
 import com.infamous.all_bark_all_bite.common.registry.ABABMemoryModuleTypes;
-import com.infamous.all_bark_all_bite.common.ai.AiUtil;
+import com.infamous.all_bark_all_bite.common.util.AiUtil;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.Brain;

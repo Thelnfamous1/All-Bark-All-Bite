@@ -2,7 +2,7 @@ package com.infamous.all_bark_all_bite.common.entity.illager_hound;
 
 import com.google.common.collect.ImmutableList;
 import com.infamous.all_bark_all_bite.common.ABABTags;
-import com.infamous.all_bark_all_bite.common.ai.AiUtil;
+import com.infamous.all_bark_all_bite.common.util.AiUtil;
 import com.infamous.all_bark_all_bite.common.behavior.HurtByEntityTrigger;
 import com.infamous.all_bark_all_bite.common.behavior.LeapAtTarget;
 import com.infamous.all_bark_all_bite.common.behavior.Sprint;
@@ -10,7 +10,7 @@ import com.infamous.all_bark_all_bite.common.behavior.pet.FollowOwner;
 import com.infamous.all_bark_all_bite.common.behavior.pet.OwnerHurtByTarget;
 import com.infamous.all_bark_all_bite.common.behavior.pet.OwnerHurtTarget;
 import com.infamous.all_bark_all_bite.common.entity.SharedWolfAi;
-import com.infamous.all_bark_all_bite.common.ai.BrainUtil;
+import com.infamous.all_bark_all_bite.common.util.BrainUtil;
 import com.infamous.all_bark_all_bite.common.ai.GenericAi;
 import com.mojang.datafixers.util.Pair;
 import net.minecraft.util.valueproviders.UniformInt;

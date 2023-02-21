@@ -2,7 +2,7 @@ package com.infamous.all_bark_all_bite.common.behavior.dig;
 
 import com.google.common.collect.ImmutableMap;
 import com.infamous.all_bark_all_bite.common.registry.ABABMemoryModuleTypes;
-import com.infamous.all_bark_all_bite.common.ai.AiUtil;
+import com.infamous.all_bark_all_bite.common.util.AiUtil;
 import com.infamous.all_bark_all_bite.common.ai.DigAi;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.GlobalPos;

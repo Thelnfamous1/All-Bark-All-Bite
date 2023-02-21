@@ -2,7 +2,7 @@ package com.infamous.all_bark_all_bite.common.entity.illager_hound;
 
 import com.infamous.all_bark_all_bite.common.entity.EntityAnimationController;
 import com.infamous.all_bark_all_bite.common.entity.HasOwner;
-import com.infamous.all_bark_all_bite.common.ai.AiUtil;
+import com.infamous.all_bark_all_bite.common.util.AiUtil;
 import com.infamous.all_bark_all_bite.common.util.DebugUtil;
 import com.mojang.serialization.Dynamic;
 import net.minecraft.core.BlockPos;

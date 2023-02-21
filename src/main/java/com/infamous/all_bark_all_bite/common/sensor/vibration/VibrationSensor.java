@@ -2,9 +2,8 @@ package com.infamous.all_bark_all_bite.common.sensor.vibration;
 
 import com.google.common.collect.ImmutableSet;
 import com.infamous.all_bark_all_bite.AllBarkAllBite;
-import com.infamous.all_bark_all_bite.common.ai.BrainUtil;
-import net.minecraft.server.MinecraftServer;
-import net.minecraft.server.TickTask;
+import com.infamous.all_bark_all_bite.common.util.BrainUtil;
+import com.infamous.all_bark_all_bite.common.util.MiscUtil;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
@@ -95,14 +94,7 @@ public class VibrationSensor<E extends LivingEntity, VLC extends EntityVibration
         static void onEntityJoinLevel(EntityJoinLevelEvent event){
             if(!(event.getLevel() instanceof ServerLevel serverLevel)) return;
             Entity entity = event.getEntity();
-            tellServer(serverLevel, entity, DynamicGameEventListener::add);
-
-        }
-
-        private static void tellServer(ServerLevel serverLevel, Entity entity, BiConsumer<DynamicGameEventListener<?>, ServerLevel> callback) {
-            MinecraftServer server = serverLevel.getServer();
-            server.tell(new TickTask(server.getTickCount(),
-                    () -> updateVibrationListener(entity, serverLevel, callback)));
+            MiscUtil.tellServer(serverLevel, () -> updateVibrationListener(entity, serverLevel, DynamicGameEventListener::add));
         }
 
         private static void updateVibrationListener(Entity entity, ServerLevel serverLevel, BiConsumer<DynamicGameEventListener<?>, ServerLevel> callback) {

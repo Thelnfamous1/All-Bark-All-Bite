@@ -20,6 +20,10 @@ public class AngerAi {
         return BehaviorUtils.getLivingEntityFromUUIDMemory(livingEntity, MemoryModuleType.ANGRY_AT);
     }
 
+    public static int getAngryAtTime(LivingEntity livingEntity){
+        return (int) livingEntity.getBrain().getTimeUntilExpiry(MemoryModuleType.ANGRY_AT);
+    }
+
     public static void maybeRetaliate(LivingEntity victim, List<? extends LivingEntity> toAlert, LivingEntity attacker, UniformInt angerTime, double tooFar) {
         if (Sensor.isEntityAttackableIgnoringLineOfSight(victim, attacker)) {
             if (!BehaviorUtils.isOtherTargetMuchFurtherAwayThanCurrentAttackTarget(victim, attacker, tooFar)) {

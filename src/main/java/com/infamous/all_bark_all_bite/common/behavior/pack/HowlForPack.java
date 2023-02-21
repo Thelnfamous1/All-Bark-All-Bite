@@ -1,10 +1,10 @@
 package com.infamous.all_bark_all_bite.common.behavior.pack;
 
 import com.google.common.collect.ImmutableMap;
-import com.infamous.all_bark_all_bite.common.util.MultiEntityManager;
+import com.infamous.all_bark_all_bite.common.logic.entity_manager.MultiEntityManager;
 import com.infamous.all_bark_all_bite.common.entity.SharedWolfAi;
 import com.infamous.all_bark_all_bite.common.registry.ABABMemoryModuleTypes;
-import com.infamous.all_bark_all_bite.common.ai.AiUtil;
+import com.infamous.all_bark_all_bite.common.util.AiUtil;
 import com.infamous.all_bark_all_bite.common.ai.PackAi;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.util.valueproviders.UniformInt;

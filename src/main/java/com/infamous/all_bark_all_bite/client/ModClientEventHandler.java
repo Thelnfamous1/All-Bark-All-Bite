@@ -1,5 +1,6 @@
 package com.infamous.all_bark_all_bite.client;
 
+import baguchan.revampedwolf.client.ModModelLayers;
 import com.infamous.all_bark_all_bite.AllBarkAllBite;
 import com.infamous.all_bark_all_bite.client.renderer.ABABWolfRenderer;
 import com.infamous.all_bark_all_bite.client.renderer.DogRenderer;
@@ -11,6 +12,7 @@ import com.infamous.all_bark_all_bite.client.renderer.model.HoundmasterModel;
 import com.infamous.all_bark_all_bite.client.renderer.model.IllagerHoundModel;
 import com.infamous.all_bark_all_bite.common.network.ABABNetwork;
 import com.infamous.all_bark_all_bite.common.registry.ABABEntityTypes;
+import com.infamous.all_bark_all_bite.common.util.CompatUtil;
 import net.minecraft.world.entity.EntityType;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.client.event.EntityRenderersEvent;
@@ -27,12 +29,15 @@ public class ModClientEventHandler {
         event.enqueueWork(ABABNetwork::register);
     }
 
-    @SubscribeEvent
+    @SubscribeEvent(priority = EventPriority.LOWEST)
     static void onRegisterLayerDefinitions(EntityRenderersEvent.RegisterLayerDefinitions event){
         event.registerLayerDefinition(ABABModelLayers.DOG, DogModel::createBodyLayer);
         event.registerLayerDefinition(ABABModelLayers.WOLF, ABABWolfModel::createBodyLayer);
         event.registerLayerDefinition(ABABModelLayers.HOUNDMASTER, HoundmasterModel::createBodyLayer);
         event.registerLayerDefinition(ABABModelLayers.ILLAGER_HOUND, IllagerHoundModel::createBodyLayer);
+        if(CompatUtil.isRevampedWolfLoaded()){
+            event.registerLayerDefinition(ModModelLayers.WOLF_ARMOR, ABABWolfModel::createBodyLayer);
+        }
     }
 
     @SubscribeEvent(priority = EventPriority.HIGHEST)

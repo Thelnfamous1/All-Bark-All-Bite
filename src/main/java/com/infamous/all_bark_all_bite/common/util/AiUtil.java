@@ -1,5 +1,6 @@
-package com.infamous.all_bark_all_bite.common.ai;
+package com.infamous.all_bark_all_bite.common.util;
 
+import com.infamous.all_bark_all_bite.common.logic.MobInteraction;
 import com.infamous.all_bark_all_bite.mixin.LivingEntityAccessor;
 import com.infamous.all_bark_all_bite.mixin.MobAccessor;
 import com.mojang.datafixers.util.Pair;
@@ -39,7 +40,6 @@ import net.minecraft.world.phys.EntityHitResult;
 import net.minecraft.world.phys.HitResult;
 import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.event.ForgeEventFactory;
-import org.apache.commons.lang3.function.TriFunction;
 
 import java.util.Optional;
 import java.util.UUID;
@@ -107,10 +107,10 @@ public class AiUtil {
         return dot > 1.0D - offset / distance && target.hasLineOfSight(me);
     }
 
-    public static <T extends Mob> InteractionResult interactOn(Player player, T entity, InteractionHand hand, TriFunction<T, Player, InteractionHand, InteractionResult> mobInteract){
+    public static <T extends Mob> InteractionResult interactOn(Player player, T entity, InteractionHand hand, MobInteraction<T> mobInteraction){
         ItemStack itemInHand = player.getItemInHand(hand);
         ItemStack itemInHandCopy = itemInHand.copy();
-        InteractionResult interactionResult = interact(entity, player, hand, mobInteract); // replaces Entity#interact(Player, InteractionHand);
+        InteractionResult interactionResult = interact(entity, player, hand, mobInteraction); // replaces Entity#interact(Player, InteractionHand);
         if (interactionResult.consumesAction()) {
             if (player.getAbilities().instabuild && itemInHand == player.getItemInHand(hand) && itemInHand.getCount() < itemInHandCopy.getCount()) {
                 itemInHand.setCount(itemInHandCopy.getCount());
@@ -141,21 +141,21 @@ public class AiUtil {
         }
     }
 
-    private static <T extends Mob> InteractionResult interact(T mob, Player player, InteractionHand hand, TriFunction<T, Player, InteractionHand, InteractionResult> mobInteract) {
+    private static <T extends Mob> InteractionResult interact(T mob, Player player, InteractionHand hand, MobInteraction<T> mobInteraction) {
         if (!mob.isAlive()) {
             return InteractionResult.PASS;
         } else if (mob.getLeashHolder() == player) {
             mob.dropLeash(true, !player.getAbilities().instabuild);
             return InteractionResult.sidedSuccess(mob.level.isClientSide);
         } else {
-            InteractionResult importantInteractionResult = ((MobAccessor)mob).callCheckAndHandleImportantInteractions(player, hand);
-            if (importantInteractionResult != null && importantInteractionResult.consumesAction()) {
-                return importantInteractionResult;
+            InteractionResult interactionResult = ((MobAccessor)mob).callCheckAndHandleImportantInteractions(player, hand);
+            if (interactionResult != null && interactionResult.consumesAction()) {
+                return interactionResult;
             } else {
-                importantInteractionResult = mobInteract.apply(mob, player, hand);
-                if (importantInteractionResult.consumesAction()) {
+                interactionResult = mobInteraction.apply(mob, player, hand);
+                if (interactionResult.consumesAction()) {
                     mob.gameEvent(GameEvent.ENTITY_INTERACT);
-                    return importantInteractionResult;
+                    return interactionResult;
                 } else {
                     return InteractionResult.PASS;
                 }

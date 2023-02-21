@@ -5,7 +5,6 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.GlobalPos;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.PathfinderMob;
-import net.minecraft.world.entity.ai.util.LandRandomPos;
 import net.minecraft.world.phys.Vec3;
 
 import java.util.Optional;
@@ -26,8 +25,7 @@ public class DigAi {
     }
 
     public static Optional<BlockPos> generateDigLocation(PathfinderMob pathfinderMob, int maxXZ, int maxY, Predicate<BlockPos> digPosPredicate){
-        Vec3 randomPos = LandRandomPos.getPos(pathfinderMob, maxXZ, maxY);
-        if(randomPos == null) return Optional.empty();
+        Vec3 randomPos = GenericAi.getRandomNearbyPos(pathfinderMob, maxXZ, maxY);
 
         BlockPos blockPos = new BlockPos(randomPos);
         return Optional.of(blockPos).filter(digPosPredicate);

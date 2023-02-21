@@ -64,3 +64,9 @@ A mod that overhauls the canine aspects of Minecraft.
     versionRange="[1.19.2,1.20)"
     ordering="NONE"
     side="BOTH"
+[[dependencies.all_bark_all_bite]]
+    modId="revampedwolf"
+    mandatory=false
+    versionRange="[1.19.2,1.20)"
+    ordering="NONE"
+    side="BOTH"

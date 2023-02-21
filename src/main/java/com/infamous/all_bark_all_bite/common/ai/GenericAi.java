@@ -2,6 +2,7 @@ package com.infamous.all_bark_all_bite.common.ai;
 
 import com.google.common.collect.ImmutableList;
 import com.infamous.all_bark_all_bite.common.registry.ABABMemoryModuleTypes;
+import com.infamous.all_bark_all_bite.common.util.AiUtil;
 import com.infamous.all_bark_all_bite.common.util.ReflectionUtil;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.Mob;
@@ -137,5 +138,9 @@ public class GenericAi {
         Optional<LivingEntity> optional = p_34640_.getBrain().getMemory(MemoryModuleType.ATTACK_TARGET);
         LivingEntity livingentity = BehaviorUtils.getNearestTarget(p_34640_, optional, target);
         StartAttacking.setAttackTarget(p_34640_, livingentity);
+    }
+
+    public static Optional<Player> getTemptingPlayer(PathfinderMob mob) {
+        return mob.getBrain().getMemory(MemoryModuleType.TEMPTING_PLAYER);
     }
 }

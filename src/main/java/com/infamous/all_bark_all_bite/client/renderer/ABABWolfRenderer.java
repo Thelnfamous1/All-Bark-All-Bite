@@ -1,10 +1,13 @@
 package com.infamous.all_bark_all_bite.client.renderer;
 
+import baguchan.revampedwolf.client.ModModelLayers;
 import com.infamous.all_bark_all_bite.client.ABABModelLayers;
 import com.infamous.all_bark_all_bite.client.renderer.model.ABABWolfModel;
+import com.infamous.all_bark_all_bite.client.renderer.model.layer.RWWolfArmorLayer;
 import com.infamous.all_bark_all_bite.client.renderer.model.layer.SharedWolfCollarLayer;
 import com.infamous.all_bark_all_bite.client.renderer.model.layer.SharedWolfHeldItemLayer;
 import com.infamous.all_bark_all_bite.common.entity.wolf.WolfAi;
+import com.infamous.all_bark_all_bite.common.util.CompatUtil;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.math.Vector3f;
 import net.minecraft.client.renderer.MultiBufferSource;
@@ -25,6 +28,9 @@ public class ABABWolfRenderer extends MobRenderer<Wolf, ABABWolfModel<Wolf>> {
       super(context, new ABABWolfModel<>(context.bakeLayer(ABABModelLayers.WOLF)), DEFAULT_SHADOW_RADIUS);
       this.addLayer(new SharedWolfCollarLayer<>(this));
       this.addLayer(new SharedWolfHeldItemLayer<>(this, context.getItemInHandRenderer()));
+      if(CompatUtil.isRevampedWolfLoaded()){
+         this.addLayer(new RWWolfArmorLayer<>(this, new ABABWolfModel<>(context.getModelSet().bakeLayer(ModModelLayers.WOLF_ARMOR))));
+      }
    }
 
    @Override

@@ -10,6 +10,8 @@ import com.infamous.all_bark_all_bite.common.behavior.pet.OwnerHurtTarget;
 import com.infamous.all_bark_all_bite.common.behavior.pet.SitWhenOrderedTo;
 import com.infamous.all_bark_all_bite.common.behavior.sleep.SleepOnGround;
 import com.infamous.all_bark_all_bite.common.registry.ABABMemoryModuleTypes;
+import com.infamous.all_bark_all_bite.common.util.AiUtil;
+import com.infamous.all_bark_all_bite.common.util.BrainUtil;
 import com.mojang.datafixers.util.Pair;
 import net.minecraft.Util;
 import net.minecraft.util.Unit;
@@ -194,6 +196,8 @@ public class SharedWolfBrain {
             restConditions.add(Pair.of(ABABMemoryModuleTypes.IS_ORDERED_TO_FOLLOW.get(), MemoryStatus.VALUE_ABSENT));
             restConditions.add(Pair.of(ABABMemoryModuleTypes.IS_ORDERED_TO_HEEL.get(), MemoryStatus.VALUE_ABSENT));
             restConditions.add(Pair.of(ABABMemoryModuleTypes.IS_ALERT.get(), MemoryStatus.VALUE_ABSENT));
+            restConditions.add(Pair.of(MemoryModuleType.WALK_TARGET, MemoryStatus.VALUE_ABSENT));
+            restConditions.add(Pair.of(MemoryModuleType.TEMPTING_PLAYER, MemoryStatus.VALUE_ABSENT));
             return restConditions;
         });
     }
@@ -210,5 +214,15 @@ public class SharedWolfBrain {
 
     public static void onAgeChanged(TamableAnimal wolf){
         HunterAi.clearPounceCooldown(wolf);
+    }
+
+    public static ImmutableList<? extends Pair<Integer, ? extends Behavior<? super TamableAnimal>>> getCountDownPackage(){
+        return BrainUtil.createPriorityPairs(0,
+                ImmutableList.of(
+                        new CountDownCooldownTicks(MemoryModuleType.ITEM_PICKUP_COOLDOWN_TICKS),
+                        new CountDownCooldownTicks(MemoryModuleType.LONG_JUMP_COOLDOWN_TICKS),
+                        new CountDownCooldownTicks(ABABMemoryModuleTypes.POUNCE_COOLDOWN_TICKS.get()),
+                        new CountDownCooldownTicks(MemoryModuleType.TEMPTATION_COOLDOWN_TICKS)
+                ));
     }
 }

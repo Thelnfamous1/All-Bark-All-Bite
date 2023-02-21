@@ -12,9 +12,12 @@ import com.infamous.all_bark_all_bite.common.behavior.item.StopItemActivityIfTir
 import com.infamous.all_bark_all_bite.common.behavior.sleep.WakeUpTrigger;
 import com.infamous.all_bark_all_bite.common.entity.SharedWolfAi;
 import com.infamous.all_bark_all_bite.common.entity.SharedWolfBrain;
+import com.infamous.all_bark_all_bite.common.logic.BrainMaker;
 import com.infamous.all_bark_all_bite.common.registry.ABABActivities;
 import com.infamous.all_bark_all_bite.common.registry.ABABEntityTypes;
 import com.infamous.all_bark_all_bite.common.registry.ABABMemoryModuleTypes;
+import com.infamous.all_bark_all_bite.common.util.AiUtil;
+import com.infamous.all_bark_all_bite.common.util.BrainUtil;
 import com.infamous.all_bark_all_bite.data.ABABBuiltInLootTables;
 import com.mojang.datafixers.util.Pair;
 import net.minecraft.Util;
@@ -26,7 +29,6 @@ import net.minecraft.world.entity.*;
 import net.minecraft.world.entity.ai.Brain;
 import net.minecraft.world.entity.ai.behavior.*;
 import net.minecraft.world.entity.ai.memory.MemoryModuleType;
-import net.minecraft.world.entity.ai.memory.MemoryStatus;
 import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.entity.schedule.Activity;
 import net.minecraft.world.item.ItemStack;
@@ -38,7 +40,6 @@ import net.minecraft.world.level.storage.loot.parameters.LootContextParams;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Optional;
-import java.util.Set;
 import java.util.function.Predicate;
 
 public class DogBrain {
@@ -62,14 +63,14 @@ public class DogBrain {
         brainMaker.initActivityWithMemoryGate(ABABActivities.FETCH.get(),
                 getFetchPackage(), ABABMemoryModuleTypes.FETCHING_ITEM.get());
         brainMaker.initActivityWithConditions(Activity.REST,
-                SharedWolfBrain.getRestPackage(createIdleLookBehaviors(), false), DogBrain.getRestConditions());
+                SharedWolfBrain.getRestPackage(createIdleLookBehaviors(), false), SharedWolfBrain.getRestConditions(ABABMemoryModuleTypes.IS_LEVEL_NIGHT.get()));
         brainMaker.initActivity(Activity.IDLE,
                 getIdlePackage());
 
         brainMaker.initCoreActivity(Activity.CORE,
                 getCorePackage());
         brainMaker.initCoreActivity(ABABActivities.COUNT_DOWN.get(),
-                getCountDownPackage());
+                SharedWolfBrain.getCountDownPackage());
         brainMaker.initCoreActivity(ABABActivities.TARGET.get(),
                 SharedWolfBrain.getTargetPackage(DogBrain::wasHurtBy, DogBrain::canStartHunting, DogBrain::canStartStalking));
         brainMaker.initCoreActivity(ABABActivities.UPDATE.get(),
@@ -104,12 +105,6 @@ public class DogBrain {
         }
     }
 
-    private static Set<Pair<MemoryModuleType<?>, MemoryStatus>> getRestConditions(){
-        Set<Pair<MemoryModuleType<?>, MemoryStatus>> restConditions = SharedWolfBrain.getRestConditions(ABABMemoryModuleTypes.IS_LEVEL_NIGHT.get());
-        restConditions.add(Pair.of(MemoryModuleType.TEMPTING_PLAYER, MemoryStatus.VALUE_ABSENT));
-        return restConditions;
-    }
-
     private static void wasHurtBy(Dog dog, LivingEntity attacker) {
         AiUtil.eraseMemories(dog,
                 MemoryModuleType.BREED_TARGET,
@@ -141,7 +136,7 @@ public class DogBrain {
                 new Swim(SharedWolfAi.JUMP_CHANCE_IN_WATER),
                 new RunIf<>(SharedWolfAi::shouldPanic, new AnimalPanic(SharedWolfAi.SPEED_MODIFIER_PANICKING), true),
                 new RunIf<>(TamableAnimal::isTame, new StartItemActivityWithItemIfSeen<>(DogBrain::canFetchItemEntity, ABABMemoryModuleTypes.FETCHING_ITEM.get(), ABABMemoryModuleTypes.FETCHING_DISABLED.get(), ABABMemoryModuleTypes.DISABLE_WALK_TO_FETCH_ITEM.get())),
-                new Eat(SharedWolfAi::setAteRecently, SharedWolfAi.EAT_DURATION),
+                new RunIf<>(DogBrain::isNotHoldingBuryOrFetchItem, new Eat(SharedWolfAi::setAteRecently, SharedWolfAi.EAT_DURATION), true),
                 new LookAtTargetSink(45, 90),
                 new MoveToTargetSink(),
                 new CopyMemoryWithExpiry<>(
@@ -156,6 +151,10 @@ public class DogBrain {
         ));
     }
 
+    private static boolean isNotHoldingBuryOrFetchItem(Dog dog){
+        return !dog.getMainHandItem().is(ABABTags.DOG_BURIES) && !dog.getMainHandItem().is(ABABTags.DOG_FETCHES);
+    }
+
     private static boolean isAlert(Dog dog) {
         return SharedWolfAi.alertable(dog, ABABTags.DOG_HUNT_TARGETS, ABABTags.DOG_ALWAYS_HOSTILES);
     }
@@ -164,16 +163,6 @@ public class DogBrain {
         return Util.mapNullable(itemEntity.getThrower(), uuid -> uuid.equals(dog.getOwnerUUID())) != null
                 && itemEntity.getItem().is(ABABTags.DOG_FETCHES)
                 && itemEntity.closerThan(dog, SharedWolfAi.MAX_FETCH_DISTANCE);
-    }
-
-    private static ImmutableList<? extends Pair<Integer, ? extends Behavior<? super Dog>>> getCountDownPackage(){
-        return BrainUtil.createPriorityPairs(0,
-                ImmutableList.of(
-                        new CountDownCooldownTicks(MemoryModuleType.ITEM_PICKUP_COOLDOWN_TICKS),
-                        new CountDownCooldownTicks(MemoryModuleType.LONG_JUMP_COOLDOWN_TICKS),
-                        new CountDownCooldownTicks(ABABMemoryModuleTypes.POUNCE_COOLDOWN_TICKS.get()),
-                        new CountDownCooldownTicks(MemoryModuleType.TEMPTATION_COOLDOWN_TICKS)
-                ));
     }
 
     private static ImmutableList<? extends Pair<Integer, ? extends Behavior<? super Dog>>> getDigPackage() {

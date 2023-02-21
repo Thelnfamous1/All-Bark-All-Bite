@@ -1,8 +1,9 @@
 package com.infamous.all_bark_all_bite.common.ai;
 
 import com.infamous.all_bark_all_bite.common.registry.ABABMemoryModuleTypes;
-import com.infamous.all_bark_all_bite.common.util.MultiEntityManager;
-import com.infamous.all_bark_all_bite.common.util.SingleEntityManager;
+import com.infamous.all_bark_all_bite.common.logic.entity_manager.MultiEntityManager;
+import com.infamous.all_bark_all_bite.common.logic.entity_manager.SingleEntityManager;
+import com.infamous.all_bark_all_bite.common.util.AiUtil;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.Mob;
 import net.minecraft.world.entity.ai.Brain;

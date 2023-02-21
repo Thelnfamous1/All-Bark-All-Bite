@@ -1,8 +1,8 @@
 package com.infamous.all_bark_all_bite.common.registry;
 
 import com.infamous.all_bark_all_bite.AllBarkAllBite;
-import com.infamous.all_bark_all_bite.common.util.SingleEntityManager;
-import com.infamous.all_bark_all_bite.common.util.MultiEntityManager;
+import com.infamous.all_bark_all_bite.common.logic.entity_manager.SingleEntityManager;
+import com.infamous.all_bark_all_bite.common.logic.entity_manager.MultiEntityManager;
 import com.infamous.all_bark_all_bite.common.entity.dog.Dog;
 import com.infamous.all_bark_all_bite.common.vibration.DogVibrationListenerConfig;
 import com.infamous.all_bark_all_bite.common.vibration.WolfVibrationListenerConfig;
@@ -134,5 +134,13 @@ public class ABABMemoryModuleTypes {
     public static RegistryObject<MemoryModuleType<Unit>> IS_ALERT = MEMORY_MODULE_TYPES.register(
             "is_alert",
             () -> new MemoryModuleType<>(Optional.of(Codec.unit(Unit.INSTANCE))));
+
+    public static RegistryObject<MemoryModuleType<Integer>> TRUST = MEMORY_MODULE_TYPES.register(
+            "trust",
+            () -> new MemoryModuleType<>(Optional.of(Codec.INT)));
+
+    public static RegistryObject<MemoryModuleType<Integer>> MAX_TRUST = MEMORY_MODULE_TYPES.register(
+            "max_trust",
+            () -> new MemoryModuleType<>(Optional.of(Codec.INT)));
 
 }

@@ -1,6 +1,7 @@
-package com.infamous.all_bark_all_bite.common.util;
+package com.infamous.all_bark_all_bite.common.logic.entity_manager;
 
 import com.google.common.collect.Streams;
+import com.infamous.all_bark_all_bite.common.util.MiscUtil;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import net.minecraft.server.level.ServerLevel;

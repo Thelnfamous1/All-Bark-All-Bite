@@ -1,4 +1,4 @@
-package com.infamous.all_bark_all_bite.common.util;
+package com.infamous.all_bark_all_bite.common.logic.entity_manager;
 
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.Entity;

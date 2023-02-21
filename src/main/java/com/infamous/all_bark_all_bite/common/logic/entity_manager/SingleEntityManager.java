@@ -1,5 +1,6 @@
-package com.infamous.all_bark_all_bite.common.util;
+package com.infamous.all_bark_all_bite.common.logic.entity_manager;
 
+import com.infamous.all_bark_all_bite.common.util.MiscUtil;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import net.minecraft.server.level.ServerLevel;
@@ -14,7 +15,7 @@ import java.util.UUID;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
 
-public class SingleEntityManager implements TickableEntityManager{
+public class SingleEntityManager implements TickableEntityManager {
     private static final int CONVERSION_DELAY = MiscUtil.seconds(2);
     private int conversionDelay = Mth.randomBetweenInclusive(RandomSource.create(), 0, CONVERSION_DELAY);
     @Nullable

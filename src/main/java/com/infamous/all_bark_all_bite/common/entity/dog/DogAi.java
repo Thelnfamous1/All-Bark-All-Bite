@@ -2,7 +2,7 @@ package com.infamous.all_bark_all_bite.common.entity.dog;
 
 import com.google.common.collect.ImmutableList;
 import com.infamous.all_bark_all_bite.common.ABABTags;
-import com.infamous.all_bark_all_bite.common.ai.AiUtil;
+import com.infamous.all_bark_all_bite.common.util.AiUtil;
 import com.infamous.all_bark_all_bite.common.ai.CommandAi;
 import com.infamous.all_bark_all_bite.common.ai.DigAi;
 import com.infamous.all_bark_all_bite.common.ai.GenericAi;

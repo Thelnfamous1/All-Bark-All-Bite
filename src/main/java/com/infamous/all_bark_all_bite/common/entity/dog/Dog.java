@@ -1,7 +1,7 @@
 package com.infamous.all_bark_all_bite.common.entity.dog;
 
 import com.infamous.all_bark_all_bite.common.ABABTags;
-import com.infamous.all_bark_all_bite.common.ai.AiUtil;
+import com.infamous.all_bark_all_bite.common.util.AiUtil;
 import com.infamous.all_bark_all_bite.common.ai.GenericAi;
 import com.infamous.all_bark_all_bite.common.entity.*;
 import com.infamous.all_bark_all_bite.common.registry.ABABDogVariants;

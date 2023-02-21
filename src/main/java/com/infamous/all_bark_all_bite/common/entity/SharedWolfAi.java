@@ -5,6 +5,7 @@ import com.infamous.all_bark_all_bite.common.behavior.MoveToNonSkySeeingSpot;
 import com.infamous.all_bark_all_bite.common.behavior.pet.FollowOwner;
 import com.infamous.all_bark_all_bite.common.registry.ABABGameEvents;
 import com.infamous.all_bark_all_bite.common.registry.ABABMemoryModuleTypes;
+import com.infamous.all_bark_all_bite.common.util.AiUtil;
 import com.infamous.all_bark_all_bite.common.util.MiscUtil;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.GlobalPos;

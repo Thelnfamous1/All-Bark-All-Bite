@@ -1,4 +1,4 @@
-package com.infamous.all_bark_all_bite.common.util.proxy;
+package com.infamous.all_bark_all_bite.common.logic.proxy;
 
 import com.infamous.all_bark_all_bite.client.screen.InstrumentAdjustmentScreen;
 import com.infamous.all_bark_all_bite.common.item.AdjustableInstrumentItem;

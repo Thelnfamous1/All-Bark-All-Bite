@@ -3,6 +3,8 @@ package com.infamous.all_bark_all_bite.common.util;
 import com.google.common.collect.Iterables;
 import com.infamous.all_bark_all_bite.AllBarkAllBite;
 import net.minecraft.core.particles.ParticleOptions;
+import net.minecraft.server.MinecraftServer;
+import net.minecraft.server.TickTask;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.entity.Entity;
@@ -85,4 +87,8 @@ public class MiscUtil {
         return (int) (seconds * 20);
     }
 
+    public static void tellServer(ServerLevel serverLevel, Runnable runnable) {
+        MinecraftServer server = serverLevel.getServer();
+        server.tell(new TickTask(server.getTickCount(), runnable));
+    }
 }

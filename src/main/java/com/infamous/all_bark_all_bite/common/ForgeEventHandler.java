@@ -3,8 +3,9 @@ package com.infamous.all_bark_all_bite.common;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Maps;
 import com.infamous.all_bark_all_bite.AllBarkAllBite;
-import com.infamous.all_bark_all_bite.common.ai.AiUtil;
-import com.infamous.all_bark_all_bite.common.ai.BrainUtil;
+import com.infamous.all_bark_all_bite.common.ai.TrustAi;
+import com.infamous.all_bark_all_bite.common.util.AiUtil;
+import com.infamous.all_bark_all_bite.common.util.BrainUtil;
 import com.infamous.all_bark_all_bite.common.ai.CommandAi;
 import com.infamous.all_bark_all_bite.common.entity.DogSpawner;
 import com.infamous.all_bark_all_bite.common.entity.EntityAnimationController;
@@ -17,8 +18,8 @@ import com.infamous.all_bark_all_bite.common.registry.ABABEntityTypes;
 import com.infamous.all_bark_all_bite.common.registry.ABABInstruments;
 import com.infamous.all_bark_all_bite.common.registry.ABABItems;
 import com.infamous.all_bark_all_bite.common.util.DebugUtil;
-import com.infamous.all_bark_all_bite.common.util.MultiEntityManager;
-import com.infamous.all_bark_all_bite.common.util.PetManagement;
+import com.infamous.all_bark_all_bite.common.logic.entity_manager.MultiEntityManager;
+import com.infamous.all_bark_all_bite.common.logic.PetManagement;
 import net.minecraft.core.Holder;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.server.MinecraftServer;
@@ -222,15 +223,6 @@ public class ForgeEventHandler {
         }
     }
 
-    @SubscribeEvent
-    static void onLivingChangeTarget(LivingChangeTargetEvent event){
-        if(event.getTargetType() == LivingChangeTargetEvent.LivingTargetType.BEHAVIOR_TARGET
-                && event.getEntity() instanceof NeutralMob neutralMob
-                && event.getEntity().getType() == EntityType.WOLF){
-            neutralMob.setTarget(event.getNewTarget());
-        }
-    }
-
     @SubscribeEvent(priority = EventPriority.LOWEST)
     static void onEntityInteract(PlayerInteractEvent.EntityInteract event){
         if(!event.isCanceled() && !event.getItemStack().is(ABABTags.HAS_WOLF_INTERACTION) && !event.getEntity().isSecondaryUseActive()){
@@ -245,10 +237,12 @@ public class ForgeEventHandler {
     @SubscribeEvent
     static void onBabySpawn(BabyEntitySpawnEvent event){
         AgeableMob child = event.getChild();
-        if(child instanceof Wolf wolf && child.getType() == EntityType.WOLF){
+        if(child instanceof Wolf pup && child.getType() == EntityType.WOLF){
             Player player = event.getCausedByPlayer();
             if(player != null){
-                SharedWolfAi.tame(wolf, player);
+                TrustAi.setTrust(pup, 0);
+                TrustAi.setMaxTrust(pup, pup.getRandom().nextInt(WolfAi.MAX_TRUST) + 1);
+                TrustAi.setLikedPlayer(pup, player);
             }
         }
     }

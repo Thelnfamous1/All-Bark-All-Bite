@@ -1,7 +1,7 @@
 package com.infamous.all_bark_all_bite.common.behavior;
 
 import com.google.common.collect.ImmutableMap;
-import com.infamous.all_bark_all_bite.common.ai.AiUtil;
+import com.infamous.all_bark_all_bite.common.util.AiUtil;
 import com.infamous.all_bark_all_bite.common.ai.GenericAi;
 import com.infamous.all_bark_all_bite.common.ai.LongJumpAi;
 import net.minecraft.server.level.ServerLevel;

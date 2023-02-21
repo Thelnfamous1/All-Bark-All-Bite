@@ -2,7 +2,7 @@ package com.infamous.all_bark_all_bite.common.sensor;
 
 import com.google.common.collect.ImmutableSet;
 import com.infamous.all_bark_all_bite.common.ABABTags;
-import com.infamous.all_bark_all_bite.common.ai.AiUtil;
+import com.infamous.all_bark_all_bite.common.util.AiUtil;
 import com.infamous.all_bark_all_bite.common.entity.wolf.WolfAi;
 import com.infamous.all_bark_all_bite.common.registry.ABABMemoryModuleTypes;
 import net.minecraft.server.level.ServerLevel;

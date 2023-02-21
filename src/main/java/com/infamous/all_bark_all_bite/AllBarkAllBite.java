@@ -1,9 +1,9 @@
 package com.infamous.all_bark_all_bite;
 
 import com.infamous.all_bark_all_bite.common.registry.*;
-import com.infamous.all_bark_all_bite.common.util.proxy.ClientProxy;
-import com.infamous.all_bark_all_bite.common.util.proxy.CommonProxy;
-import com.infamous.all_bark_all_bite.common.util.proxy.ServerProxy;
+import com.infamous.all_bark_all_bite.common.logic.proxy.ClientProxy;
+import com.infamous.all_bark_all_bite.common.logic.proxy.CommonProxy;
+import com.infamous.all_bark_all_bite.common.logic.proxy.ServerProxy;
 import com.mojang.logging.LogUtils;
 import net.minecraftforge.eventbus.api.IEventBus;
 import net.minecraftforge.fml.DistExecutor;

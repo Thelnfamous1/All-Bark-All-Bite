@@ -1,6 +1,6 @@
 package com.infamous.all_bark_all_bite.mixin;
 
-import com.infamous.all_bark_all_bite.common.util.PetManagement;
+import com.infamous.all_bark_all_bite.common.logic.PetManagement;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.TamableAnimal;
 import net.minecraft.world.entity.animal.Animal;
