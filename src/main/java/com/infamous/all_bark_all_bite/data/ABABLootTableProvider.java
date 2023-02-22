@@ -22,7 +22,8 @@ public class ABABLootTableProvider extends LootTableProvider {
     private final List<Pair<Supplier<Consumer<BiConsumer<ResourceLocation, LootTable.Builder>>>, LootContextParamSet>> subProviders =
             ImmutableList.of(
                     Pair.of(ABABGiftLoot::new, LootContextParamSets.GIFT),
-                    Pair.of(ABABEntityLoot::new, LootContextParamSets.ENTITY));
+                    Pair.of(ABABEntityLoot::new, LootContextParamSets.ENTITY),
+                    Pair.of(ABABChestLoot::new, LootContextParamSets.CHEST));
 
     public ABABLootTableProvider(DataGenerator generator) {
         super(generator);

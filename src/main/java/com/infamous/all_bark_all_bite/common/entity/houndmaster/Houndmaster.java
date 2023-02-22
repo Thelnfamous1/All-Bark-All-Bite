@@ -2,7 +2,10 @@ package com.infamous.all_bark_all_bite.common.entity.houndmaster;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Maps;
+import com.infamous.all_bark_all_bite.common.ai.GenericAi;
+import com.infamous.all_bark_all_bite.common.entity.illager_hound.IllagerHound;
 import com.infamous.all_bark_all_bite.common.registry.ABABEntityTypes;
+import com.infamous.all_bark_all_bite.common.registry.ABABInstruments;
 import com.infamous.all_bark_all_bite.common.util.DebugUtil;
 import com.infamous.all_bark_all_bite.common.util.MiscUtil;
 import net.minecraft.core.BlockPos;
@@ -49,6 +52,8 @@ import net.minecraft.world.level.ServerLevelAccessor;
 import net.minecraftforge.common.ForgeSpawnEggItem;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.EnumSet;
+import java.util.List;
 import java.util.Map;
 
 public class Houndmaster extends AbstractIllager implements RangedAttackMob {
@@ -64,11 +69,13 @@ public class Houndmaster extends AbstractIllager implements RangedAttackMob {
                     MemoryModuleType.NEAREST_VISIBLE_LIVING_ENTITIES
             );
     private static final String SUMMONED_HOUNDS_TAG = "summonedHounds";
+    private int whistleDelay;
 
     private boolean summonedHounds;
 
     public Houndmaster(EntityType<? extends Houndmaster> type, Level level) {
         super(type, level);
+        this.whistleDelay = 20;
     }
 
     @Override
@@ -76,7 +83,7 @@ public class Houndmaster extends AbstractIllager implements RangedAttackMob {
         super.registerGoals();
 
         this.goalSelector.addGoal(0, new FloatGoal(this));
-        this.goalSelector.addGoal(4, new Houndmaster.SummonHoundsGoal());
+        this.goalSelector.addGoal(0, new Houndmaster.SummonHoundsGoal());
         this.goalSelector.addGoal(5, new RangedBowAttackGoal<>(this, 0.5D, 20, 15.0F));
         this.goalSelector.addGoal(8, new RandomStrollGoal(this, 0.6D));
         this.goalSelector.addGoal(9, new LookAtPlayerGoal(this, Player.class, 3.0F, 1.0F));
@@ -111,6 +118,14 @@ public class Houndmaster extends AbstractIllager implements RangedAttackMob {
     @Override
     public Brain<Houndmaster> getBrain() {
         return (Brain<Houndmaster>) super.getBrain();
+    }
+
+    @Override
+    public void aiStep() {
+        super.aiStep();
+        if(this.whistleDelay > 0){
+            this.whistleDelay--;
+        }
     }
 
     @Override
@@ -248,33 +263,48 @@ public class Houndmaster extends AbstractIllager implements RangedAttackMob {
     }
 
     class SummonHoundsGoal extends Goal {
-
         private static final int HOUNDS_TO_SUMMON = 3;
+        private int houndsToSummon;
         private int whistleTicks;
+
+        SummonHoundsGoal(){
+            super();
+            this.setFlags(EnumSet.of(Flag.MOVE, Flag.LOOK));
+        }
 
         @Override
         public boolean canUse() {
-            return !Houndmaster.this.summonedHounds;
+            return !Houndmaster.this.summonedHounds && Houndmaster.this.whistleDelay <= 0;
         }
 
+        @Override
         public void start() {
-            this.whistleTicks = this.adjustedTickDelay(20);
+            this.whistleTicks = this.adjustedTickDelay(ABABInstruments.WHISTLE_DURATION);
+            this.houndsToSummon = HOUNDS_TO_SUMMON;
             Houndmaster.this.playSound(SoundEvents.NOTE_BLOCK_FLUTE, 1.0F, 1.0F);
             Houndmaster.this.setWhistling(true);
         }
 
+        @Override
         public void tick() {
             --this.whistleTicks;
             if (this.whistleTicks == 0) {
-                this.summonHounds();
+                List<LivingEntity> nearbyMobs = GenericAi.getNearestLivingEntities(Houndmaster.this);
+                for(LivingEntity nearbyMob : nearbyMobs){
+                    if(this.houndsToSummon <= 0) break;
+                    if(nearbyMob instanceof IllagerHound hound && hound.getOwnerUUID() == null){
+                        hound.setOwner(Houndmaster.this);
+                        this.houndsToSummon--;
+                    }
+                }
+                this.summonRemainingHounds();
                 Houndmaster.this.summonedHounds = true;
             }
-
         }
 
-        protected void summonHounds() {
+        private void summonRemainingHounds() {
             ServerLevel serverlevel = (ServerLevel) Houndmaster.this.level;
-            for(int i = 0; i < HOUNDS_TO_SUMMON; ++i) {
+            for(int i = 0; i < this.houndsToSummon; ++i) {
                 BlockPos blockPos = Houndmaster.this.blockPosition().offset(
                         -2 + Houndmaster.this.random.nextInt(5),
                         0,

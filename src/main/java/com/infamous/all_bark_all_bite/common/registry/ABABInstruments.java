@@ -12,7 +12,7 @@ public class ABABInstruments {
 
     public static final DeferredRegister<Instrument> INSTRUMENTS = DeferredRegister.create(Registry.INSTRUMENT_REGISTRY, AllBarkAllBite.MODID);
 
-    private static final int WHISTLE_DURATION = MiscUtil.seconds(1);
+    public static final int WHISTLE_DURATION = MiscUtil.seconds(1);
     private static final int WHISTLE_SOUND_RANGE = 16;
     public static final RegistryObject<Instrument> ATTACK_WHISTLE = registerWhistle("attack");
 

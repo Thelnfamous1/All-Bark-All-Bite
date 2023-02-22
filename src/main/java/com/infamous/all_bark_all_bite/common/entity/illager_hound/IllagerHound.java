@@ -26,6 +26,7 @@ import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.ai.memory.MemoryModuleType;
 import net.minecraft.world.entity.monster.Enemy;
 import net.minecraft.world.entity.monster.Monster;
+import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
@@ -231,6 +232,11 @@ public class IllagerHound extends Monster implements HasOwner, IEntityAdditional
         } else {
             return null;
         }
+    }
+
+    @Override
+    public boolean canBeLeashed(Player player) {
+        return !this.isLeashed();
     }
 
     @SuppressWarnings("ConstantConditions")
