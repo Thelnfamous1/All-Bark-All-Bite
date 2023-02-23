@@ -70,3 +70,15 @@ A mod that overhauls the canine aspects of Minecraft.
     versionRange="[1.19.2,1.20)"
     ordering="NONE"
     side="BOTH"
+[[dependencies.all_bark_all_bite]]
+    modId="domesticationinnovation"
+    mandatory=false
+    versionRange="[1.6.1,1.7)"
+    ordering="NONE"
+    side="BOTH"
+[[dependencies.all_bark_all_bite]]
+    modId="citadel"
+    mandatory=false
+    versionRange="[2.1.1,2.2)"
+    ordering="AFTER"
+    side="BOTH"

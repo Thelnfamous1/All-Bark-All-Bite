@@ -6,6 +6,7 @@ import com.infamous.all_bark_all_bite.common.behavior.pet.FollowOwner;
 import com.infamous.all_bark_all_bite.common.registry.ABABGameEvents;
 import com.infamous.all_bark_all_bite.common.registry.ABABMemoryModuleTypes;
 import com.infamous.all_bark_all_bite.common.util.AiUtil;
+import com.infamous.all_bark_all_bite.common.util.CompatUtil;
 import com.infamous.all_bark_all_bite.common.util.MiscUtil;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.GlobalPos;
@@ -376,17 +377,48 @@ public class SharedWolfAi {
         wolf.tame(player);
         wolf.setOrderedToSit(true);
         CommandAi.yieldAsPet(wolf);
-        CommandAi.setFollowing(wolf);
     }
 
-    public static void manualCommand(TamableAnimal wolf) {
-        wolf.setOrderedToSit(!wolf.isOrderedToSit());
+    public static void manualCommand(TamableAnimal wolf, Player player) {
+        boolean orderedToSit = wolf.isOrderedToSit();
+        boolean isFollowingOwner = SharedWolfBrain.isFollowingOwner(wolf);
+        if(orderedToSit && isFollowingOwner){
+            CommandAi.stopFollowing(wolf);
+            isFollowingOwner = false;
+        }
+        CommandAi.stopHeeling(wolf);
+        if(!orderedToSit && !isFollowingOwner){ // If wandering, set sitting
+            if(CompatUtil.isDILoaded()){
+                CompatUtil.setDICommand(wolf, player, CompatUtil.DI_STAY_COMMAND);
+            }
+            wolf.setOrderedToSit(true);
+            CommandAi.stopFollowing(wolf);
+        } else if(orderedToSit){ // If sitting, set following
+            if(CompatUtil.isDILoaded()){
+                CompatUtil.setDICommand(wolf, player, CompatUtil.DI_FOLLOW_COMMAND);
+            }
+            wolf.setOrderedToSit(false);
+            CommandAi.setFollowing(wolf);
+        } else { // If following/heeling, set wandering
+            if(CompatUtil.isDILoaded()){
+                CompatUtil.setDICommand(wolf, player, CompatUtil.DI_WANDER_COMMAND);
+            }
+            CommandAi.stopFollowing(wolf);
+        }
         clearStates(wolf, false);
-        wolf.setJumping(false);
         CommandAi.yieldAsPet(wolf);
         stopHoldingItemInMouth(wolf);
-        CommandAi.stopHeeling(wolf);
-        CommandAi.setFollowing(wolf);
     }
 
+    public static boolean wantsToAttack(TamableAnimal tamable, LivingEntity target){
+        if(!tamable.isTame()){
+            return true;
+        } else{
+            LivingEntity owner = tamable.getOwner();
+            if(owner != null){
+                return tamable.wantsToAttack(target, owner);
+            }
+        }
+        return true;
+    }
 }

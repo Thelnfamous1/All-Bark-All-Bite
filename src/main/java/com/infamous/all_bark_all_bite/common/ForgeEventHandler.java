@@ -1,6 +1,5 @@
 package com.infamous.all_bark_all_bite.common;
 
-import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Maps;
 import com.infamous.all_bark_all_bite.AllBarkAllBite;
 import com.infamous.all_bark_all_bite.common.ai.CommandAi;
@@ -17,27 +16,24 @@ import com.infamous.all_bark_all_bite.common.logic.entity_manager.MultiEntityMan
 import com.infamous.all_bark_all_bite.common.registry.ABABEntityTypes;
 import com.infamous.all_bark_all_bite.common.registry.ABABInstruments;
 import com.infamous.all_bark_all_bite.common.registry.ABABItems;
+import com.infamous.all_bark_all_bite.common.registry.ABABMemoryModuleTypes;
 import com.infamous.all_bark_all_bite.common.util.AiUtil;
-import com.infamous.all_bark_all_bite.common.util.BrainUtil;
 import com.infamous.all_bark_all_bite.common.util.DebugUtil;
+import com.infamous.all_bark_all_bite.common.util.ReflectionUtil;
 import net.minecraft.core.Holder;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.*;
 import net.minecraft.world.entity.ai.Brain;
-import net.minecraft.world.entity.ai.behavior.Behavior;
-import net.minecraft.world.entity.ai.behavior.InteractWith;
-import net.minecraft.world.entity.ai.behavior.RunOne;
-import net.minecraft.world.entity.ai.behavior.SetEntityLookTarget;
 import net.minecraft.world.entity.ai.goal.AvoidEntityGoal;
-import net.minecraft.world.entity.ai.memory.MemoryModuleType;
+import net.minecraft.world.entity.ai.goal.target.NearestAttackableTargetGoal;
+import net.minecraft.world.entity.animal.Fox;
 import net.minecraft.world.entity.animal.Rabbit;
 import net.minecraft.world.entity.animal.Wolf;
+import net.minecraft.world.entity.animal.horse.Llama;
 import net.minecraft.world.entity.monster.AbstractSkeleton;
-import net.minecraft.world.entity.npc.Villager;
 import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.entity.schedule.Activity;
 import net.minecraft.world.item.Instrument;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.CustomSpawner;
@@ -58,13 +54,16 @@ import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
 import org.apache.commons.compress.utils.Lists;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 import java.util.function.Consumer;
 
 @Mod.EventBusSubscriber(bus = Mod.EventBusSubscriber.Bus.FORGE, modid = AllBarkAllBite.MODID)
 public class ForgeEventHandler {
     private static final Map<ResourceKey<Level>, List<CustomSpawner>> CUSTOM_SPAWNERS = Maps.newLinkedHashMap();
-    //private static final String FOX_IS_DEFENDING = "m_28567_";
+    private static final String FOX_IS_DEFENDING = "m_28567_";
 
     static {
         ArrayList<CustomSpawner> overworldSpawners = Lists.newArrayList();
@@ -90,20 +89,11 @@ public class ForgeEventHandler {
         }
     }
 
-    @SubscribeEvent
-    static void onVillagerRefresh(BrainEvent.VillagerRefresh event){
-        addVillagerDogInteractionBehaviors(event.getNewBrain());
-    }
-
     @SubscribeEvent(priority = EventPriority.HIGHEST)
     static void onEntityJoinLevel(EntityJoinLevelEvent event){
         if(event.getLevel().isClientSide) return;
         Entity entity = event.getEntity();
         addMobDogInteractionGoals(entity);
-
-        if(entity instanceof Villager villager){
-            addVillagerDogInteractionBehaviors(villager.getBrain());
-        }
 
         if(entity instanceof Wolf wolf && entity.getType() == EntityType.WOLF){
             wolf.goalSelector.removeAllGoals();
@@ -115,13 +105,12 @@ public class ForgeEventHandler {
     }
 
     private static void addMobDogInteractionGoals(Entity entity) {
-        /*
-        if(entity instanceof Fox fox){
+        if(entity instanceof Fox fox && fox.getType().is(ABABTags.DOG_ALWAYS_HOSTILES)){
+            //noinspection ConstantConditions
             fox.goalSelector.addGoal(4, new AvoidEntityGoal<>(fox, Dog.class, 8.0F, 1.6D, 1.4D,
                     (le) -> !((Dog)le).isTame() && !(boolean) ReflectionUtil.callMethod(FOX_IS_DEFENDING, fox)));
         }
-         */
-        if(entity instanceof Rabbit rabbit){
+        if(entity instanceof Rabbit rabbit && rabbit.getType().is(ABABTags.DOG_HUNT_TARGETS)){
             rabbit.goalSelector.addGoal(4, new AvoidEntityGoal<>(rabbit, Dog.class, 10.0F, 2.2D, 2.2D){
                 @Override
                 public boolean canUse() {
@@ -129,11 +118,10 @@ public class ForgeEventHandler {
                 }
             });
         }
-        if(entity instanceof AbstractSkeleton skeleton){
+        if(entity instanceof AbstractSkeleton skeleton && skeleton.getType().is(ABABTags.DOG_ALWAYS_HOSTILES)){
             skeleton.goalSelector.addGoal(3, new AvoidEntityGoal<>(skeleton, Dog.class, 6.0F, 1.0D, 1.2D));
         }
-        /*
-        if(entity instanceof Llama llama){
+        if(entity instanceof Llama llama && llama.getType().is(ABABTags.DOG_DISLIKED)){
             llama.targetSelector.addGoal(2, new NearestAttackableTargetGoal<>(llama, Dog.class, 16, false, true,
                     (le) -> !((Dog)le).isTame()){
                 @Override
@@ -141,49 +129,6 @@ public class ForgeEventHandler {
                     return super.getFollowDistance() * 0.25D;
                 }
             });
-        }
-         */
-    }
-
-    /**
-     * See {@link net.minecraft.world.entity.ai.behavior.VillagerGoalPackages}
-     */
-    private static void addVillagerDogInteractionBehaviors(Brain<Villager> brain) {
-        Map<Integer, Map<Activity, Set<Behavior<? super Villager>>>> availableBehaviorsByPriority = BrainUtil.getAvailableBehaviorsByPriority(brain);
-        for(Integer priority : availableBehaviorsByPriority.keySet()){
-            if(priority != 2 && priority != 5) continue; // Villager RunOne behaviors that make them look at or interact with cats are only of priority 2 or 5
-
-            Map<Activity, Set<Behavior<? super Villager>>> availableBehaviors = availableBehaviorsByPriority.get(priority);
-
-            boolean addedPlayLook = false; // Look behavior is added before interact behavior for PLAY
-            boolean addedPlayInteract = false;
-            for(Behavior<?> behavior : availableBehaviors.getOrDefault(Activity.PLAY, ImmutableSet.of())){
-                if(addedPlayLook && addedPlayInteract) break;
-                if(behavior instanceof RunOne<?> runOne){
-                    if(!addedPlayLook){
-                        BrainUtil.getGateBehaviors(runOne).add(new SetEntityLookTarget(ABABEntityTypes.DOG.get(), 8.0F), 8);
-                        addedPlayLook = true;
-                        continue;
-                    }
-                    BrainUtil.getGateBehaviors(runOne).add(InteractWith.of(ABABEntityTypes.DOG.get(), 8, MemoryModuleType.INTERACTION_TARGET, 0.5F, 2), 1);
-                    addedPlayInteract = true;
-                }
-            }
-
-            boolean addedIdleInteract = false; // Interact behavior is added before look behavior for IDLE
-            boolean addedIdleLook = false;
-            for(Behavior<?> behavior : availableBehaviors.getOrDefault(Activity.IDLE, ImmutableSet.of())){
-                if(addedIdleInteract && addedIdleLook) break;
-                if(behavior instanceof RunOne<?> runOne){
-                    if(!addedIdleInteract){
-                        BrainUtil.getGateBehaviors(runOne).add(InteractWith.of(ABABEntityTypes.DOG.get(), 8, MemoryModuleType.INTERACTION_TARGET, 0.5F, 2), 1);
-                        addedIdleInteract = true;
-                        continue;
-                    }
-                    BrainUtil.getGateBehaviors(runOne).add(new SetEntityLookTarget(ABABEntityTypes.DOG.get(), 8.0F), 8);
-                    addedIdleLook = true;
-                }
-            }
         }
     }
 
@@ -235,7 +180,12 @@ public class ForgeEventHandler {
                 && livingEntity.getType() == EntityType.WOLF
                 && wolf.level instanceof ServerLevel level){
             WolfAi.updateAi(level, wolf);
-            DebugUtil.sendEntityBrain(wolf, level);
+            DebugUtil.sendEntityBrain(wolf, level,
+                    ABABMemoryModuleTypes.TRUST.get(),
+                    ABABMemoryModuleTypes.MAX_TRUST.get(),
+                    ABABMemoryModuleTypes.IS_ORDERED_TO_FOLLOW.get(),
+                    ABABMemoryModuleTypes.IS_ORDERED_TO_HEEL.get(),
+                    ABABMemoryModuleTypes.IS_ORDERED_TO_SIT.get());
         }
     }
 
@@ -294,34 +244,34 @@ public class ForgeEventHandler {
                             .ifPresent(target -> commandPet(petManager, dog -> CommandAi.commandAttack(dog, target, user)));
                 }
                 if(instrument == ABABInstruments.COME_WHISTLE.get()){
-                    commandPet(petManager, dog -> CommandAi.commandCome(dog, user, serverLevel));
+                    commandPet(petManager, pet -> CommandAi.commandCome(pet, user, serverLevel));
                 }
                 if(instrument == ABABInstruments.FOLLOW_WHISTLE.get()){
-                    commandPet(petManager, CommandAi::commandFollow);
+                    commandPet(petManager, pet -> CommandAi.commandFollow(pet, user));
                 }
                 if(instrument == ABABInstruments.FREE_WHISTLE.get()){
-                    commandPet(petManager, CommandAi::commandFree);
+                    commandPet(petManager, pet -> CommandAi.commandFree(pet, user));
                 }
                 if(instrument == ABABInstruments.GO_WHISTLE.get()){
                     HitResult hitResult = AiUtil.getHitResult(user, 16);
                     if(hitResult.getType() != HitResult.Type.MISS){
-                        commandPet(petManager, dog -> CommandAi.commandGo(dog, hitResult));
+                        commandPet(petManager, pet -> CommandAi.commandGo(pet, user, hitResult));
                     }
                 }
                 if(instrument == ABABInstruments.HEEL_WHISTLE.get()){
-                    commandPet(petManager, CommandAi::commandHeel);
+                    commandPet(petManager, pet -> CommandAi.commandHeel(pet, user));
                 }
                 if(instrument == ABABInstruments.SIT_WHISTLE.get()){
-                    commandPet(petManager, CommandAi::commandSit);
+                    commandPet(petManager, pet -> CommandAi.commandSit(pet, user));
                 }
             }
         }
     }
 
-    private static void commandPet(MultiEntityManager petManager, Consumer<TamableAnimal> command) {
+    private static void commandPet(MultiEntityManager petManager, Consumer<PathfinderMob> command) {
         petManager.stream().forEach(pet -> {
-            if(pet instanceof TamableAnimal dog){
-                command.accept(dog);
+            if(pet instanceof PathfinderMob mob){
+                command.accept(mob);
             }
         });
     }

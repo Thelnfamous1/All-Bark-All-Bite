@@ -1,7 +1,7 @@
 package com.infamous.all_bark_all_bite.common.behavior.pet;
 
 import com.infamous.all_bark_all_bite.common.behavior.TargetBehavior;
-import com.infamous.all_bark_all_bite.common.entity.HasOwner;
+import com.infamous.all_bark_all_bite.common.entity.OwnableMob;
 import com.infamous.all_bark_all_bite.common.util.AiUtil;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.LivingEntity;
@@ -11,7 +11,7 @@ import net.minecraft.world.entity.ai.targeting.TargetingConditions;
 
 import java.util.Optional;
 
-public class CopyOwnerTarget<T extends Mob & HasOwner> extends TargetBehavior<T> {
+public class CopyOwnerTarget<T extends Mob & OwnableMob> extends TargetBehavior<T> {
     private static final TargetingConditions COPY_OWNER_TARGETING = TargetingConditions.forNonCombat().ignoreLineOfSight().ignoreInvisibilityTesting();
 
     public CopyOwnerTarget() {

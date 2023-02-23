@@ -23,6 +23,8 @@ import java.util.Optional;
 
 public class GenericAi {
 
+    private static final String FOX_SET_SLEEPING = "m_28626_";
+
     @SuppressWarnings("unchecked")
     public static <E extends LivingEntity> List<E> getNearbyAdults(E ageableMob) {
         return (List<E>) ageableMob.getBrain().getMemory(ABABMemoryModuleTypes.NEAREST_ADULTS.get()).orElse(ImmutableList.of());
@@ -92,7 +94,7 @@ public class GenericAi {
 
     public static void wakeUp(LivingEntity mob) {
         if(mob instanceof Fox fox){
-            ReflectionUtil.callMethod("m_28626_", fox, false);
+            ReflectionUtil.callMethod(FOX_SET_SLEEPING, fox, false);
         }
         mob.stopSleeping();
         mob.getBrain().setMemory(MemoryModuleType.LAST_WOKEN, mob.level.getGameTime());
@@ -100,7 +102,7 @@ public class GenericAi {
 
     public static void goToSleep(LivingEntity mob) {
         if(mob instanceof Fox fox){
-            ReflectionUtil.callMethod("m_28626_", fox, true);
+            ReflectionUtil.callMethod(FOX_SET_SLEEPING, fox, true);
         }
         mob.startSleeping(mob.blockPosition());
         mob.getBrain().setMemory(MemoryModuleType.LAST_SLEPT, mob.level.getGameTime());

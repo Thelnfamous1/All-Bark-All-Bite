@@ -2,6 +2,7 @@ package com.infamous.all_bark_all_bite.common.sensor;
 
 import com.google.common.collect.ImmutableSet;
 import com.infamous.all_bark_all_bite.common.ABABTags;
+import com.infamous.all_bark_all_bite.common.entity.SharedWolfAi;
 import com.infamous.all_bark_all_bite.common.util.AiUtil;
 import com.infamous.all_bark_all_bite.common.entity.wolf.WolfAi;
 import com.infamous.all_bark_all_bite.common.registry.ABABMemoryModuleTypes;
@@ -56,12 +57,12 @@ public class WolfSpecificSensor extends Sensor<Wolf> {
 
     private static boolean isAttackable(Wolf wolf, LivingEntity livingEntity) {
         return livingEntity.getType().is(ABABTags.WOLF_ALWAYS_HOSTILES) && AiUtil.isClose(wolf, livingEntity, TARGET_DETECTION_DISTANCE)
-                && AiUtil.isAttackable(wolf, livingEntity, true);
+                && AiUtil.isAttackable(wolf, livingEntity, true) && SharedWolfAi.wantsToAttack(wolf, livingEntity);
     }
 
     private static boolean isHuntable(Wolf wolf, LivingEntity livingEntity) {
         return livingEntity.getType().is(ABABTags.WOLF_HUNT_TARGETS) && AiUtil.isClose(wolf, livingEntity, TARGET_DETECTION_DISTANCE)
-                && AiUtil.isAttackable(wolf, livingEntity, true);
+                && AiUtil.isAttackable(wolf, livingEntity, true) && SharedWolfAi.wantsToAttack(wolf, livingEntity);
     }
 
 }

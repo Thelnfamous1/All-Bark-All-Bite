@@ -4,104 +4,151 @@ import com.infamous.all_bark_all_bite.common.behavior.pet.FollowOwner;
 import com.infamous.all_bark_all_bite.common.entity.SharedWolfAi;
 import com.infamous.all_bark_all_bite.common.registry.ABABMemoryModuleTypes;
 import com.infamous.all_bark_all_bite.common.util.AiUtil;
+import com.infamous.all_bark_all_bite.common.util.CompatUtil;
+import com.infamous.all_bark_all_bite.common.util.ReflectionUtil;
+import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.util.Unit;
+import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.PathfinderMob;
 import net.minecraft.world.entity.TamableAnimal;
 import net.minecraft.world.entity.ai.behavior.StartAttacking;
 import net.minecraft.world.entity.ai.memory.MemoryModuleType;
+import net.minecraft.world.entity.ai.memory.MemoryStatus;
+import net.minecraft.world.entity.ai.memory.WalkTarget;
+import net.minecraft.world.entity.animal.FlyingAnimal;
+import net.minecraft.world.entity.animal.Fox;
 import net.minecraft.world.level.pathfinder.Path;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.EntityHitResult;
 import net.minecraft.world.phys.HitResult;
 
+import java.util.Optional;
+
 public class CommandAi {
 
+    private static final String FOX_CLEAR_STATES = "m_28569_";
+
     public static void yieldAsPet(PathfinderMob pathfinderMob) {
-        GenericAi.stopWalking(pathfinderMob);
+        pathfinderMob.getBrain().useDefaultActivity();
 
         AiUtil.setItemPickupCooldown(pathfinderMob, SharedWolfAi.ITEM_PICKUP_COOLDOWN);
+        AiUtil.eraseMemories(pathfinderMob, MemoryModuleType.ANGRY_AT, MemoryModuleType.UNIVERSAL_ANGER);
 
-        AiUtil.eraseMemories(pathfinderMob,
-                MemoryModuleType.ATTACK_TARGET,
-                MemoryModuleType.ANGRY_AT,
-                MemoryModuleType.UNIVERSAL_ANGER,
-                MemoryModuleType.AVOID_TARGET,
-                ABABMemoryModuleTypes.FETCHING_ITEM.get(),
-                ABABMemoryModuleTypes.DIG_LOCATION.get());
+        pathfinderMob.setJumping(false);
+        GenericAi.stopWalking(pathfinderMob);
+        pathfinderMob.setTarget(null);
     }
 
-    public static void commandAttack(TamableAnimal tamableAnimal, LivingEntity target, LivingEntity owner) {
-        tamableAnimal.setOrderedToSit(false);
-        SharedWolfAi.clearStates(tamableAnimal, true);
-        yieldAsPet(tamableAnimal);
-        if(tamableAnimal.canAttack(target) && tamableAnimal.wantsToAttack(target, owner)){
-            StartAttacking.setAttackTarget(tamableAnimal, target);
+    public static void commandAttack(PathfinderMob pet, LivingEntity target, LivingEntity owner) {
+        handleStates(pet, false, true);
+        yieldAsPet(pet);
+        if(pet.canAttack(target)){
+            StartAttacking.setAttackTarget(pet, target);
+            pet.setTarget(target);
         }
     }
 
-    public static void commandCome(TamableAnimal tamableAnimal, LivingEntity owner, ServerLevel serverLevel) {
-        tamableAnimal.setOrderedToSit(false);
-        SharedWolfAi.clearStates(tamableAnimal, true);
-        yieldAsPet(tamableAnimal);
-        Path path = tamableAnimal.getNavigation().createPath(owner, 0);
-        if(path != null && path.canReach()){
-            AiUtil.setWalkAndLookTargetMemories(tamableAnimal, owner, SharedWolfAi.SPEED_MODIFIER_WALKING, 0);
+    public static void commandCome(PathfinderMob pet, LivingEntity owner, ServerLevel serverLevel) {
+        handleStates(pet, false, true);
+        yieldAsPet(pet);
+        if(pet.closerThan(owner, FollowOwner.TELEPORT_DISTANCE)){
+            navigateToTarget(pet, owner, SharedWolfAi.SPEED_MODIFIER_WALKING);
         } else{
-            FollowOwner.teleportToEntity(owner, serverLevel, tamableAnimal, false);
+            FollowOwner.teleportToEntity(owner, serverLevel, pet, pet instanceof FlyingAnimal);
         }
     }
 
-    public static void commandFree(TamableAnimal tamableAnimal) {
-        tamableAnimal.setOrderedToSit(false);
-        SharedWolfAi.clearStates(tamableAnimal, true);
-        yieldAsPet(tamableAnimal);
-        stopFollowing(tamableAnimal);
-        stopHeeling(tamableAnimal);
+    public static void commandFree(PathfinderMob pet, LivingEntity user) {
+        if(CompatUtil.isDILoaded()){
+            CompatUtil.setDICommand(pet, user, CompatUtil.DI_WANDER_COMMAND);
+        }
+        handleStates(pet, false, true);
+        yieldAsPet(pet);
+        stopFollowing(pet);
+        stopHeeling(pet);
     }
 
-    public static void commandFollow(TamableAnimal tamableAnimal) {
-        tamableAnimal.setOrderedToSit(false);
-        SharedWolfAi.clearStates(tamableAnimal, true);
-        yieldAsPet(tamableAnimal);
-        stopHeeling(tamableAnimal);
-        setFollowing(tamableAnimal);
+    public static void commandFollow(PathfinderMob pet, LivingEntity user) {
+        if(CompatUtil.isDILoaded()){
+            CompatUtil.setDICommand(pet, user, CompatUtil.DI_FOLLOW_COMMAND);
+        }
+        handleStates(pet, false, true);
+        yieldAsPet(pet);
+        stopHeeling(pet);
+        setFollowing(pet);
     }
 
-    public static void commandGo(TamableAnimal tamableAnimal, HitResult hitResult) {
-        tamableAnimal.setOrderedToSit(false);
-        SharedWolfAi.clearStates(tamableAnimal, true);
-        yieldAsPet(tamableAnimal);
-        stopFollowing(tamableAnimal);
-        stopHeeling(tamableAnimal);
+    public static void commandGo(PathfinderMob pet, LivingEntity user, HitResult hitResult) {
+        handleStates(pet, false, true);
+        yieldAsPet(pet);
+        stopFollowing(pet);
+        stopHeeling(pet);
         if(hitResult instanceof BlockHitResult blockHitResult){
-            AiUtil.setWalkAndLookTargetMemories(tamableAnimal, blockHitResult.getBlockPos(), SharedWolfAi.SPEED_MODIFIER_WALKING, 0);
+            AiUtil.setWalkAndLookTargetMemories(pet, blockHitResult.getBlockPos(), SharedWolfAi.SPEED_MODIFIER_WALKING, 0);
         } else if(hitResult instanceof EntityHitResult entityHitResult){
-            AiUtil.setWalkAndLookTargetMemories(tamableAnimal, entityHitResult.getEntity(), SharedWolfAi.SPEED_MODIFIER_WALKING, 0);
+            navigateToTarget(pet, entityHitResult.getEntity(), SharedWolfAi.SPEED_MODIFIER_WALKING);
         }
     }
 
-    public static void commandHeel(TamableAnimal tamableAnimal) {
-        tamableAnimal.setOrderedToSit(false);
-        SharedWolfAi.clearStates(tamableAnimal, true);
-        yieldAsPet(tamableAnimal);
-        stopFollowing(tamableAnimal);
-        setHeeling(tamableAnimal);
+    public static void commandHeel(PathfinderMob pet, LivingEntity user) {
+        if(CompatUtil.isDILoaded()){
+            CompatUtil.setDICommand(pet, user, CompatUtil.DI_FOLLOW_COMMAND);
+        }
+        handleStates(pet, false, true);
+        yieldAsPet(pet);
+        stopFollowing(pet);
+        setHeeling(pet);
     }
 
-    public static void commandSit(TamableAnimal tamableAnimal) {
-        tamableAnimal.setOrderedToSit(true);
-        SharedWolfAi.clearStates(tamableAnimal, false);
-        tamableAnimal.setJumping(false);
-        yieldAsPet(tamableAnimal);
+    public static void commandSit(PathfinderMob pet, LivingEntity user) {
+        if(CompatUtil.isDILoaded()){
+            CompatUtil.setDICommand(pet, user, CompatUtil.DI_STAY_COMMAND);
+        }
+        handleStates(pet, true, false);
+        yieldAsPet(pet);
+    }
+
+    @SuppressWarnings("SameParameterValue")
+    private static void navigateToTarget(PathfinderMob mob, Object target, float speedModifier) {
+        if(mob.getBrain().checkMemory(MemoryModuleType.WALK_TARGET, MemoryStatus.REGISTERED)){
+            if(target instanceof Entity entity){
+                AiUtil.setWalkAndLookTargetMemories(mob, entity, speedModifier, 0);
+            } else if(target instanceof BlockPos blockPos){
+                AiUtil.setWalkAndLookTargetMemories(mob, blockPos, speedModifier, 0);
+            }
+        } else{
+            WalkTarget walkTarget = target instanceof Entity entity ?
+                    new WalkTarget(entity, speedModifier, 0) :
+                    target instanceof BlockPos blockPos ?
+                            new WalkTarget(blockPos, speedModifier, 0) : null;
+            if(walkTarget == null) return;
+            boolean reachedTarget = AiUtil.reachedTarget(mob, walkTarget);
+            Optional<Path> path = AiUtil.tryComputePath(mob, walkTarget);
+            if (!reachedTarget && path.isPresent()) {
+                mob.getNavigation().moveTo(path.get(), walkTarget.getSpeedModifier());
+                mob.getLookControl().setLookAt(walkTarget.getTarget().currentPosition());
+            }
+        }
+    }
+
+    private static void handleStates(PathfinderMob pet, boolean orderedToSit, boolean resetSit) {
+        if(pet instanceof TamableAnimal tamableAnimal){
+            tamableAnimal.setOrderedToSit(orderedToSit);
+            SharedWolfAi.clearStates(tamableAnimal, resetSit);
+        } else{
+            if(pet instanceof Fox fox){
+                ReflectionUtil.callMethod(FOX_CLEAR_STATES, fox);
+            }
+        }
     }
 
     public static void setFollowing(LivingEntity entity) {
         entity.getBrain().setMemory(ABABMemoryModuleTypes.IS_ORDERED_TO_FOLLOW.get(), Unit.INSTANCE);
     }
 
-    private static void stopFollowing(LivingEntity entity) {
+    public static void stopFollowing(LivingEntity entity) {
         entity.getBrain().eraseMemory(ABABMemoryModuleTypes.IS_ORDERED_TO_FOLLOW.get());
     }
 

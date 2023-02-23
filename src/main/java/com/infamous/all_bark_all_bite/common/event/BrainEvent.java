@@ -5,13 +5,11 @@ import com.mojang.serialization.Dynamic;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.NbtOps;
 import net.minecraft.nbt.Tag;
-import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.Brain;
 import net.minecraft.world.entity.ai.memory.MemoryModuleType;
 import net.minecraft.world.entity.ai.sensing.Sensor;
 import net.minecraft.world.entity.ai.sensing.SensorType;
-import net.minecraft.world.entity.npc.Villager;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.entity.living.LivingEvent;
 import net.minecraftforge.eventbus.api.Cancelable;
@@ -87,11 +85,6 @@ public class BrainEvent extends LivingEvent {
             this.brainTag = brainTag;
         }
 
-        @Nullable
-        public Tag getBrainTag() {
-            return this.brainTag;
-        }
-
         /**
          * Helper method to create a new {@link T}-typed {@link Brain} instance, using {@link MakeBrain#brainTag} if available.
          */
@@ -102,34 +95,4 @@ public class BrainEvent extends LivingEvent {
         }
     }
 
-    /**
-     * This event is fired AFTER a Villager's {@link net.minecraft.world.entity.ai.Brain} is refreshed.
-     * You should handle this event if you manipulated the Villager's original Brain during the {@link MakeBrain} event.
-     * The Villager's new Brain only retains the memory and sensor state of the original Brain.
-     * <p>
-     * This event is fired at the end of {@link Villager#refreshBrain(ServerLevel)}.
-     * This event is only fired on the server.
-     * <p>
-     * This event is not {@link net.minecraftforge.eventbus.api.Cancelable}.
-     * This event does not have a result. {@link net.minecraftforge.eventbus.api.Event.HasResult}
-     */
-    public static class VillagerRefresh extends BrainEvent {
-
-        public VillagerRefresh(Villager entity) {
-            super(entity);
-        }
-
-        @Override
-        public Villager getEntity() {
-            return (Villager) super.getEntity();
-        }
-
-        /**
-         * Helper method to create a new Villager-typed Brain instance.
-         */
-        @SuppressWarnings("unchecked")
-        public <T extends Villager> Brain<T> makeBrain(Collection<? extends MemoryModuleType<?>> memoryTypes, Collection<? extends SensorType<? extends Sensor<? super T>>> sensorTypes) {
-            return (Brain<T>) brainProvider(memoryTypes, sensorTypes).makeBrain(makeDynamic());
-        }
-    }
 }

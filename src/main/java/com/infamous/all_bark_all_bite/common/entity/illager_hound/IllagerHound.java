@@ -1,13 +1,11 @@
 package com.infamous.all_bark_all_bite.common.entity.illager_hound;
 
 import com.infamous.all_bark_all_bite.common.entity.EntityAnimationController;
-import com.infamous.all_bark_all_bite.common.entity.HasOwner;
-import com.infamous.all_bark_all_bite.common.util.AiUtil;
+import com.infamous.all_bark_all_bite.common.entity.OwnableMob;
 import com.infamous.all_bark_all_bite.common.util.DebugUtil;
 import com.mojang.serialization.Dynamic;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
-import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.protocol.Packet;
 import net.minecraft.network.protocol.game.DebugPackets;
 import net.minecraft.network.syncher.EntityDataAccessor;
@@ -32,15 +30,15 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.scores.Team;
 import net.minecraftforge.common.ForgeSpawnEggItem;
-import net.minecraftforge.entity.IEntityAdditionalSpawnData;
 import net.minecraftforge.network.NetworkHooks;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Optional;
 import java.util.UUID;
 
-public class IllagerHound extends Monster implements HasOwner, IEntityAdditionalSpawnData {
-    protected static final EntityDataAccessor<Optional<UUID>> DATA_OWNERUUID_ID = SynchedEntityData.defineId(IllagerHound.class, EntityDataSerializers.OPTIONAL_UUID);
+public class IllagerHound extends Monster implements OwnableMob {
+    private static final EntityDataAccessor<Optional<UUID>> DATA_OWNERUUID_ID = SynchedEntityData.defineId(IllagerHound.class, EntityDataSerializers.OPTIONAL_UUID);
+    private static final EntityDataAccessor<Integer> DATA_OWNERID_ID = SynchedEntityData.defineId(IllagerHound.class, EntityDataSerializers.INT);
 
     public final EntityAnimationController<IllagerHound> animationController;
     @Nullable
@@ -63,6 +61,7 @@ public class IllagerHound extends Monster implements HasOwner, IEntityAdditional
     protected void defineSynchedData() {
         super.defineSynchedData();
         this.entityData.define(DATA_OWNERUUID_ID, Optional.empty());
+        this.entityData.define(DATA_OWNERID_ID, 0);
     }
 
     @Override
@@ -171,7 +170,7 @@ public class IllagerHound extends Monster implements HasOwner, IEntityAdditional
         super.sendDebugPackets();
         DebugPackets.sendEntityBrain(this);
         if(this.level instanceof ServerLevel serverLevel){
-            DebugUtil.sendEntityBrain(this, serverLevel);
+            DebugUtil.sendEntityBrain(this, serverLevel, MemoryModuleType.DUMMY);
         }
     }
 
@@ -199,41 +198,6 @@ public class IllagerHound extends Monster implements HasOwner, IEntityAdditional
         this.playSound(SoundEvents.WOLF_STEP, 0.15F, 1.0F);
     }
 
-    protected void playAngrySound() {
-        this.playSound(SoundEvents.WOLF_GROWL, this.getSoundVolume(), this.getVoicePitch());
-    }
-
-    // HasOwner
-
-    @Nullable
-    public UUID getOwnerUUID() {
-        return this.entityData.get(DATA_OWNERUUID_ID).orElse(null);
-    }
-
-    @Override
-    public void setOwnerUUID(@Nullable UUID ownerUUID) {
-        this.entityData.set(DATA_OWNERUUID_ID, Optional.ofNullable(ownerUUID));
-    }
-
-    @Override
-    public void setOwner(LivingEntity owner) {
-        this.setOwnerUUID(owner.getUUID());
-        this.cachedOwner = owner;
-    }
-
-    @Nullable
-    @Override
-    public LivingEntity getOwner() {
-        if (this.cachedOwner != null && !this.cachedOwner.isRemoved()) {
-            return this.cachedOwner;
-        } else if (this.getOwnerUUID() != null && this.level instanceof ServerLevel serverLevel) {
-            this.cachedOwner = AiUtil.getLivingEntityFromUUID(serverLevel, this.getOwnerUUID()).orElse(null);
-            return this.cachedOwner;
-        } else {
-            return null;
-        }
-    }
-
     @Override
     public boolean canBeLeashed(Player player) {
         return !this.isLeashed();
@@ -246,17 +210,40 @@ public class IllagerHound extends Monster implements HasOwner, IEntityAdditional
         return ForgeSpawnEggItem.fromEntityType(this.getType()).getDefaultInstance();
     }
 
-    // IEntityAdditionalSpawnData
+    protected void playAngrySound() {
+        this.playSound(SoundEvents.WOLF_GROWL, this.getSoundVolume(), this.getVoicePitch());
+    }
 
-    @Override
-    public void writeSpawnData(FriendlyByteBuf buffer) {
-        LivingEntity owner = this.getOwner();
-        buffer.writeInt(owner != null ? owner.getId() : 0);
+    // OwnableMob
+
+    @Nullable
+    public UUID getOwnerUUID() {
+        return this.entityData.get(DATA_OWNERUUID_ID).orElse(null);
     }
 
     @Override
-    public void readSpawnData(FriendlyByteBuf additionalData) {
-        int ownerId = additionalData.readInt();
-        this.cachedOwner = AiUtil.getLivingEntityFromId(this.level, ownerId).orElse(null);
+    public void setOwnerUUID(@Nullable UUID ownerUUID) {
+        this.entityData.set(DATA_OWNERUUID_ID, Optional.ofNullable(ownerUUID));
+    }
+
+    @Override
+    public int getOwnerId() {
+        return this.entityData.get(DATA_OWNERID_ID);
+    }
+
+    @Override
+    public void setOwnerId(int ownerId){
+        this.entityData.set(DATA_OWNERID_ID, ownerId);
+    }
+
+    @Override
+    public void setCachedOwner(@Nullable LivingEntity cachedOwner) {
+        this.cachedOwner = cachedOwner;
+    }
+
+    @Override
+    @Nullable
+    public LivingEntity getCachedOwner() {
+        return this.cachedOwner;
     }
 }

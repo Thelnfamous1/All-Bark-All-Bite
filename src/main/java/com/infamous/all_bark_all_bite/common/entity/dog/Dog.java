@@ -1,12 +1,13 @@
 package com.infamous.all_bark_all_bite.common.entity.dog;
 
 import com.infamous.all_bark_all_bite.common.ABABTags;
-import com.infamous.all_bark_all_bite.common.util.AiUtil;
 import com.infamous.all_bark_all_bite.common.ai.GenericAi;
 import com.infamous.all_bark_all_bite.common.entity.*;
 import com.infamous.all_bark_all_bite.common.registry.ABABDogVariants;
 import com.infamous.all_bark_all_bite.common.registry.ABABEntityDataSerializers;
 import com.infamous.all_bark_all_bite.common.registry.ABABEntityTypes;
+import com.infamous.all_bark_all_bite.common.registry.ABABMemoryModuleTypes;
+import com.infamous.all_bark_all_bite.common.util.AiUtil;
 import com.infamous.all_bark_all_bite.common.util.DebugUtil;
 import com.infamous.all_bark_all_bite.common.util.MiscUtil;
 import com.mojang.serialization.Dynamic;
@@ -218,7 +219,7 @@ public class Dog extends TamableAnimal implements InterestedMob, ShakingMob, Var
                 InteractionResult animalInteractResult = super.mobInteract(player, hand);
                 boolean willNotBreed = !animalInteractResult.consumesAction() || this.isBaby();
                 if (willNotBreed && this.isOwnedBy(player)) {
-                    SharedWolfAi.manualCommand(this);
+                    SharedWolfAi.manualCommand(this, player);
                     return InteractionResult.CONSUME;
                 }
                 return animalInteractResult;
@@ -417,7 +418,10 @@ public class Dog extends TamableAnimal implements InterestedMob, ShakingMob, Var
         super.sendDebugPackets();
         DebugPackets.sendEntityBrain(this);
         if(this.level instanceof ServerLevel serverLevel){
-            DebugUtil.sendEntityBrain(this, serverLevel);
+            DebugUtil.sendEntityBrain(this, serverLevel,
+                    ABABMemoryModuleTypes.IS_ORDERED_TO_FOLLOW.get(),
+                    ABABMemoryModuleTypes.IS_ORDERED_TO_HEEL.get(),
+                    ABABMemoryModuleTypes.IS_ORDERED_TO_SIT.get());
         }
     }
 

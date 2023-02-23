@@ -14,18 +14,21 @@ import net.minecraft.world.entity.ai.behavior.Behavior;
 import net.minecraft.world.entity.ai.memory.MemoryStatus;
 
 import java.util.Optional;
+import java.util.function.Predicate;
 
 public class HowlForPack<E extends LivingEntity> extends Behavior<E> {
+    private final Predicate<E> wantsToHowl;
     private final UniformInt howlCooldown;
     private final int tooFar;
     private long lastCheckTimestamp;
 
-    public HowlForPack(UniformInt howlCooldown, int tooFar) {
+    public HowlForPack(Predicate<E> wantsToHowl, UniformInt howlCooldown, int tooFar) {
         super(ImmutableMap.of(
                 ABABMemoryModuleTypes.LEADER.get(), MemoryStatus.REGISTERED,
                 ABABMemoryModuleTypes.FOLLOWERS.get(), MemoryStatus.REGISTERED,
                 ABABMemoryModuleTypes.HOWLED_RECENTLY.get(), MemoryStatus.VALUE_ABSENT
         ));
+        this.wantsToHowl = wantsToHowl;
         this.howlCooldown = howlCooldown;
         this.tooFar = tooFar;
     }
@@ -33,7 +36,7 @@ public class HowlForPack<E extends LivingEntity> extends Behavior<E> {
     @SuppressWarnings("OptionalGetWithoutIsPresent")
     @Override
     protected boolean checkExtraStartConditions(ServerLevel level, E mob) {
-        if(mob.isSleeping()){
+        if(!this.wantsToHowl.test(mob)){
             return false;
         } else if(AiUtil.onCheckCooldown(level, this.lastCheckTimestamp, JoinOrCreatePackAndFollow.INTERVAL_TICKS)){
             return false;

@@ -59,6 +59,8 @@ import java.util.Map;
 public class Houndmaster extends AbstractIllager implements RangedAttackMob {
     private static final EntityDataAccessor<Boolean> DATA_WHISTLING = SynchedEntityData.defineId(Houndmaster.class, EntityDataSerializers.BOOLEAN);
 
+    public final HoundmasterAnimationController animationController;
+
     protected static final ImmutableList<? extends SensorType<? extends Sensor<? super Houndmaster>>> SENSOR_TYPES =
             ImmutableList.of(
                     SensorType.NEAREST_LIVING_ENTITIES
@@ -75,6 +77,7 @@ public class Houndmaster extends AbstractIllager implements RangedAttackMob {
 
     public Houndmaster(EntityType<? extends Houndmaster> type, Level level) {
         super(type, level);
+        this.animationController = new HoundmasterAnimationController(this, DATA_WHISTLING, DATA_POSE);
         this.whistleDelay = 20;
     }
 
@@ -110,6 +113,22 @@ public class Houndmaster extends AbstractIllager implements RangedAttackMob {
     }
 
     @Override
+    public void onSyncedDataUpdated(EntityDataAccessor<?> dataAccessor) {
+        super.onSyncedDataUpdated(dataAccessor);
+        if(this.animationController != null){
+            this.animationController.onSyncedDataUpdatedAnimations(dataAccessor);
+        }
+    }
+
+    @Override
+    public void tick() {
+        if (this.level.isClientSide()) {
+            this.animationController.tickAnimations();
+        }
+        super.tick();
+    }
+
+    @Override
     protected Brain.Provider<?> brainProvider() {
         return Brain.provider(MEMORY_TYPES, SENSOR_TYPES);
     }
@@ -141,7 +160,7 @@ public class Houndmaster extends AbstractIllager implements RangedAttackMob {
         super.sendDebugPackets();
         DebugPackets.sendEntityBrain(this);
         if(this.level instanceof ServerLevel serverLevel){
-            DebugUtil.sendEntityBrain(this, serverLevel);
+            DebugUtil.sendEntityBrain(this, serverLevel, MemoryModuleType.DUMMY);
         }
     }
 

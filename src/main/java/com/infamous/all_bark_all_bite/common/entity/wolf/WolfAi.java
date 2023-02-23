@@ -188,7 +188,7 @@ public class WolfAi {
                         }
                         boolean willNotBreed = !animalInteractionResult.consumesAction() || wolf.isBaby();
                         if (willNotBreed) {
-                            SharedWolfAi.manualCommand(wolf);
+                            SharedWolfAi.manualCommand(wolf, player);
                             return InteractionResult.CONSUME;
                         }
                         return animalInteractionResult;

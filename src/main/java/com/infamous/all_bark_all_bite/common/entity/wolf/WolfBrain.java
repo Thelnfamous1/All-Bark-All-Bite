@@ -153,7 +153,7 @@ public class WolfBrain {
                                         new RunIf<>(WolfBrain::canBeTempted, new FollowTemptation(SharedWolfAi::getSpeedModifierTempted), true),
                                         SharedWolfBrain.createBreedBehavior(EntityType.WOLF),
                                         new RunIf<>(livingEntity -> SharedWolfAi.wantsToFindShelter(livingEntity, true), new MoveToNonSkySeeingSpot(SharedWolfAi.SPEED_MODIFIER_WALKING), true),
-                                        new HowlForPack<>(SharedWolfAi.TIME_BETWEEN_HOWLS, SharedWolfAi.ADULT_FOLLOW_RANGE.getMaxValue()),
+                                        new HowlForPack<>(Predicate.not(TamableAnimal::isTame), SharedWolfAi.TIME_BETWEEN_HOWLS, SharedWolfAi.ADULT_FOLLOW_RANGE.getMaxValue()),
                                         new JoinOrCreatePackAndFollow<>(SharedWolfAi.ADULT_FOLLOW_RANGE, SharedWolfAi.SPEED_MODIFIER_FOLLOWING_ADULT),
                                         new BabyFollowAdult<>(SharedWolfAi.ADULT_FOLLOW_RANGE, SharedWolfAi.SPEED_MODIFIER_FOLLOWING_ADULT)
                                 ),

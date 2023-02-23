@@ -1,8 +1,8 @@
 package com.infamous.all_bark_all_bite.common.behavior.pet;
 
 import com.google.common.collect.ImmutableMap;
-import com.infamous.all_bark_all_bite.common.util.AiUtil;
 import com.infamous.all_bark_all_bite.common.ai.GenericAi;
+import com.infamous.all_bark_all_bite.common.util.AiUtil;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.util.Mth;
@@ -15,7 +15,6 @@ import net.minecraft.world.entity.ai.memory.MemoryStatus;
 import net.minecraft.world.level.block.LeavesBlock;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.pathfinder.BlockPathTypes;
-import net.minecraft.world.level.pathfinder.Path;
 import net.minecraft.world.level.pathfinder.WalkNodeEvaluator;
 import net.minecraft.world.phys.Vec3;
 
@@ -28,6 +27,7 @@ public class FollowOwner<E extends PathfinderMob> extends Behavior<E> {
     private static final int MIN_HORIZONTAL_DISTANCE_FROM_PLAYER_WHEN_TELEPORTING = 2;
     private static final int MAX_HORIZONTAL_DISTANCE_FROM_PLAYER_WHEN_TELEPORTING = 3;
     private static final int MAX_VERTICAL_DISTANCE_FROM_PLAYER_WHEN_TELEPORTING = 1;
+    public static final int TELEPORT_DISTANCE = 12;
     private final Predicate<E> dontFollowIf;
 
     private final Function<E, Optional<LivingEntity>> entityGetter;
@@ -122,9 +122,7 @@ public class FollowOwner<E extends PathfinderMob> extends Behavior<E> {
         if (--this.calculatePathCounter <= 0) {
             this.calculatePathCounter = 10;
             if (!mob.isLeashed() && !mob.isPassenger()) {
-                Path path = mob.getNavigation().createPath(owner, 0);
-                boolean canReach = path != null && path.canReach();
-                if (!canReach) {
+                if (!mob.closerThan(owner, TELEPORT_DISTANCE)) {
                     FollowOwner.teleportToEntity(owner, level, mob, this.canFly);
                 } else {
                     this.goToEntity(mob);

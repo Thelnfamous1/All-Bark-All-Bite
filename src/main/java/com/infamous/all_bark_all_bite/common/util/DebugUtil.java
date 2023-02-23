@@ -49,17 +49,17 @@ public class DebugUtil {
         }
     }
 
-    public static void sendEntityBrain(LivingEntity livingEntity, ServerLevel level) {
+    public static void sendEntityBrain(LivingEntity livingEntity, ServerLevel level, MemoryModuleType<?>... memoriesToCheck) {
         FriendlyByteBuf byteBuf = new FriendlyByteBuf(Unpooled.buffer());
-        writeBrain(livingEntity, byteBuf);
+        writeBrain(livingEntity, byteBuf, memoriesToCheck);
         sendCustomPayloadPacketToAllPlayers(level, byteBuf, ClientboundCustomPayloadPacket.DEBUG_BRAIN);
     }
 
-    private static void writeBrain(LivingEntity livingEntity, FriendlyByteBuf byteBuf) {
+    private static void writeBrain(LivingEntity livingEntity, FriendlyByteBuf byteBuf, MemoryModuleType<?>... memoriesToCheck) {
         Brain<?> brain = livingEntity.getBrain();
         long gameTime = livingEntity.level.getGameTime();
         writeBrainDumpArguments(livingEntity, byteBuf, brain, gameTime);
-        writeBrainDumpAdditional(livingEntity, byteBuf, brain, gameTime);
+        writeBrainDumpAdditional(livingEntity, byteBuf, brain, gameTime, memoriesToCheck);
     }
 
     private static void writeBrainDumpArguments(LivingEntity livingEntity, FriendlyByteBuf byteBuf, Brain<?> brain, long gameTime) {
@@ -125,10 +125,10 @@ public class DebugUtil {
         byteBuf.writeBoolean(false); // Path fails to get created from stream properly on packet reception
     }
 
-    private static void writeBrainDumpAdditional(LivingEntity livingEntity, FriendlyByteBuf byteBuf, Brain<?> brain, long gameTime) {
+    private static void writeBrainDumpAdditional(LivingEntity livingEntity, FriendlyByteBuf byteBuf, Brain<?> brain, long gameTime, MemoryModuleType<?>... memoriesToCheck) {
         writeActivities(byteBuf, brain);
         writeBehaviors(byteBuf, brain);
-        writeMemories(livingEntity, byteBuf, gameTime);
+        writeMemories(livingEntity, byteBuf, gameTime, memoriesToCheck);
         writePois(livingEntity, byteBuf, brain);
         writePotentialPois(livingEntity, byteBuf, brain);
         writeGossips(livingEntity, byteBuf);
@@ -145,8 +145,8 @@ public class DebugUtil {
         byteBuf.writeCollection(runningBehaviors, FriendlyByteBuf::writeUtf);
     }
 
-    private static void writeMemories(LivingEntity livingEntity, FriendlyByteBuf byteBuf, long gameTime) {
-        byteBuf.writeCollection(getMemoryDescriptions(livingEntity, gameTime), (fbb, s) -> {
+    private static void writeMemories(LivingEntity livingEntity, FriendlyByteBuf byteBuf, long gameTime, MemoryModuleType<?>... memoriesToCheck) {
+        byteBuf.writeCollection(getMemoryDescriptions(livingEntity, gameTime, memoriesToCheck), (fbb, s) -> {
             String truncatedString = StringUtil.truncateStringIfNecessary(s, 255, true);
             fbb.writeUtf(truncatedString);
         });
@@ -209,35 +209,46 @@ public class DebugUtil {
         }
     }
 
-    private static List<String> getMemoryDescriptions(LivingEntity livingEntity, long gameTime) {
+    private static List<String> getMemoryDescriptions(LivingEntity livingEntity, long gameTime, MemoryModuleType<?>... memoriesToCheck) {
         Map<MemoryModuleType<?>, Optional<? extends ExpirableValue<?>>> memories = livingEntity.getBrain().getMemories();
         List<String> memoryDescriptions = Lists.newArrayList();
 
-        for(Map.Entry<MemoryModuleType<?>, Optional<? extends ExpirableValue<?>>> entry : memories.entrySet()) {
-            MemoryModuleType<?> memoryModuleType = entry.getKey();
-            Optional<? extends ExpirableValue<?>> memoryValue = entry.getValue();
-            String memory;
-            if (memoryValue.isPresent()) {
-                ExpirableValue<?> expirableValue = memoryValue.get();
-                Object value = expirableValue.getValue();
-                if (memoryModuleType == MemoryModuleType.HEARD_BELL_TIME) {
-                    long i = gameTime - (Long)value;
-                    memory = i + " ticks ago";
-                } else if (expirableValue.canExpire()) {
-                    memory = getShortDescription((ServerLevel)livingEntity.level, value) + " (ttl: " + expirableValue.getTimeToLive() + ")";
-                } else {
-                    memory = getShortDescription((ServerLevel)livingEntity.level, value);
-                }
-            } else {
-                memory = "-";
+        if(memoriesToCheck.length > 0){
+            for(MemoryModuleType<?> memory : memoriesToCheck){
+                Optional<? extends ExpirableValue<?>> memoryValue = memories.getOrDefault(memory, Optional.empty());
+                addMemoryDescription(memoryDescriptions, livingEntity, gameTime, memory, memoryValue);
             }
-
-            //noinspection ConstantConditions
-            memoryDescriptions.add(ForgeRegistries.MEMORY_MODULE_TYPES.getKey(memoryModuleType).getPath() + ": " + memory);
+        } else{
+            for(Map.Entry<MemoryModuleType<?>, Optional<? extends ExpirableValue<?>>> entry : memories.entrySet()) {
+                MemoryModuleType<?> memory = entry.getKey();
+                Optional<? extends ExpirableValue<?>> memoryValue = entry.getValue();
+                addMemoryDescription(memoryDescriptions, livingEntity, gameTime, memory, memoryValue);
+            }
         }
 
         memoryDescriptions.sort(String::compareTo);
         return memoryDescriptions;
+    }
+
+    private static void addMemoryDescription(List<String> memoryDescriptions, LivingEntity livingEntity, long gameTime, MemoryModuleType<?> memoryModuleType, Optional<? extends ExpirableValue<?>> memoryValue) {
+        String memory;
+        if (memoryValue.isPresent()) {
+            ExpirableValue<?> expirableValue = memoryValue.get();
+            Object value = expirableValue.getValue();
+            if (value instanceof Long recordedTime) {
+                long duration = gameTime - recordedTime;
+                memory = duration + " ticks ago";
+            } else if (expirableValue.canExpire()) {
+                memory = getShortDescription((ServerLevel) livingEntity.level, value) + " (ttl: " + expirableValue.getTimeToLive() + ")";
+            } else {
+                memory = getShortDescription((ServerLevel) livingEntity.level, value);
+            }
+        } else {
+            memory = "-";
+        }
+
+        //noinspection ConstantConditions
+        memoryDescriptions.add(ForgeRegistries.MEMORY_MODULE_TYPES.getKey(memoryModuleType).getPath() + ": " + memory);
     }
 
     private static String getShortDescription(ServerLevel level, @Nullable Object value) {
