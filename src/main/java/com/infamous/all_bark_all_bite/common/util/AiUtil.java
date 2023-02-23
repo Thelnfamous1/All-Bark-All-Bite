@@ -22,7 +22,6 @@ import net.minecraft.world.entity.ai.memory.MemoryModuleType;
 import net.minecraft.world.entity.ai.memory.WalkTarget;
 import net.minecraft.world.entity.ai.sensing.Sensor;
 import net.minecraft.world.entity.ai.targeting.TargetingConditions;
-import net.minecraft.world.entity.ai.util.DefaultRandomPos;
 import net.minecraft.world.entity.animal.Animal;
 import net.minecraft.world.entity.animal.Turtle;
 import net.minecraft.world.entity.item.ItemEntity;
@@ -33,7 +32,6 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.ClipContext;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.gameevent.GameEvent;
-import net.minecraft.world.level.pathfinder.Path;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.EntityHitResult;
 import net.minecraft.world.phys.HitResult;
@@ -330,25 +328,4 @@ public class AiUtil {
         entity.level.addFreshEntity(drop);
     }
 
-    public static Optional<Path> tryComputePath(PathfinderMob mob, WalkTarget walkTarget) {
-        BlockPos targetBlockPos = walkTarget.getTarget().currentBlockPosition();
-        Path path = mob.getNavigation().createPath(targetBlockPos, 0);
-        if (!reachedTarget(mob, walkTarget)) {
-            if (path != null) {
-                return Optional.of(path);
-            }
-
-            Vec3 posTowards = DefaultRandomPos.getPosTowards(mob, 10, 7, Vec3.atBottomCenterOf(targetBlockPos), (float)Math.PI / 2F);
-            if (posTowards != null) {
-                path = mob.getNavigation().createPath(posTowards.x, posTowards.y, posTowards.z, 0);
-                return Optional.ofNullable(path);
-            }
-        }
-
-        return Optional.empty();
-    }
-
-    public static boolean reachedTarget(Mob mob, WalkTarget walkTarget) {
-        return walkTarget.getTarget().currentBlockPosition().distManhattan(mob.blockPosition()) <= walkTarget.getCloseEnoughDist();
-    }
 }

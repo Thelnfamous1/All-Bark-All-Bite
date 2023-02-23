@@ -1,7 +1,9 @@
 package com.infamous.all_bark_all_bite.common.ai;
 
 import com.infamous.all_bark_all_bite.common.behavior.pet.FollowOwner;
+import com.infamous.all_bark_all_bite.common.entity.LookTargetAccessor;
 import com.infamous.all_bark_all_bite.common.entity.SharedWolfAi;
+import com.infamous.all_bark_all_bite.common.entity.WalkTargetAccessor;
 import com.infamous.all_bark_all_bite.common.registry.ABABMemoryModuleTypes;
 import com.infamous.all_bark_all_bite.common.util.AiUtil;
 import com.infamous.all_bark_all_bite.common.util.CompatUtil;
@@ -13,18 +15,18 @@ import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.PathfinderMob;
 import net.minecraft.world.entity.TamableAnimal;
+import net.minecraft.world.entity.ai.behavior.BlockPosTracker;
+import net.minecraft.world.entity.ai.behavior.EntityTracker;
+import net.minecraft.world.entity.ai.behavior.PositionTracker;
 import net.minecraft.world.entity.ai.behavior.StartAttacking;
 import net.minecraft.world.entity.ai.memory.MemoryModuleType;
 import net.minecraft.world.entity.ai.memory.MemoryStatus;
 import net.minecraft.world.entity.ai.memory.WalkTarget;
 import net.minecraft.world.entity.animal.FlyingAnimal;
 import net.minecraft.world.entity.animal.Fox;
-import net.minecraft.world.level.pathfinder.Path;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.EntityHitResult;
 import net.minecraft.world.phys.HitResult;
-
-import java.util.Optional;
 
 public class CommandAi {
 
@@ -86,7 +88,7 @@ public class CommandAi {
         stopFollowing(pet);
         stopHeeling(pet);
         if(hitResult instanceof BlockHitResult blockHitResult){
-            AiUtil.setWalkAndLookTargetMemories(pet, blockHitResult.getBlockPos(), SharedWolfAi.SPEED_MODIFIER_WALKING, 0);
+            navigateToTarget(pet, blockHitResult.getBlockPos(), SharedWolfAi.SPEED_MODIFIER_WALKING);
         } else if(hitResult instanceof EntityHitResult entityHitResult){
             navigateToTarget(pet, entityHitResult.getEntity(), SharedWolfAi.SPEED_MODIFIER_WALKING);
         }
@@ -118,18 +120,23 @@ public class CommandAi {
             } else if(target instanceof BlockPos blockPos){
                 AiUtil.setWalkAndLookTargetMemories(mob, blockPos, speedModifier, 0);
             }
-        } else{
-            WalkTarget walkTarget = target instanceof Entity entity ?
-                    new WalkTarget(entity, speedModifier, 0) :
-                    target instanceof BlockPos blockPos ?
-                            new WalkTarget(blockPos, speedModifier, 0) : null;
-            if(walkTarget == null) return;
-            boolean reachedTarget = AiUtil.reachedTarget(mob, walkTarget);
-            Optional<Path> path = AiUtil.tryComputePath(mob, walkTarget);
-            if (!reachedTarget && path.isPresent()) {
-                mob.getNavigation().moveTo(path.get(), walkTarget.getSpeedModifier());
-                mob.getLookControl().setLookAt(walkTarget.getTarget().currentPosition());
+        } else if(target instanceof Entity || target instanceof BlockPos){
+            WalkTarget walkTarget;
+            if (target instanceof Entity entity) {
+                walkTarget = new WalkTarget(entity, speedModifier, 0);
+            } else {
+                BlockPos blockPos = (BlockPos) target;
+                walkTarget = new WalkTarget(blockPos, speedModifier, 0);
             }
+            PositionTracker lookTarget;
+            if (target instanceof Entity entity) {
+                lookTarget = new EntityTracker(entity, true);
+            } else {
+                BlockPos blockPos = (BlockPos) target;
+                lookTarget = new BlockPosTracker(blockPos);
+            }
+            WalkTargetAccessor.cast(mob).setWalkTarget(walkTarget);
+            LookTargetAccessor.cast(mob).setLookTarget(lookTarget);
         }
     }
 

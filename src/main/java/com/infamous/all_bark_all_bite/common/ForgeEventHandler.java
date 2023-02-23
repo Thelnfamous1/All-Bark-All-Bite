@@ -11,6 +11,8 @@ import com.infamous.all_bark_all_bite.common.entity.dog.Dog;
 import com.infamous.all_bark_all_bite.common.entity.wolf.WolfAi;
 import com.infamous.all_bark_all_bite.common.entity.wolf.WolfBrain;
 import com.infamous.all_bark_all_bite.common.event.BrainEvent;
+import com.infamous.all_bark_all_bite.common.goal.LookAtTargetSinkGoal;
+import com.infamous.all_bark_all_bite.common.goal.MoveToTargetSinkGoal;
 import com.infamous.all_bark_all_bite.common.logic.PetManagement;
 import com.infamous.all_bark_all_bite.common.logic.entity_manager.MultiEntityManager;
 import com.infamous.all_bark_all_bite.common.registry.ABABEntityTypes;
@@ -31,6 +33,7 @@ import net.minecraft.world.entity.ai.goal.target.NearestAttackableTargetGoal;
 import net.minecraft.world.entity.animal.Fox;
 import net.minecraft.world.entity.animal.Rabbit;
 import net.minecraft.world.entity.animal.Wolf;
+import net.minecraft.world.entity.animal.horse.AbstractHorse;
 import net.minecraft.world.entity.animal.horse.Llama;
 import net.minecraft.world.entity.monster.AbstractSkeleton;
 import net.minecraft.world.entity.player.Player;
@@ -93,6 +96,12 @@ public class ForgeEventHandler {
     static void onEntityJoinLevel(EntityJoinLevelEvent event){
         if(event.getLevel().isClientSide) return;
         Entity entity = event.getEntity();
+        if(entity instanceof PathfinderMob pathfinderMob
+                && entity.getType() != ABABEntityTypes.DOG.get()
+                && (entity instanceof OwnableEntity || entity instanceof AbstractHorse)){
+            pathfinderMob.goalSelector.addGoal(0, new MoveToTargetSinkGoal(pathfinderMob));
+            pathfinderMob.goalSelector.addGoal(0, new LookAtTargetSinkGoal(pathfinderMob));
+        }
         addMobDogInteractionGoals(entity);
 
         if(entity instanceof Wolf wolf && entity.getType() == EntityType.WOLF){

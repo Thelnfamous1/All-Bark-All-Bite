@@ -7,6 +7,7 @@ import net.minecraft.resources.ResourceKey;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.OwnableEntity;
+import net.minecraft.world.entity.animal.horse.AbstractHorse;
 import net.minecraft.world.level.Level;
 import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.event.entity.EntityJoinLevelEvent;
@@ -30,6 +31,10 @@ public class PetManagement {
             UUID petOwnerUUID = ownable.getOwnerUUID();
             if(petOwnerUUID == null) return false;
             return petOwnerUUID.equals(ownerUUID);
+        } else if(entity instanceof AbstractHorse horse){
+            UUID horseOwnerUUID = horse.getOwnerUUID();
+            if(horseOwnerUUID == null) return false;
+            return horseOwnerUUID.equals(ownerUUID);
         }
         return false;
     }

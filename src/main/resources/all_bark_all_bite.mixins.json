@@ -8,6 +8,7 @@
     "LivingEntityAccessor",
     "LivingEntityMixin",
     "MobAccessor",
+    "PathfinderMobMixin",
     "TamableAnimalMixin",
     "VillagerGoalPackagesMixin",
     "WolfAccessor",
