@@ -15,6 +15,7 @@ public class ABABModelLayers {
     public static final ModelLayerLocation HOUNDMASTER = register(ABABEntityTypes.HOUNDMASTER_NAME);
     public static final ModelLayerLocation ILLAGER_HOUND = register(ABABEntityTypes.ILLAGER_HOUND_NAME);
     public static final ModelLayerLocation WOLF = register("wolf");
+    public static final ModelLayerLocation RW_WOLF_ARMOR = register("wolf_armor");
 
     private static ModelLayerLocation register(String path) {
         return register("main", new ResourceLocation(AllBarkAllBite.MODID, path));

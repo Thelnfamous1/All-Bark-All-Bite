@@ -1,6 +1,5 @@
 package com.infamous.all_bark_all_bite.client.renderer;
 
-import baguchan.revampedwolf.client.ModModelLayers;
 import com.infamous.all_bark_all_bite.client.ABABModelLayers;
 import com.infamous.all_bark_all_bite.client.renderer.model.ABABWolfModel;
 import com.infamous.all_bark_all_bite.client.renderer.model.layer.RWWolfArmorLayer;
@@ -29,7 +28,7 @@ public class ABABWolfRenderer extends MobRenderer<Wolf, ABABWolfModel<Wolf>> {
       this.addLayer(new SharedWolfCollarLayer<>(this));
       this.addLayer(new SharedWolfHeldItemLayer<>(this, context.getItemInHandRenderer()));
       if(CompatUtil.isRevampedWolfLoaded()){
-         this.addLayer(new RWWolfArmorLayer<>(this, new ABABWolfModel<>(context.getModelSet().bakeLayer(ModModelLayers.WOLF_ARMOR))));
+         this.addLayer(new RWWolfArmorLayer<>(this, new ABABWolfModel<>(context.getModelSet().bakeLayer(ABABModelLayers.RW_WOLF_ARMOR))));
       }
    }
 
