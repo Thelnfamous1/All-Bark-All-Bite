@@ -34,5 +34,6 @@ public class AllBarkAllBite
         ABABItems.ITEMS.register(modEventBus);
         ABABMemoryModuleTypes.MEMORY_MODULE_TYPES.register(modEventBus);
         ABABSensorTypes.SENSOR_TYPES.register(modEventBus);
+        ABABSoundEvents.SOUND_EVENTS.register(modEventBus);
     }
 }

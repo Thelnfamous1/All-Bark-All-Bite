@@ -20,6 +20,7 @@ public class DataEventHandler {
 
         generator.addProvider(isClient, ABABLangProvider.create(generator));
         generator.addProvider(isClient, ABABItemModelProvider.create(generator, existingFileHelper));
+        generator.addProvider(isClient, ABABSoundDefinitionsProvider.create(generator, existingFileHelper));
 
         generator.addProvider(isServer, ABABEntityTypeTagProvider.create(generator, existingFileHelper));
 

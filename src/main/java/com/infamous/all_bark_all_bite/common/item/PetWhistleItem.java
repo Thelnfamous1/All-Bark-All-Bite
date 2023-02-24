@@ -44,8 +44,10 @@ public class PetWhistleItem extends AdjustableInstrumentItem{
     }
 
     public static boolean interactWithPet(ItemStack stack, Player player, Entity target, InteractionHand hand) {
+        /*
         CompoundTag existingBoundToTag = stack.getTagElement(BOUND_TO_TAG);
         if (existingBoundToTag != null) return false;
+         */
 
         if (isOwnedBy(target, player)) {
             CompoundTag boundToTag = stack.getOrCreateTagElement(BOUND_TO_TAG);

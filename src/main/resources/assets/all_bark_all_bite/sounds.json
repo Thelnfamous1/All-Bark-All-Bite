@@ -1,0 +1,64 @@
+{
+  "attack_whistle": {
+    "sounds": [
+      {
+        "name": "all_bark_all_bite:whistle",
+        "pitch": 0.8396,
+        "volume": 0.5
+      }
+    ]
+  },
+  "come_whistle": {
+    "sounds": [
+      {
+        "name": "all_bark_all_bite:whistle",
+        "pitch": 0.89,
+        "volume": 0.5
+      }
+    ]
+  },
+  "follow_whistle": {
+    "sounds": [
+      {
+        "name": "all_bark_all_bite:whistle",
+        "pitch": 0.9434,
+        "volume": 0.5
+      }
+    ]
+  },
+  "free_whistle": {
+    "sounds": [
+      {
+        "name": "all_bark_all_bite:whistle",
+        "volume": 0.5
+      }
+    ]
+  },
+  "go_whistle": {
+    "sounds": [
+      {
+        "name": "all_bark_all_bite:whistle",
+        "pitch": 1.06,
+        "volume": 0.5
+      }
+    ]
+  },
+  "heel_whistle": {
+    "sounds": [
+      {
+        "name": "all_bark_all_bite:whistle",
+        "pitch": 1.1236,
+        "volume": 0.5
+      }
+    ]
+  },
+  "sit_whistle": {
+    "sounds": [
+      {
+        "name": "all_bark_all_bite:whistle",
+        "pitch": 1.191,
+        "volume": 0.5
+      }
+    ]
+  }
+}

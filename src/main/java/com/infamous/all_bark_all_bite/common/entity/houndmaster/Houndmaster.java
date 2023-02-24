@@ -6,6 +6,7 @@ import com.infamous.all_bark_all_bite.common.ai.GenericAi;
 import com.infamous.all_bark_all_bite.common.entity.illager_hound.IllagerHound;
 import com.infamous.all_bark_all_bite.common.registry.ABABEntityTypes;
 import com.infamous.all_bark_all_bite.common.registry.ABABInstruments;
+import com.infamous.all_bark_all_bite.common.registry.ABABSoundEvents;
 import com.infamous.all_bark_all_bite.common.util.DebugUtil;
 import com.infamous.all_bark_all_bite.common.util.MiscUtil;
 import net.minecraft.core.BlockPos;
@@ -21,6 +22,7 @@ import net.minecraft.util.RandomSource;
 import net.minecraft.world.Difficulty;
 import net.minecraft.world.DifficultyInstance;
 import net.minecraft.world.InteractionHand;
+import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.*;
 import net.minecraft.world.entity.ai.Brain;
 import net.minecraft.world.entity.ai.attributes.AttributeSupplier;
@@ -233,6 +235,26 @@ public class Houndmaster extends AbstractIllager implements RangedAttackMob {
         }
     }
 
+    @Override
+    public SoundEvent getCelebrateSound() {
+        return SoundEvents.PILLAGER_CELEBRATE;
+    }
+
+    @Override
+    protected SoundEvent getAmbientSound() {
+        return SoundEvents.PILLAGER_AMBIENT;
+    }
+
+    @Override
+    protected SoundEvent getDeathSound() {
+        return SoundEvents.PILLAGER_DEATH;
+    }
+
+    @Override
+    protected SoundEvent getHurtSound(DamageSource p_32654_) {
+        return SoundEvents.PILLAGER_HURT;
+    }
+
     @SuppressWarnings("ConstantConditions")
     @Override
     public void applyRaidBuffs(int groupsSpawned, boolean b) {
@@ -251,11 +273,6 @@ public class Houndmaster extends AbstractIllager implements RangedAttackMob {
             EnchantmentHelper.setEnchantments(map, bowStack);
             this.setItemSlot(EquipmentSlot.MAINHAND, bowStack);
         }
-    }
-
-    @Override
-    public SoundEvent getCelebrateSound() {
-        return SoundEvents.PILLAGER_CELEBRATE;
     }
 
     @Override
@@ -282,7 +299,6 @@ public class Houndmaster extends AbstractIllager implements RangedAttackMob {
     }
 
     class SummonHoundsGoal extends Goal {
-        private static final int HOUNDS_TO_SUMMON = 3;
         private int houndsToSummon;
         private int whistleTicks;
 
@@ -299,8 +315,8 @@ public class Houndmaster extends AbstractIllager implements RangedAttackMob {
         @Override
         public void start() {
             this.whistleTicks = this.adjustedTickDelay(ABABInstruments.WHISTLE_DURATION);
-            this.houndsToSummon = HOUNDS_TO_SUMMON;
-            Houndmaster.this.playSound(SoundEvents.NOTE_BLOCK_FLUTE, 1.0F, 1.0F);
+            this.houndsToSummon = Houndmaster.this.level.getDifficulty().getId();
+            Houndmaster.this.playSound(ABABSoundEvents.COME_WHISTLE.get(), 1.0F, 1.0F);
             Houndmaster.this.setWhistling(true);
         }
 
