@@ -61,6 +61,7 @@ public class DogAi {
             ABABMemoryModuleTypes.IS_ORDERED_TO_SIT.get(),
             MemoryModuleType.IS_PANICKING,
             ABABMemoryModuleTypes.IS_SHELTERED.get(),
+            ABABMemoryModuleTypes.IS_SLEEPING.get(),
             MemoryModuleType.IS_TEMPTED,
             MemoryModuleType.ITEM_PICKUP_COOLDOWN_TICKS,
             MemoryModuleType.LAST_SLEPT,

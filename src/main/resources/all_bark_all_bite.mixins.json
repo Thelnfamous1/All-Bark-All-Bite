@@ -8,6 +8,7 @@
     "LivingEntityAccessor",
     "LivingEntityMixin",
     "MobAccessor",
+    "MobMixin",
     "PathfinderMobMixin",
     "SwimMixin",
     "TamableAnimalMixin",

@@ -146,7 +146,8 @@ public class DogBrain {
                 new UpdateUnitMemory<>(TamableAnimal::isOrderedToSit, ABABMemoryModuleTypes.IS_ORDERED_TO_SIT.get()),
                 new UpdateUnitMemory<>(SharedWolfAi::hasShelter, ABABMemoryModuleTypes.IS_SHELTERED.get()),
                 new UpdateUnitMemory<>(SharedWolfAi::isInNightTime, ABABMemoryModuleTypes.IS_LEVEL_NIGHT.get()),
-                new UpdateUnitMemory<>(DogBrain::isAlert, ABABMemoryModuleTypes.IS_ALERT.get())
+                new UpdateUnitMemory<>(DogBrain::isAlert, ABABMemoryModuleTypes.IS_ALERT.get()),
+                new UpdateUnitMemory<>(LivingEntity::isSleeping, ABABMemoryModuleTypes.IS_SLEEPING.get())
         ));
     }
 
@@ -252,7 +253,7 @@ public class DogBrain {
     }
 
     private static ImmutableList<? extends Pair<Integer, ? extends Behavior<? super Dog>>> getIdlePackage(){
-        return BrainUtil.createPriorityPairs(0,
+        return BrainUtil.createPriorityPairs(0, ImmutableList.of(BrainUtil.tryAllBehaviorsInOrderIfAbsent(
                 ImmutableList.of(
                         new Sprint<>(SharedWolfAi::canMove, SharedWolfAi.TOO_FAR_FROM_WALK_TARGET),
                         new RunIf<>(SharedWolfBrain::isFollowingOwner, SharedWolfAi.createFollowOwner(SharedWolfAi.SPEED_MODIFIER_WALKING), true),
@@ -270,7 +271,7 @@ public class DogBrain {
                         createIdleMovementBehaviors(),
                         beg(),
                         createIdleLookBehaviors()
-                ));
+                ), ABABMemoryModuleTypes.IS_SLEEPING.get(), ABABMemoryModuleTypes.IS_ORDERED_TO_SIT.get())));
     }
 
     private static RunOne<TamableAnimal> createIdleLookBehaviors() {

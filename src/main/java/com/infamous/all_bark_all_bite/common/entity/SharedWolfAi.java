@@ -25,6 +25,7 @@ import net.minecraft.world.entity.ai.behavior.PositionTracker;
 import net.minecraft.world.entity.ai.memory.MemoryModuleType;
 import net.minecraft.world.entity.ai.sensing.Sensor;
 import net.minecraft.world.entity.animal.Animal;
+import net.minecraft.world.entity.animal.horse.AbstractHorse;
 import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.entity.monster.Monster;
 import net.minecraft.world.entity.player.Player;
@@ -235,20 +236,21 @@ public class SharedWolfAi {
     public static boolean canBeAlertedBy(TamableAnimal wolf, LivingEntity target, TagKey<EntityType<?>> huntTargets, TagKey<EntityType<?>> alwaysHostiles){
         if (AiUtil.isSameTypeAndFriendly(wolf, target)) {
             return false;
-        } else if (!target.getType().is(huntTargets) && !target.getType().is(alwaysHostiles) && !(target instanceof Monster)) {
-            if (target instanceof TamableAnimal tamableAnimal) {
+        } else {
+            if(CompatUtil.isDILoaded()){
+                if(DICompat.isTamed(target)) return false;
+            } else if (target instanceof TamableAnimal tamableAnimal) {
                 return !tamableAnimal.isTame();
+            } else if(target instanceof AbstractHorse horse){
+                return !horse.isTamed();
             } else if (EntitySelector.NO_CREATIVE_OR_SPECTATOR.test(target)) {
                 if (wolf.isOwnedBy(target)) {
                     return false;
                 } else {
                     return !target.isSleeping() && !target.isDiscrete();
                 }
-            } else {
-                return false;
             }
-        } else {
-            return true;
+            return target.getType().is(huntTargets) || target.getType().is(alwaysHostiles) || target instanceof Monster;
         }
     }
 

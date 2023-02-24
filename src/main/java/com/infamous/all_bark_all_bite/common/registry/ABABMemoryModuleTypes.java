@@ -143,4 +143,8 @@ public class ABABMemoryModuleTypes {
             "max_trust",
             () -> new MemoryModuleType<>(Optional.of(Codec.INT)));
 
+    public static RegistryObject<MemoryModuleType<Unit>> IS_SLEEPING = MEMORY_MODULE_TYPES.register(
+            "is_sleeping",
+            () -> new MemoryModuleType<>(Optional.of(Codec.unit(Unit.INSTANCE))));
+
 }

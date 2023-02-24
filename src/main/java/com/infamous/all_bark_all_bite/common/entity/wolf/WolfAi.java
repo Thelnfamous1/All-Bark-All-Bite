@@ -18,12 +18,13 @@ import net.minecraft.sounds.SoundEvents;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
-import net.minecraft.world.entity.EntitySelector;
-import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.*;
 import net.minecraft.world.entity.ai.memory.MemoryModuleType;
 import net.minecraft.world.entity.ai.sensing.Sensor;
 import net.minecraft.world.entity.ai.sensing.SensorType;
+import net.minecraft.world.entity.animal.Animal;
 import net.minecraft.world.entity.animal.Wolf;
+import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.entity.schedule.Activity;
 import net.minecraft.world.item.DyeColor;
@@ -61,6 +62,7 @@ public class WolfAi {
             ABABMemoryModuleTypes.IS_ORDERED_TO_SIT.get(),
             MemoryModuleType.IS_PANICKING,
             ABABMemoryModuleTypes.IS_SHELTERED.get(),
+            ABABMemoryModuleTypes.IS_SLEEPING.get(),
             MemoryModuleType.IS_TEMPTED,
             MemoryModuleType.LAST_SLEPT,
             MemoryModuleType.LAST_WOKEN,
@@ -242,4 +244,32 @@ public class WolfAi {
         return Optional.empty();
     }
 
+    // MobMixin helper methods
+    public static boolean wolfWantsToPickUp(ItemStack stack, Mob wolf) {
+        return ForgeEventFactory.getMobGriefingEvent(wolf.level, wolf) && wolf.canPickUpLoot() && SharedWolfAi.isAbleToPickUp(wolf, stack);
+    }
+
+    public static boolean canWolfTakeItem(ItemStack stack, Mob wolf, boolean canMobTakeItem) {
+        EquipmentSlot slot = Mob.getEquipmentSlotForItem(stack);
+        if (!wolf.getItemBySlot(slot).isEmpty()) {
+            return false;
+        } else {
+            return slot == EquipmentSlot.MAINHAND && canMobTakeItem;
+        }
+    }
+
+    public static boolean canWolfHoldItem(ItemStack itemStack, Animal wolf) {
+        ItemStack itemInMouth = wolf.getMainHandItem();
+        return itemInMouth.isEmpty() || wolf.isFood(itemStack) && !wolf.isFood(itemInMouth);
+    }
+
+    public static void onWolfPickUpItem(ItemEntity itemEntity, Mob wolf) {
+        wolf.onItemPickup(itemEntity);
+        SharedWolfAi.pickUpAndHoldItem(wolf, itemEntity);
+    }
+
+    // LivingEntityMixin helper methods
+    public static SoundEvent getWolfEatingSound() {
+        return SoundEvents.FOX_EAT;
+    }
 }

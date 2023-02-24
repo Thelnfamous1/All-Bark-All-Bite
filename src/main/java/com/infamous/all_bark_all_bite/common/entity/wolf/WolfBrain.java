@@ -88,6 +88,7 @@ public class WolfBrain {
                 new UpdateUnitMemory<>(SharedWolfAi::hasShelter, ABABMemoryModuleTypes.IS_SHELTERED.get()),
                 new UpdateUnitMemory<>(SharedWolfAi::isInDayTime, ABABMemoryModuleTypes.IS_LEVEL_DAY.get()),
                 new UpdateUnitMemory<>(WolfBrain::isAlert, ABABMemoryModuleTypes.IS_ALERT.get()),
+                new UpdateUnitMemory<>(LivingEntity::isSleeping, ABABMemoryModuleTypes.IS_SLEEPING.get()),
                 new ValidateLeader(),
                 new ValidateFollowers()
         ));
@@ -144,7 +145,7 @@ public class WolfBrain {
     }
 
     private static ImmutableList<? extends Pair<Integer, ? extends Behavior<? super Wolf>>> getIdlePackage(){
-        return BrainUtil.createPriorityPairs(0,
+        return BrainUtil.createPriorityPairs(0, ImmutableList.of(BrainUtil.tryAllBehaviorsInOrderIfAbsent(
                 ImmutableList.of(
                         new Sprint<>(SharedWolfAi::canMove, SharedWolfAi.TOO_FAR_FROM_WALK_TARGET),
                         new RunIf<>(SharedWolfBrain::isFollowingOwner, SharedWolfAi.createFollowOwner(SharedWolfAi.SPEED_MODIFIER_WALKING), true),
@@ -164,7 +165,7 @@ public class WolfBrain {
                         createIdleMovementBehaviors(),
                         beg(),
                         createIdleLookBehaviors()
-                ));
+                ), ABABMemoryModuleTypes.IS_SLEEPING.get(), ABABMemoryModuleTypes.IS_ORDERED_TO_SIT.get())));
     }
 
     private static boolean canBeTempted(Wolf wolf){

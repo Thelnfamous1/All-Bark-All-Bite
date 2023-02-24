@@ -71,4 +71,8 @@ public class DICompat {
             }
         }
     }
+
+    public static boolean isTamed(Entity entity) {
+        return TameableUtils.isTamed(entity);
+    }
 }

@@ -1,45 +1,37 @@
 package com.infamous.all_bark_all_bite.mixin;
 
-import com.infamous.all_bark_all_bite.common.event.BrainEvent;
-import net.minecraft.nbt.CompoundTag;
+import com.infamous.all_bark_all_bite.AllBarkAllBite;
+import com.infamous.all_bark_all_bite.common.entity.wolf.WolfAi;
+import net.minecraft.sounds.SoundEvent;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.Brain;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
-import net.minecraftforge.common.MinecraftForge;
 import org.spongepowered.asm.mixin.Mixin;
-import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
-import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
+import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 @Mixin(LivingEntity.class)
 public abstract class LivingEntityMixin extends Entity {
-
-    @Shadow protected Brain<?> brain;
-
     public LivingEntityMixin(EntityType<?> type, Level level) {
         super(type, level);
     }
 
-    @Inject(method = "<init>", at = @At("RETURN"))
-    private void handleInitBrain(EntityType<?> type, Level level, CallbackInfo ci){
-        BrainEvent.MakeBrain event = new BrainEvent.MakeBrain(this.cast());
-        MinecraftForge.EVENT_BUS.post(event);
-        this.brain = event.getNewBrain();
+    @Inject(method = "brainProvider", at = @At("RETURN"), cancellable = true)
+    private void handleBrainProvider(CallbackInfoReturnable<Brain.Provider<?>> cir){
+        if(this.getType() == EntityType.WOLF){
+            AllBarkAllBite.LOGGER.info("Adding memory and sensor types to {}", this);
+            cir.setReturnValue(Brain.provider(WolfAi.MEMORY_TYPES, WolfAi.SENSOR_TYPES));
+        }
     }
 
-    private LivingEntity cast() {
-        return (LivingEntity) (Object) this;
-    }
-
-    @Inject(method = "readAdditionalSaveData", at = @At(value = "RETURN"))
-    private void handleReadBrainData(CompoundTag tag, CallbackInfo ci){
-        if (tag.contains("Brain", 10)) {
-            BrainEvent.MakeBrain event = new BrainEvent.MakeBrain(this.cast(), tag.get("Brain"));
-            MinecraftForge.EVENT_BUS.post(event);
-            this.brain = event.getNewBrain();
+    @Inject(method = "getEatingSound", at = @At("HEAD"), cancellable = true)
+    private void handleGetEatingSound(ItemStack stack, CallbackInfoReturnable<SoundEvent> cir) {
+        if(this.getType() == EntityType.WOLF){
+            cir.setReturnValue(WolfAi.getWolfEatingSound());
         }
     }
 }

@@ -9,7 +9,6 @@ import com.infamous.all_bark_all_bite.common.entity.SharedWolfAi;
 import com.infamous.all_bark_all_bite.common.entity.dog.Dog;
 import com.infamous.all_bark_all_bite.common.entity.wolf.WolfAi;
 import com.infamous.all_bark_all_bite.common.entity.wolf.WolfBrain;
-import com.infamous.all_bark_all_bite.common.event.BrainEvent;
 import com.infamous.all_bark_all_bite.common.goal.LookAtTargetSinkGoal;
 import com.infamous.all_bark_all_bite.common.goal.MoveToTargetSinkGoal;
 import com.infamous.all_bark_all_bite.common.item.PetWhistleItem;
@@ -26,6 +25,8 @@ import net.minecraft.world.entity.*;
 import net.minecraft.world.entity.ai.Brain;
 import net.minecraft.world.entity.ai.goal.AvoidEntityGoal;
 import net.minecraft.world.entity.ai.goal.target.NearestAttackableTargetGoal;
+import net.minecraft.world.entity.ai.memory.MemoryModuleType;
+import net.minecraft.world.entity.ai.memory.MemoryStatus;
 import net.minecraft.world.entity.animal.Fox;
 import net.minecraft.world.entity.animal.Rabbit;
 import net.minecraft.world.entity.animal.Wolf;
@@ -76,32 +77,31 @@ public class ForgeEventHandler {
         }
     }
 
-    @SubscribeEvent
-    static void onMakeBrain(BrainEvent.MakeBrain event){
-        if(event.getEntity().getType() == EntityType.WOLF){
-            Brain<Wolf> replacement = WolfBrain.makeBrain(event.makeBrain(WolfAi.MEMORY_TYPES, WolfAi.SENSOR_TYPES));
-            event.setNewBrain(replacement);
-        }
-    }
-
     @SubscribeEvent(priority = EventPriority.HIGHEST)
     static void onEntityJoinLevel(EntityJoinLevelEvent event){
         if(event.getLevel().isClientSide) return;
         Entity entity = event.getEntity();
-        if(entity instanceof PathfinderMob pathfinderMob
-                && entity.getType() != ABABEntityTypes.DOG.get()
-                && (entity instanceof OwnableEntity || entity instanceof AbstractHorse)){
-            pathfinderMob.goalSelector.addGoal(0, new MoveToTargetSinkGoal(pathfinderMob));
-            pathfinderMob.goalSelector.addGoal(0, new LookAtTargetSinkGoal(pathfinderMob));
-        }
+
+        // add dog interaction behaviors to specific mobs
         addMobDogInteractionGoals(entity);
 
+        // make the Wolf brain
         if(entity instanceof Wolf wolf && entity.getType() == EntityType.WOLF){
             wolf.goalSelector.removeAllGoals();
             wolf.targetSelector.removeAllGoals();
+            //noinspection unchecked
+            WolfBrain.makeBrain((Brain<Wolf>) wolf.getBrain());
             if(!event.loadedFromDisk()) {
                 WolfAi.initMemories(wolf, wolf.getRandom());
             }
+        }
+
+        // add Brain-like pathfinding behaviors for non-Brain-using pets so the "Come" and "Go" whistle commands work for them
+        if(entity instanceof PathfinderMob pathfinderMob
+                && !pathfinderMob.getBrain().checkMemory(MemoryModuleType.WALK_TARGET, MemoryStatus.REGISTERED)
+                && (entity instanceof OwnableEntity || entity instanceof AbstractHorse)){
+            pathfinderMob.goalSelector.addGoal(0, new MoveToTargetSinkGoal(pathfinderMob));
+            pathfinderMob.goalSelector.addGoal(0, new LookAtTargetSinkGoal(pathfinderMob));
         }
     }
 
