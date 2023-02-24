@@ -7,6 +7,7 @@ import com.infamous.all_bark_all_bite.common.registry.ABABGameEvents;
 import com.infamous.all_bark_all_bite.common.registry.ABABMemoryModuleTypes;
 import com.infamous.all_bark_all_bite.common.util.AiUtil;
 import com.infamous.all_bark_all_bite.common.util.CompatUtil;
+import com.infamous.all_bark_all_bite.common.util.DICompat;
 import com.infamous.all_bark_all_bite.common.util.MiscUtil;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.GlobalPos;
@@ -389,19 +390,19 @@ public class SharedWolfAi {
         CommandAi.stopHeeling(wolf);
         if(!orderedToSit && !isFollowingOwner){ // If wandering, set sitting
             if(CompatUtil.isDILoaded()){
-                CompatUtil.setDICommand(wolf, player, CompatUtil.DI_STAY_COMMAND);
+                DICompat.setDICommand(wolf, player, DICompat.DI_STAY_COMMAND);
             }
             wolf.setOrderedToSit(true);
             CommandAi.stopFollowing(wolf);
         } else if(orderedToSit){ // If sitting, set following
             if(CompatUtil.isDILoaded()){
-                CompatUtil.setDICommand(wolf, player, CompatUtil.DI_FOLLOW_COMMAND);
+                DICompat.setDICommand(wolf, player, DICompat.DI_FOLLOW_COMMAND);
             }
             wolf.setOrderedToSit(false);
             CommandAi.setFollowing(wolf);
         } else { // If following/heeling, set wandering
             if(CompatUtil.isDILoaded()){
-                CompatUtil.setDICommand(wolf, player, CompatUtil.DI_WANDER_COMMAND);
+                DICompat.setDICommand(wolf, player, DICompat.DI_WANDER_COMMAND);
             }
             CommandAi.stopFollowing(wolf);
         }

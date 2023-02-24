@@ -16,10 +16,7 @@ import com.infamous.all_bark_all_bite.common.item.PetWhistleItem;
 import com.infamous.all_bark_all_bite.common.registry.ABABEntityTypes;
 import com.infamous.all_bark_all_bite.common.registry.ABABItems;
 import com.infamous.all_bark_all_bite.common.registry.ABABMemoryModuleTypes;
-import com.infamous.all_bark_all_bite.common.util.AiUtil;
-import com.infamous.all_bark_all_bite.common.util.CompatUtil;
-import com.infamous.all_bark_all_bite.common.util.DebugUtil;
-import com.infamous.all_bark_all_bite.common.util.ReflectionUtil;
+import com.infamous.all_bark_all_bite.common.util.*;
 import net.minecraft.core.BlockPos;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.server.MinecraftServer;
@@ -223,7 +220,7 @@ public class ForgeEventHandler {
             Event.Result useBlock = event.getUseBlock();
             if (useBlock == Event.Result.ALLOW || (useBlock != Event.Result.DENY && !sneakBypass)) {
                 BlockState blockState = level.getBlockState(blockPos);
-                CompatUtil.handleDIDrum(player, level, blockPos, blockState);
+                DICompat.handleDIDrum(player, level, blockPos, blockState);
             }
         }
     }

@@ -4,6 +4,7 @@ import com.infamous.all_bark_all_bite.client.ABABModelLayers;
 import com.infamous.all_bark_all_bite.client.renderer.model.ABABWolfModel;
 import com.infamous.all_bark_all_bite.client.renderer.model.layer.SharedWolfCollarLayer;
 import com.infamous.all_bark_all_bite.client.renderer.model.layer.SharedWolfHeldItemLayer;
+import com.infamous.all_bark_all_bite.client.util.RWCompatClient;
 import com.infamous.all_bark_all_bite.common.entity.wolf.WolfAi;
 import com.infamous.all_bark_all_bite.common.util.CompatUtil;
 import com.mojang.blaze3d.vertex.PoseStack;
@@ -27,7 +28,7 @@ public class ABABWolfRenderer extends MobRenderer<Wolf, ABABWolfModel<Wolf>> {
       this.addLayer(new SharedWolfCollarLayer<>(this));
       this.addLayer(new SharedWolfHeldItemLayer<>(this, context.getItemInHandRenderer()));
       if(CompatUtil.isRevampedWolfLoaded()){
-         this.addLayer(RWCompat.getRWArmorLayer(this, context));
+         this.addLayer(RWCompatClient.getRWArmorLayer(this, context));
       }
    }
 

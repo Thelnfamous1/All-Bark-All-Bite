@@ -8,6 +8,7 @@ import com.infamous.all_bark_all_bite.common.registry.ABABActivities;
 import com.infamous.all_bark_all_bite.common.registry.ABABMemoryModuleTypes;
 import com.infamous.all_bark_all_bite.common.util.AiUtil;
 import com.infamous.all_bark_all_bite.common.util.CompatUtil;
+import com.infamous.all_bark_all_bite.common.util.DICompat;
 import com.infamous.all_bark_all_bite.common.util.ReflectionUtil;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
@@ -74,7 +75,7 @@ public class CommandAi {
 
     public static void commandFree(PathfinderMob pet, LivingEntity user, boolean handleDI) {
         if(CompatUtil.isDILoaded() && handleDI){
-            CompatUtil.setDICommand(pet, user, CompatUtil.DI_WANDER_COMMAND);
+            DICompat.setDICommand(pet, user, DICompat.DI_WANDER_COMMAND);
         }
         handleStates(pet, false, true);
         yieldAsPet(pet);
@@ -88,7 +89,7 @@ public class CommandAi {
 
     public static void commandFollow(PathfinderMob pet, LivingEntity user, boolean handleDI) {
         if(CompatUtil.isDILoaded() && handleDI){
-            CompatUtil.setDICommand(pet, user, CompatUtil.DI_FOLLOW_COMMAND);
+            DICompat.setDICommand(pet, user, DICompat.DI_FOLLOW_COMMAND);
         }
         handleStates(pet, false, true);
         yieldAsPet(pet);
@@ -110,7 +111,7 @@ public class CommandAi {
 
     public static void commandHeel(PathfinderMob pet, LivingEntity user) {
         if(CompatUtil.isDILoaded()){
-            CompatUtil.setDICommand(pet, user, CompatUtil.DI_FOLLOW_COMMAND);
+            DICompat.setDICommand(pet, user, DICompat.DI_FOLLOW_COMMAND);
         }
         handleStates(pet, false, true);
         yieldAsPet(pet);
@@ -124,7 +125,7 @@ public class CommandAi {
 
     public static void commandSit(PathfinderMob pet, LivingEntity user, boolean handleDI) {
         if(CompatUtil.isDILoaded() && handleDI){
-            CompatUtil.setDICommand(pet, user, CompatUtil.DI_STAY_COMMAND);
+            DICompat.setDICommand(pet, user, DICompat.DI_STAY_COMMAND);
         }
         handleStates(pet, true, false);
         pet.getBrain().setMemory(ABABMemoryModuleTypes.IS_ORDERED_TO_SIT.get(), Unit.INSTANCE);
