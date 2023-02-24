@@ -4,6 +4,7 @@ import com.infamous.all_bark_all_bite.common.behavior.pet.FollowOwner;
 import com.infamous.all_bark_all_bite.common.entity.LookTargetAccessor;
 import com.infamous.all_bark_all_bite.common.entity.SharedWolfAi;
 import com.infamous.all_bark_all_bite.common.entity.WalkTargetAccessor;
+import com.infamous.all_bark_all_bite.common.registry.ABABActivities;
 import com.infamous.all_bark_all_bite.common.registry.ABABMemoryModuleTypes;
 import com.infamous.all_bark_all_bite.common.util.AiUtil;
 import com.infamous.all_bark_all_bite.common.util.CompatUtil;
@@ -24,6 +25,7 @@ import net.minecraft.world.entity.ai.memory.MemoryStatus;
 import net.minecraft.world.entity.ai.memory.WalkTarget;
 import net.minecraft.world.entity.animal.FlyingAnimal;
 import net.minecraft.world.entity.animal.Fox;
+import net.minecraft.world.entity.schedule.Activity;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.EntityHitResult;
 import net.minecraft.world.phys.HitResult;
@@ -32,8 +34,12 @@ public class CommandAi {
 
     private static final String FOX_CLEAR_STATES = "m_28569_";
 
-    public static void yieldAsPet(PathfinderMob pathfinderMob) {
-        pathfinderMob.getBrain().useDefaultActivity();
+    public static void yieldAsPet(PathfinderMob pathfinderMob){
+        yieldAsPet(pathfinderMob, Activity.IDLE);
+    }
+
+    public static void yieldAsPet(PathfinderMob pathfinderMob, Activity activity) {
+        pathfinderMob.getBrain().setActiveActivityIfPossible(activity);
 
         AiUtil.setItemPickupCooldown(pathfinderMob, SharedWolfAi.ITEM_PICKUP_COOLDOWN);
         AiUtil.eraseMemories(pathfinderMob, MemoryModuleType.ANGRY_AT, MemoryModuleType.UNIVERSAL_ANGER);
@@ -63,7 +69,11 @@ public class CommandAi {
     }
 
     public static void commandFree(PathfinderMob pet, LivingEntity user) {
-        if(CompatUtil.isDILoaded()){
+        commandFree(pet, user, true);
+    }
+
+    public static void commandFree(PathfinderMob pet, LivingEntity user, boolean handleDI) {
+        if(CompatUtil.isDILoaded() && handleDI){
             CompatUtil.setDICommand(pet, user, CompatUtil.DI_WANDER_COMMAND);
         }
         handleStates(pet, false, true);
@@ -73,7 +83,11 @@ public class CommandAi {
     }
 
     public static void commandFollow(PathfinderMob pet, LivingEntity user) {
-        if(CompatUtil.isDILoaded()){
+        commandFollow(pet, user, true);
+    }
+
+    public static void commandFollow(PathfinderMob pet, LivingEntity user, boolean handleDI) {
+        if(CompatUtil.isDILoaded() && handleDI){
             CompatUtil.setDICommand(pet, user, CompatUtil.DI_FOLLOW_COMMAND);
         }
         handleStates(pet, false, true);
@@ -105,11 +119,16 @@ public class CommandAi {
     }
 
     public static void commandSit(PathfinderMob pet, LivingEntity user) {
-        if(CompatUtil.isDILoaded()){
+        commandSit(pet, user, true);
+    }
+
+    public static void commandSit(PathfinderMob pet, LivingEntity user, boolean handleDI) {
+        if(CompatUtil.isDILoaded() && handleDI){
             CompatUtil.setDICommand(pet, user, CompatUtil.DI_STAY_COMMAND);
         }
         handleStates(pet, true, false);
-        yieldAsPet(pet);
+        pet.getBrain().setMemory(ABABMemoryModuleTypes.IS_ORDERED_TO_SIT.get(), Unit.INSTANCE);
+        yieldAsPet(pet, ABABActivities.SIT.get());
     }
 
     @SuppressWarnings("SameParameterValue")

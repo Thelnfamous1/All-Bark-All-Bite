@@ -225,4 +225,11 @@ public class SharedWolfBrain {
                         new CountDownCooldownTicks(MemoryModuleType.TEMPTATION_COOLDOWN_TICKS)
                 ));
     }
+
+    public static boolean canPerch(LivingEntity mob) {
+        return GenericAi.getAttackTarget(mob).isEmpty()
+                && !SharedWolfAi.isAlert(mob)
+                && HunterAi.getPounceTarget(mob).isEmpty()
+                && mob.getPose() != Pose.CROUCHING;
+    }
 }

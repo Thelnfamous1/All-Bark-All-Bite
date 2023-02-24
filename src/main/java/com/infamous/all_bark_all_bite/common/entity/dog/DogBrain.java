@@ -2,7 +2,8 @@ package com.infamous.all_bark_all_bite.common.entity.dog;
 
 import com.google.common.collect.ImmutableList;
 import com.infamous.all_bark_all_bite.common.ABABTags;
-import com.infamous.all_bark_all_bite.common.ai.*;
+import com.infamous.all_bark_all_bite.common.ai.DigAi;
+import com.infamous.all_bark_all_bite.common.ai.GenericAi;
 import com.infamous.all_bark_all_bite.common.behavior.*;
 import com.infamous.all_bark_all_bite.common.behavior.dig.DigAtLocation;
 import com.infamous.all_bark_all_bite.common.behavior.item.GiveItemToTarget;
@@ -37,7 +38,6 @@ import net.minecraft.world.level.storage.loot.LootContext;
 import net.minecraft.world.level.storage.loot.LootTable;
 import net.minecraft.world.level.storage.loot.parameters.LootContextParamSets;
 import net.minecraft.world.level.storage.loot.parameters.LootContextParams;
-import org.jetbrains.annotations.NotNull;
 
 import java.util.Optional;
 import java.util.function.Predicate;
@@ -79,7 +79,6 @@ public class DogBrain {
         return brainMaker.makeBrain(Activity.IDLE);
     }
 
-    @NotNull
     private static Beg<Dog> beg() {
         return new Beg<>(DogAi::isInteresting, Dog::setIsInterested, SharedWolfAi.MAX_LOOK_DIST);
     }
@@ -292,7 +291,7 @@ public class DogBrain {
                         Pair.of(InteractWith.of(EntityType.PLAYER, SharedWolfAi.INTERACTION_RANGE, MemoryModuleType.INTERACTION_TARGET, SharedWolfAi.SPEED_MODIFIER_WALKING, SharedWolfAi.CLOSE_ENOUGH_TO_INTERACT), 2),
                         Pair.of(InteractWith.of(EntityType.VILLAGER, SharedWolfAi.INTERACTION_RANGE, MemoryModuleType.INTERACTION_TARGET, SharedWolfAi.SPEED_MODIFIER_WALKING, SharedWolfAi.CLOSE_ENOUGH_TO_INTERACT), 2),
                         Pair.of(new RunIf<>(Predicate.not(GenericAi::seesPlayerHoldingWantedItem), new SetWalkTargetFromLookTarget(SharedWolfAi.SPEED_MODIFIER_WALKING, SharedWolfAi.CLOSE_ENOUGH_TO_LOOK_TARGET)), 2),
-                        Pair.of(new RunIf<>(Predicate.not(SharedWolfAi::isAlert), new PerchAndSearch<>(TamableAnimal::isInSittingPose, TamableAnimal::setInSittingPose), true), 2),
+                        Pair.of(new PerchAndSearch<>(SharedWolfBrain::canPerch, TamableAnimal::setInSittingPose), 2),
                         Pair.of(new DoNothing(30, 60), 1)));
     }
 

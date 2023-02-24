@@ -2,11 +2,11 @@ package com.infamous.all_bark_all_bite.common.behavior;
 
 import com.google.common.collect.ImmutableMap;
 import com.infamous.all_bark_all_bite.common.ai.GenericAi;
+import com.infamous.all_bark_all_bite.common.registry.ABABActivities;
 import com.infamous.all_bark_all_bite.common.util.PositionTrackerImpl;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.entity.PathfinderMob;
-import net.minecraft.world.entity.TamableAnimal;
 import net.minecraft.world.entity.ai.behavior.Behavior;
 import net.minecraft.world.entity.ai.memory.MemoryModuleType;
 import net.minecraft.world.entity.ai.memory.MemoryStatus;
@@ -17,24 +17,28 @@ import java.util.function.Predicate;
 
 @SuppressWarnings({"unused"})
 public class PerchAndSearch<E extends PathfinderMob> extends Behavior<E> {
-    private final Predicate<E> isSitting;
+    private static final float CHANCE = 0.04F; // vanilla chance is 0.02F, but GoalSelector is only ticked once every two ticks
+    private final Predicate<E> canPerch;
     private final BiConsumer<E, Boolean> toggleSitting;
     private int lookTime;
     private int looksRemaining;
 
-    public PerchAndSearch(Predicate<E> isSitting, BiConsumer<E, Boolean> toggleSitting) {
+    public PerchAndSearch(Predicate<E> canPerch, BiConsumer<E, Boolean> toggleSitting) {
         super(ImmutableMap.of(
                 MemoryModuleType.WALK_TARGET, MemoryStatus.VALUE_ABSENT,
                 MemoryModuleType.LOOK_TARGET, MemoryStatus.REGISTERED
+
         ));
-        this.isSitting = isSitting;
+        this.canPerch = canPerch;
         this.toggleSitting = toggleSitting;
     }
 
     @Override
     protected boolean checkExtraStartConditions(ServerLevel level, E mob) {
-        return mob.getNavigation().isDone()
-                && !this.isSitting.test(mob);
+        return mob.getLastHurtByMob() == null
+                && mob.getRandom().nextFloat() < CHANCE
+                && mob.getNavigation().isDone()
+                && this.canPerch.test(mob);
     }
 
     @Override
@@ -76,7 +80,7 @@ public class PerchAndSearch<E extends PathfinderMob> extends Behavior<E> {
 
     @Override
     protected void stop(ServerLevel level, E mob, long gameTime) {
-        if(mob instanceof TamableAnimal tamableAnimal && !tamableAnimal.isOrderedToSit()){
+        if(!mob.getBrain().isActive(ABABActivities.SIT.get())){
             this.toggleSitting.accept(mob, false);
         }
     }

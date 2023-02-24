@@ -185,7 +185,7 @@ public class WolfBrain {
                         Pair.of(new RandomStroll(SharedWolfAi.SPEED_MODIFIER_WALKING), 3),
                         Pair.of(InteractWith.of(EntityType.WOLF, SharedWolfAi.INTERACTION_RANGE, MemoryModuleType.INTERACTION_TARGET, SharedWolfAi.SPEED_MODIFIER_WALKING, SharedWolfAi.CLOSE_ENOUGH_TO_INTERACT), 2),
                         Pair.of(new SetWalkTargetFromLookTarget(SharedWolfAi.SPEED_MODIFIER_WALKING, SharedWolfAi.CLOSE_ENOUGH_TO_LOOK_TARGET), 2),
-                        Pair.of(new RunIf<>(Predicate.not(SharedWolfAi::isAlert), new PerchAndSearch<>(TamableAnimal::isInSittingPose, TamableAnimal::setInSittingPose), true), 2),
+                        Pair.of(new PerchAndSearch<>(SharedWolfBrain::canPerch, TamableAnimal::setInSittingPose), 2),
                         Pair.of(new DoNothing(30, 60), 1)));
     }
 }

@@ -1,8 +1,11 @@
 package com.infamous.all_bark_all_bite.common.behavior.pet;
 
+import com.github.alexthe668.domesticationinnovation.server.enchantment.DIEnchantmentRegistry;
+import com.github.alexthe668.domesticationinnovation.server.entity.TameableUtils;
 import com.google.common.collect.ImmutableMap;
 import com.infamous.all_bark_all_bite.common.ai.GenericAi;
 import com.infamous.all_bark_all_bite.common.util.AiUtil;
+import com.infamous.all_bark_all_bite.common.util.CompatUtil;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.util.Mth;
@@ -119,6 +122,12 @@ public class FollowOwner<E extends PathfinderMob> extends Behavior<E> {
         LivingEntity owner = this.getOwner(mob).get();
         BehaviorUtils.lookAtEntity(mob, owner);
 
+        if(CompatUtil.isDILoaded()){
+            if (TameableUtils.hasEnchant(mob, DIEnchantmentRegistry.AMPHIBIOUS) && mob.isInWaterOrBubble() && mob.closerThan(owner, TELEPORT_DISTANCE)) {
+                this.goToEntity(mob);
+            }
+        }
+
         if (--this.calculatePathCounter <= 0) {
             this.calculatePathCounter = 10;
             if (!mob.isLeashed() && !mob.isPassenger()) {
@@ -163,6 +172,11 @@ public class FollowOwner<E extends PathfinderMob> extends Behavior<E> {
     }
 
     private static boolean canTeleportTo(ServerLevel level, PathfinderMob mob, BlockPos targetPos, boolean canFly) {
+        if(CompatUtil.isDILoaded()){
+            if(TameableUtils.hasEnchant(mob, DIEnchantmentRegistry.AMPHIBIOUS) && level.isWaterAt(targetPos)){
+                return true;
+            }
+        }
         BlockPathTypes pathTypes = WalkNodeEvaluator.getBlockPathTypeStatic(level, targetPos.mutable());
         if (pathTypes != BlockPathTypes.WALKABLE) {
             return false;

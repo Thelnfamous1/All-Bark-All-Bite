@@ -2,6 +2,7 @@ package com.infamous.all_bark_all_bite.data;
 
 import com.infamous.all_bark_all_bite.AllBarkAllBite;
 import com.infamous.all_bark_all_bite.common.item.AdjustableInstrumentItem;
+import com.infamous.all_bark_all_bite.common.item.PetWhistleItem;
 import com.infamous.all_bark_all_bite.common.registry.ABABEntityTypes;
 import com.infamous.all_bark_all_bite.common.registry.ABABInstruments;
 import com.infamous.all_bark_all_bite.common.registry.ABABItems;
@@ -40,6 +41,7 @@ public class ABABLangProvider extends LanguageProvider {
         this.addWhistleWithDescription(ABABInstruments.SIT_WHISTLE, "Sit", "Pets will sit down.");
 
         this.add(AdjustableInstrumentItem.SECONDARY_USE_TOOLTIP, "Sneak & Use to Adjust");
+        this.add(PetWhistleItem.getBoundToTooltipId(), "Bound to: %s");
     }
 
     private void addWhistleWithDescription(RegistryObject<Instrument> whistle, String id, String description) {

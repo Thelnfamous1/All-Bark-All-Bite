@@ -1,8 +1,8 @@
 package com.infamous.all_bark_all_bite.common;
 
+import com.github.alexthe668.domesticationinnovation.server.block.DrumBlock;
 import com.google.common.collect.Maps;
 import com.infamous.all_bark_all_bite.AllBarkAllBite;
-import com.infamous.all_bark_all_bite.common.ai.CommandAi;
 import com.infamous.all_bark_all_bite.common.ai.TrustAi;
 import com.infamous.all_bark_all_bite.common.entity.DogSpawner;
 import com.infamous.all_bark_all_bite.common.entity.EntityAnimationController;
@@ -13,19 +13,19 @@ import com.infamous.all_bark_all_bite.common.entity.wolf.WolfBrain;
 import com.infamous.all_bark_all_bite.common.event.BrainEvent;
 import com.infamous.all_bark_all_bite.common.goal.LookAtTargetSinkGoal;
 import com.infamous.all_bark_all_bite.common.goal.MoveToTargetSinkGoal;
-import com.infamous.all_bark_all_bite.common.logic.PetManagement;
-import com.infamous.all_bark_all_bite.common.logic.entity_manager.MultiEntityManager;
+import com.infamous.all_bark_all_bite.common.item.PetWhistleItem;
 import com.infamous.all_bark_all_bite.common.registry.ABABEntityTypes;
-import com.infamous.all_bark_all_bite.common.registry.ABABInstruments;
 import com.infamous.all_bark_all_bite.common.registry.ABABItems;
 import com.infamous.all_bark_all_bite.common.registry.ABABMemoryModuleTypes;
 import com.infamous.all_bark_all_bite.common.util.AiUtil;
+import com.infamous.all_bark_all_bite.common.util.CompatUtil;
 import com.infamous.all_bark_all_bite.common.util.DebugUtil;
 import com.infamous.all_bark_all_bite.common.util.ReflectionUtil;
-import net.minecraft.core.Holder;
+import net.minecraft.core.BlockPos;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.*;
 import net.minecraft.world.entity.ai.Brain;
 import net.minecraft.world.entity.ai.goal.AvoidEntityGoal;
@@ -37,11 +37,9 @@ import net.minecraft.world.entity.animal.horse.AbstractHorse;
 import net.minecraft.world.entity.animal.horse.Llama;
 import net.minecraft.world.entity.monster.AbstractSkeleton;
 import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.item.Instrument;
-import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.CustomSpawner;
 import net.minecraft.world.level.Level;
-import net.minecraft.world.phys.HitResult;
+import net.minecraft.world.level.block.state.BlockState;
 import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.event.entity.EntityEvent;
 import net.minecraftforge.event.entity.EntityJoinLevelEvent;
@@ -60,8 +58,6 @@ import org.apache.commons.compress.utils.Lists;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
-import java.util.function.Consumer;
 
 @Mod.EventBusSubscriber(bus = Mod.EventBusSubscriber.Bus.FORGE, modid = AllBarkAllBite.MODID)
 public class ForgeEventHandler {
@@ -214,8 +210,41 @@ public class ForgeEventHandler {
     }
 
     @SubscribeEvent(priority = EventPriority.LOWEST)
+    static void onRightClickBlock(PlayerInteractEvent.RightClickBlock event){
+        if (event.isCanceled()) {
+            return;
+        }
+
+        Player player = event.getEntity();
+        if(!player.isSpectator() && CompatUtil.isDILoaded()){
+            Level level = player.getLevel();
+            BlockPos blockPos = event.getPos();
+            boolean canSneakBypass = !player.isHolding(is -> is.doesSneakBypassUse(level, blockPos, player));
+            boolean sneakBypass = player.isSecondaryUseActive() && canSneakBypass;
+            Event.Result useBlock = event.getUseBlock();
+            if (useBlock == Event.Result.ALLOW || (useBlock != Event.Result.DENY && !sneakBypass)) {
+                BlockState blockState = level.getBlockState(blockPos);
+                if(blockState.getBlock() instanceof DrumBlock){
+                    int command = blockState.getValue(DrumBlock.COMMAND);
+                    CompatUtil.handleCommandAiFromDrumCommand(level, blockPos, command, player);
+                }
+            }
+        }
+    }
+
+    @SubscribeEvent(priority = EventPriority.LOWEST)
     static void onEntityInteract(PlayerInteractEvent.EntityInteract event){
-        if(!event.isCanceled() && !event.getItemStack().is(ABABTags.HAS_WOLF_INTERACTION) && !event.getEntity().isSecondaryUseActive()){
+        if(event.isCanceled()) return;
+
+        if(event.getItemStack().is(ABABItems.WHISTLE.get())){
+            if(PetWhistleItem.interactWithPet(event.getItemStack(), event.getEntity(), event.getTarget(), event.getHand())){
+                event.setCanceled(true);
+                event.setCancellationResult(InteractionResult.SUCCESS);
+                return;
+            }
+        }
+
+        if(!event.getItemStack().is(ABABTags.HAS_WOLF_INTERACTION) && !event.getEntity().isSecondaryUseActive()){
             Entity target = event.getTarget();
             if(target instanceof Wolf wolf && target.getType() == EntityType.WOLF){
                 event.setCanceled(true);
@@ -240,49 +269,8 @@ public class ForgeEventHandler {
     @SubscribeEvent
     static void onItemUseStart(LivingEntityUseItemEvent.Start event){
         if(event.getEntity().getLevel() instanceof ServerLevel serverLevel && event.getItem().is(ABABItems.WHISTLE.get())){
-            LivingEntity user = event.getEntity();
-            ItemStack useItem = event.getItem();
-            Optional<Holder<Instrument>> instrumentHolder = ABABItems.WHISTLE.get().getInstrument(useItem);
-            if(instrumentHolder.isPresent()){
-                Instrument instrument = instrumentHolder.get().value();
-                MultiEntityManager petManager = PetManagement.getPetManager(user.getLevel().dimension(), user.getUUID());
-                if(instrument == ABABInstruments.ATTACK_WHISTLE.get()){
-                    AiUtil.getTargetedEntity(user, 16)
-                            .filter(LivingEntity.class::isInstance)
-                            .map(LivingEntity.class::cast)
-                            .ifPresent(target -> commandPet(petManager, dog -> CommandAi.commandAttack(dog, target, user)));
-                }
-                if(instrument == ABABInstruments.COME_WHISTLE.get()){
-                    commandPet(petManager, pet -> CommandAi.commandCome(pet, user, serverLevel));
-                }
-                if(instrument == ABABInstruments.FOLLOW_WHISTLE.get()){
-                    commandPet(petManager, pet -> CommandAi.commandFollow(pet, user));
-                }
-                if(instrument == ABABInstruments.FREE_WHISTLE.get()){
-                    commandPet(petManager, pet -> CommandAi.commandFree(pet, user));
-                }
-                if(instrument == ABABInstruments.GO_WHISTLE.get()){
-                    HitResult hitResult = AiUtil.getHitResult(user, 16);
-                    if(hitResult.getType() != HitResult.Type.MISS){
-                        commandPet(petManager, pet -> CommandAi.commandGo(pet, user, hitResult));
-                    }
-                }
-                if(instrument == ABABInstruments.HEEL_WHISTLE.get()){
-                    commandPet(petManager, pet -> CommandAi.commandHeel(pet, user));
-                }
-                if(instrument == ABABInstruments.SIT_WHISTLE.get()){
-                    commandPet(petManager, pet -> CommandAi.commandSit(pet, user));
-                }
-            }
+            PetWhistleItem.onItemUseStart(event.getEntity(), event.getItem(), serverLevel);
         }
-    }
-
-    private static void commandPet(MultiEntityManager petManager, Consumer<PathfinderMob> command) {
-        petManager.stream().forEach(pet -> {
-            if(pet instanceof PathfinderMob mob){
-                command.accept(mob);
-            }
-        });
     }
 
     @SubscribeEvent

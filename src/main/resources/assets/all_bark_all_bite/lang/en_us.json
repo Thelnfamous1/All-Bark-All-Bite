@@ -20,5 +20,6 @@
   "item.all_bark_all_bite.dog_spawn_egg": "Dog Spawn Egg",
   "item.all_bark_all_bite.houndmaster_spawn_egg": "Houndmaster Spawn Egg",
   "item.all_bark_all_bite.scavenger_spawn_egg": "Scavenger Spawn Egg",
-  "item.all_bark_all_bite.whistle": "Whistle"
+  "item.all_bark_all_bite.whistle": "Whistle",
+  "item.all_bark_all_bite.whistle.bound_to": "Bound to: %s"
 }
