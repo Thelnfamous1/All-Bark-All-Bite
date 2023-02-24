@@ -299,6 +299,7 @@ public class Houndmaster extends AbstractIllager implements RangedAttackMob {
     }
 
     class SummonHoundsGoal extends Goal {
+        private static final int HOUNDS_TO_SUMMON = 3;
         private int houndsToSummon;
         private int whistleTicks;
 
@@ -315,7 +316,7 @@ public class Houndmaster extends AbstractIllager implements RangedAttackMob {
         @Override
         public void start() {
             this.whistleTicks = this.adjustedTickDelay(ABABInstruments.WHISTLE_DURATION);
-            this.houndsToSummon = Houndmaster.this.level.getDifficulty().getId();
+            this.houndsToSummon = HOUNDS_TO_SUMMON;
             Houndmaster.this.playSound(ABABSoundEvents.COME_WHISTLE.get(), 1.0F, 1.0F);
             Houndmaster.this.setWhistling(true);
         }
