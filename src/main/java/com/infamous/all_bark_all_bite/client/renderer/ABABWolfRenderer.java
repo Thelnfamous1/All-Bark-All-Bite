@@ -2,7 +2,6 @@ package com.infamous.all_bark_all_bite.client.renderer;
 
 import com.infamous.all_bark_all_bite.client.ABABModelLayers;
 import com.infamous.all_bark_all_bite.client.renderer.model.ABABWolfModel;
-import com.infamous.all_bark_all_bite.client.renderer.model.layer.RWWolfArmorLayer;
 import com.infamous.all_bark_all_bite.client.renderer.model.layer.SharedWolfCollarLayer;
 import com.infamous.all_bark_all_bite.client.renderer.model.layer.SharedWolfHeldItemLayer;
 import com.infamous.all_bark_all_bite.common.entity.wolf.WolfAi;
@@ -28,7 +27,7 @@ public class ABABWolfRenderer extends MobRenderer<Wolf, ABABWolfModel<Wolf>> {
       this.addLayer(new SharedWolfCollarLayer<>(this));
       this.addLayer(new SharedWolfHeldItemLayer<>(this, context.getItemInHandRenderer()));
       if(CompatUtil.isRevampedWolfLoaded()){
-         this.addLayer(new RWWolfArmorLayer<>(this, new ABABWolfModel<>(context.getModelSet().bakeLayer(ABABModelLayers.RW_WOLF_ARMOR))));
+         this.addLayer(RWCompat.getRWArmorLayer(this, context));
       }
    }
 
@@ -91,4 +90,5 @@ public class ABABWolfRenderer extends MobRenderer<Wolf, ABABWolfModel<Wolf>> {
 
       poseStack.scale(scaleFactor, scaleFactor, scaleFactor);
    }
+
 }

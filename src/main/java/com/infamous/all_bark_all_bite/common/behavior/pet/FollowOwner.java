@@ -1,7 +1,5 @@
 package com.infamous.all_bark_all_bite.common.behavior.pet;
 
-import com.github.alexthe668.domesticationinnovation.server.enchantment.DIEnchantmentRegistry;
-import com.github.alexthe668.domesticationinnovation.server.entity.TameableUtils;
 import com.google.common.collect.ImmutableMap;
 import com.infamous.all_bark_all_bite.common.ai.GenericAi;
 import com.infamous.all_bark_all_bite.common.util.AiUtil;
@@ -123,7 +121,7 @@ public class FollowOwner<E extends PathfinderMob> extends Behavior<E> {
         BehaviorUtils.lookAtEntity(mob, owner);
 
         if(CompatUtil.isDILoaded()){
-            if (TameableUtils.hasEnchant(mob, DIEnchantmentRegistry.AMPHIBIOUS) && mob.isInWaterOrBubble() && mob.closerThan(owner, TELEPORT_DISTANCE)) {
+            if (CompatUtil.hasDIAmphibiousEnchant(mob) && mob.isInWaterOrBubble() && mob.closerThan(owner, TELEPORT_DISTANCE)) {
                 this.goToEntity(mob);
             }
         }
@@ -173,7 +171,7 @@ public class FollowOwner<E extends PathfinderMob> extends Behavior<E> {
 
     private static boolean canTeleportTo(ServerLevel level, PathfinderMob mob, BlockPos targetPos, boolean canFly) {
         if(CompatUtil.isDILoaded()){
-            if(TameableUtils.hasEnchant(mob, DIEnchantmentRegistry.AMPHIBIOUS) && level.isWaterAt(targetPos)){
+            if(CompatUtil.hasDIAmphibiousEnchant(mob) && level.isWaterAt(targetPos)){
                 return true;
             }
         }

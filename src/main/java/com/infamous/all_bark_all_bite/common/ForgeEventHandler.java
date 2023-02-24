@@ -1,6 +1,5 @@
 package com.infamous.all_bark_all_bite.common;
 
-import com.github.alexthe668.domesticationinnovation.server.block.DrumBlock;
 import com.google.common.collect.Maps;
 import com.infamous.all_bark_all_bite.AllBarkAllBite;
 import com.infamous.all_bark_all_bite.common.ai.TrustAi;
@@ -224,10 +223,7 @@ public class ForgeEventHandler {
             Event.Result useBlock = event.getUseBlock();
             if (useBlock == Event.Result.ALLOW || (useBlock != Event.Result.DENY && !sneakBypass)) {
                 BlockState blockState = level.getBlockState(blockPos);
-                if(blockState.getBlock() instanceof DrumBlock){
-                    int command = blockState.getValue(DrumBlock.COMMAND);
-                    CompatUtil.handleCommandAiFromDrumCommand(level, blockPos, command, player);
-                }
+                CompatUtil.handleDIDrum(player, level, blockPos, blockState);
             }
         }
     }

@@ -1,7 +1,5 @@
 package com.infamous.all_bark_all_bite.mixin;
 
-import com.github.alexthe668.domesticationinnovation.server.enchantment.DIEnchantmentRegistry;
-import com.github.alexthe668.domesticationinnovation.server.entity.TameableUtils;
 import com.infamous.all_bark_all_bite.common.util.CompatUtil;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.Mob;
@@ -21,9 +19,10 @@ public class SwimMixin {
     )
     private void handleCheckExtraStartConditions(ServerLevel level, Mob mob, CallbackInfoReturnable<Boolean> cir) {
         if(CompatUtil.isDILoaded()){
-            if (TameableUtils.isTamed(mob) && TameableUtils.hasEnchant(mob, DIEnchantmentRegistry.AMPHIBIOUS)) {
+            if (CompatUtil.hasDIAmphibiousEnchant(mob)) {
                 cir.setReturnValue(false);
             }
         }
     }
+
 }

@@ -17,7 +17,7 @@ import java.util.function.Predicate;
 
 @SuppressWarnings({"unused"})
 public class PerchAndSearch<E extends PathfinderMob> extends Behavior<E> {
-    private static final float CHANCE = 0.04F; // vanilla chance is 0.02F, but GoalSelector is only ticked once every two ticks
+    private static final float CHANCE = 0.4F;
     private final Predicate<E> canPerch;
     private final BiConsumer<E, Boolean> toggleSitting;
     private int lookTime;
