@@ -34,12 +34,12 @@ public class ABABSoundDefinitionsProvider extends SoundDefinitionsProvider {
     }
 
     @NotNull
-    private static SoundDefinition defineWhistle(int octaves) {
+    private static SoundDefinition defineWhistle(int semitones) {
         return SoundDefinition.definition()
                 .with(SoundDefinition.Sound
                         .sound(WHISTLE_LOCATION, SoundDefinition.SoundType.SOUND)
                         .volume(0.5D)
-                        .pitch(shiftPitch(octaves)));
+                        .pitch(shiftPitch(semitones)));
     }
 
     /**

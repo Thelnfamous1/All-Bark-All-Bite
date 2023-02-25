@@ -1,12 +1,12 @@
 {
-  "name": "minecraft:pillager_outpost/features",
+  "name": "all_bark_all_bite:village/common/dogs",
   "fallback": "minecraft:empty",
   "elements": [
     {
       "weight": 1,
       "element": {
         "element_type": "minecraft:legacy_single_pool_element",
-        "location": "minecraft:pillager_outpost/feature_cage1",
+        "location": "all_bark_all_bite:village/common/animals/dog_black",
         "projection": "rigid",
         "processors": "minecraft:empty"
       }
@@ -15,7 +15,7 @@
       "weight": 1,
       "element": {
         "element_type": "minecraft:legacy_single_pool_element",
-        "location": "minecraft:pillager_outpost/feature_cage2",
+        "location": "all_bark_all_bite:village/common/animals/dog_blue",
         "projection": "rigid",
         "processors": "minecraft:empty"
       }
@@ -24,7 +24,7 @@
       "weight": 1,
       "element": {
         "element_type": "minecraft:legacy_single_pool_element",
-        "location": "minecraft:pillager_outpost/feature_cage_with_allays",
+        "location": "all_bark_all_bite:village/common/animals/dog_brown",
         "projection": "rigid",
         "processors": "minecraft:empty"
       }
@@ -33,7 +33,7 @@
       "weight": 1,
       "element": {
         "element_type": "minecraft:legacy_single_pool_element",
-        "location": "minecraft:pillager_outpost/feature_logs",
+        "location": "all_bark_all_bite:village/common/animals/dog_cream",
         "projection": "rigid",
         "processors": "minecraft:empty"
       }
@@ -42,7 +42,7 @@
       "weight": 1,
       "element": {
         "element_type": "minecraft:legacy_single_pool_element",
-        "location": "minecraft:pillager_outpost/feature_tent1",
+        "location": "all_bark_all_bite:village/common/animals/dog_gold",
         "projection": "rigid",
         "processors": "minecraft:empty"
       }
@@ -51,7 +51,7 @@
       "weight": 1,
       "element": {
         "element_type": "minecraft:legacy_single_pool_element",
-        "location": "minecraft:pillager_outpost/feature_tent2",
+        "location": "all_bark_all_bite:village/common/animals/dog_gray",
         "projection": "rigid",
         "processors": "minecraft:empty"
       }
@@ -60,24 +60,33 @@
       "weight": 1,
       "element": {
         "element_type": "minecraft:legacy_single_pool_element",
-        "location": "minecraft:pillager_outpost/feature_targets",
+        "location": "all_bark_all_bite:village/common/animals/dog_red",
         "projection": "rigid",
         "processors": "minecraft:empty"
       }
     },
     {
-      "weight": 5,
+      "weight": 1,
+      "element": {
+        "element_type": "minecraft:legacy_single_pool_element",
+        "location": "all_bark_all_bite:village/common/animals/dog_white",
+        "projection": "rigid",
+        "processors": "minecraft:empty"
+      }
+    },
+    {
+      "weight": 1,
+      "element": {
+        "element_type": "minecraft:legacy_single_pool_element",
+        "location": "all_bark_all_bite:village/common/animals/dog_yellow",
+        "projection": "rigid",
+        "processors": "minecraft:empty"
+      }
+    },
+    {
+      "weight": 3,
       "element": {
         "element_type": "minecraft:empty_pool_element"
-      }
-    },
-    {
-      "weight": 1,
-      "element": {
-        "element_type": "minecraft:legacy_single_pool_element",
-        "location": "all_bark_all_bite:pillager_outpost/feature_kennel",
-        "projection": "rigid",
-        "processors": "minecraft:empty"
       }
     }
   ]

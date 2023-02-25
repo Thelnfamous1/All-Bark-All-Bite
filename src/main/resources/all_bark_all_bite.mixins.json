@@ -10,6 +10,7 @@
     "MobAccessor",
     "MobMixin",
     "PathfinderMobMixin",
+    "StructureTemplatePoolAccessor",
     "SwimMixin",
     "TamableAnimalMixin",
     "VillagerGoalPackagesMixin",
