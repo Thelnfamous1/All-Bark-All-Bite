@@ -77,7 +77,7 @@ public class WolfBrain {
                 new Swim(SharedWolfAi.JUMP_CHANCE_IN_WATER),
                 SharedWolfBrain.createAnimalPanic(),
                 new Eat(SharedWolfAi::setAteRecently, SharedWolfAi.EAT_DURATION),
-                new LookAtTargetSink(45, 90),
+                SharedWolfBrain.createLookAtTargetSink(),
                 SharedWolfBrain.createMoveToTargetSink(),
                 SharedWolfBrain.copyDislikedToAvoidTarget(),
                 new UpdateUnitMemory<>(TamableAnimal::isOrderedToSit, ABABMemoryModuleTypes.IS_ORDERED_TO_SIT.get()),

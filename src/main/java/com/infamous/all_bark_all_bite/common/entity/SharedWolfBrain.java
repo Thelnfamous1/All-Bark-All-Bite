@@ -261,4 +261,8 @@ public class SharedWolfBrain {
                 MemoryModuleType.AVOID_TARGET,
                 SharedWolfAi.AVOID_DURATION);
     }
+
+    public static RunIf<TamableAnimal> createLookAtTargetSink() {
+        return new RunIf<>(Predicate.not(LivingEntity::isSleeping), new LookAtTargetSink(45, 90), true);
+    }
 }
