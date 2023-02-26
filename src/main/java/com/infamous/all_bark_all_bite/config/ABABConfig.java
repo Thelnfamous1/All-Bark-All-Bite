@@ -2,6 +2,7 @@ package com.infamous.all_bark_all_bite.config;
 
 import net.minecraftforge.common.ForgeConfigSpec;
 
+import java.util.List;
 import java.util.function.Consumer;
 
 public class ABABConfig {
@@ -23,12 +24,16 @@ public class ABABConfig {
 
     public static ForgeConfigSpec.IntValue alertableMaxXZDistance;
     public static ForgeConfigSpec.IntValue alertableMaxYDistance;
+    public static ForgeConfigSpec.IntValue dogAttackDamage;
     public static ForgeConfigSpec.IntValue dogDigMaxXZDistance;
     public static ForgeConfigSpec.IntValue dogDigMaxYDistance;
+    public static ForgeConfigSpec.IntValue dogMaxHealth;
     public static ForgeConfigSpec.IntValue dogTargetDetectionDistance;
     public static ForgeConfigSpec.IntValue petTeleportDistanceTrigger;
     public static ForgeConfigSpec.IntValue whistleAttackMaxDistance;
     public static ForgeConfigSpec.IntValue whistleGoMaxDistance;
+    public static ForgeConfigSpec.IntValue wolfAttackDamage;
+    public static ForgeConfigSpec.IntValue wolfMaxHealth;
     public static ForgeConfigSpec.IntValue wolfMaxTrust;
     public static ForgeConfigSpec.DoubleValue wolfHitboxSizeScale;
     public static ForgeConfigSpec.IntValue wolfStartingTrust;
@@ -46,6 +51,9 @@ public class ABABConfig {
                     .comment("Determines the maximum vertical distance away, in blocks, that entities can be to potentially alert dogs and wolves.\n" +
                             "Setting this to 0 effectively disables the feature.")
                     .defineInRange("alertable_max_y_distance", 6, 0, 1024);
+            dogAttackDamage = b
+                    .comment("Determines the default attack damage attribute value for wolves.")
+                    .defineInRange("dog_attack_damage", 4, 0, 2048);
 
             dogDigMaxXZDistance = b
                     .comment("Determines the maximum horizontal distance away, in blocks, that dogs can dig something up at.\n" +
@@ -55,6 +63,9 @@ public class ABABConfig {
                     .comment("Determines the maximum vertical distance away, in blocks, that dogs can dig something up at.\n" +
                             "Setting this to 0 effectively disables the feature.")
                     .defineInRange("dog_dig_max_y_distance", 7, 0, 1024);
+            dogMaxHealth = b
+                    .comment("Determines the default max health attribute value for dogs.")
+                    .defineInRange("dog_max_health", 20, 1, 1024);
 
             dogTargetDetectionDistance = b
                     .comment("Determines the maximum distance away, in blocks, that dogs can detect potential attack targets.\n" +
@@ -74,6 +85,12 @@ public class ABABConfig {
                     .comment("Determines the maximum distance away, in blocks, that the user can target an entity or a block with the \"Go\" whistle command.\n" +
                             "Setting this to 0 effectively disables the feature.")
                     .defineInRange("whistle_go_max_distance", 16, 0, 1024);
+            wolfAttackDamage = b
+                    .comment("Determines the default attack damage attribute value for wolves.")
+                    .defineInRange("wolf_attack_damage", 5, 0, 2048);
+            wolfMaxHealth = b
+                    .comment("Determines the default max health attribute value for wolves.")
+                    .defineInRange("wolf_max_health", 25, 1, 1024);
             wolfMaxTrust = b
                     .comment("Determines the maximum trust level required to tame a trusting wolf.\n" +
                             "Setting this to 0 effectively disables the feature.")
@@ -116,6 +133,7 @@ public class ABABConfig {
 
     public static ForgeConfigSpec.BooleanValue addDogsToVillageCatPool;
     public static ForgeConfigSpec.BooleanValue addKennelToOutpostFeaturesPool;
+    public static ForgeConfigSpec.ConfigValue<List<? extends Integer>> houndmasterRaidWaveCounts;
 
     private static void setupServerConfig(ForgeConfigSpec.Builder builder) {
         createConfigCategory(builder, " This category holds configs that uses booleans.", "Boolean Config Options", b -> {
@@ -127,6 +145,16 @@ public class ABABConfig {
                     .comment("Determines whether or not the kennel structure located under \"all_bark_all_bite:pillager_outpost/feature_kennel\" is manually added to the \"minecraft:pillager_outpost/features\" structure template pool.\n" +
                             "Setting this to false still allows datapacks to manipulate the structure template pool.")
                     .define("add_kennel_to_outpost_features_pool", true);
+
+        });
+        createConfigCategory(builder, " This category holds configs that uses lists.", "List Config Options", b -> {
+            houndmasterRaidWaveCounts = b
+                    .comment("""
+                            Determines the minimum number of Houndmasters that can spawn each raid wave.
+                            This is meant to be a list of seven integers.
+                            A list of less than seven will fill remaining spots with zeroes, and values past the seventh will be ignored.""")
+                    .defineList("houndmaster_raid_wave_counts", List.of(0, 0, 0, 0, 1, 1, 2), waveCount -> waveCount instanceof Integer);
+
         });
     }
 

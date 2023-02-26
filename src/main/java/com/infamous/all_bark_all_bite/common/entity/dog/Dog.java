@@ -11,6 +11,7 @@ import com.infamous.all_bark_all_bite.common.registry.ABABMemoryModuleTypes;
 import com.infamous.all_bark_all_bite.common.util.ai.AiUtil;
 import com.infamous.all_bark_all_bite.common.util.DebugUtil;
 import com.infamous.all_bark_all_bite.common.util.MiscUtil;
+import com.infamous.all_bark_all_bite.config.ABABConfig;
 import com.mojang.serialization.Dynamic;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
@@ -86,8 +87,8 @@ public class Dog extends TamableAnimal implements InterestedMob, ShakingMob, Var
         return Mob.createMobAttributes()
                 .add(Attributes.FOLLOW_RANGE, 64.0D)
                 .add(Attributes.MOVEMENT_SPEED, 0.3D)
-                .add(Attributes.MAX_HEALTH, 20.0D)
-                .add(Attributes.ATTACK_DAMAGE, 4.0D);
+                .add(Attributes.MAX_HEALTH, ABABConfig.dogMaxHealth.get())
+                .add(Attributes.ATTACK_DAMAGE, ABABConfig.dogAttackDamage.get());
     }
 
     @Override

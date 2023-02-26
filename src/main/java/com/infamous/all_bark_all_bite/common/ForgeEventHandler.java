@@ -15,6 +15,7 @@ import com.infamous.all_bark_all_bite.common.registry.ABABEntityTypes;
 import com.infamous.all_bark_all_bite.common.registry.ABABItems;
 import com.infamous.all_bark_all_bite.common.util.*;
 import com.infamous.all_bark_all_bite.common.util.ai.AiUtil;
+import com.infamous.all_bark_all_bite.config.ABABConfig;
 import net.minecraft.core.BlockPos;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.server.MinecraftServer;
@@ -32,6 +33,7 @@ import net.minecraft.world.entity.animal.horse.AbstractHorse;
 import net.minecraft.world.entity.animal.horse.Llama;
 import net.minecraft.world.entity.monster.AbstractSkeleton;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.entity.raid.Raid;
 import net.minecraft.world.level.CustomSpawner;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
@@ -44,6 +46,7 @@ import net.minecraftforge.event.entity.living.LivingEvent;
 import net.minecraftforge.event.entity.living.LivingFallEvent;
 import net.minecraftforge.event.entity.player.PlayerInteractEvent;
 import net.minecraftforge.event.entity.player.SleepingLocationCheckEvent;
+import net.minecraftforge.event.server.ServerAboutToStartEvent;
 import net.minecraftforge.eventbus.api.Event;
 import net.minecraftforge.eventbus.api.EventPriority;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
@@ -51,6 +54,7 @@ import net.minecraftforge.fml.common.Mod;
 import org.apache.commons.compress.utils.Lists;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
@@ -227,6 +231,21 @@ public class ForgeEventHandler {
         if(entity.getType() == EntityType.WOLF){
             WolfHooks.onWolfJump(entity);
         }
+    }
+
+    @SubscribeEvent
+    static void onServerStarting(ServerAboutToStartEvent event){
+        List<? extends Integer> houndmasterRaidWaveCounts = ABABConfig.houndmasterRaidWaveCounts.get();
+        int[] waveCounts = new int[]{0, 0, 0, 0, 0, 0, 0, 0};
+        for(int i = 1; i < waveCounts.length; i++){
+            try{
+                waveCounts[i] = houndmasterRaidWaveCounts.get(i - 1);
+            } catch (Exception ignored){
+                waveCounts[i] = 0;
+            }
+        }
+        AllBarkAllBite.LOGGER.info("Adding RaiderType for entity type {} with wave counts {}", ABABEntityTypes.HOUNDMASTER.get(), Arrays.toString(waveCounts));
+        Raid.RaiderType.create(ABABEntityTypes.HOUNDMASTER_NAME, ABABEntityTypes.HOUNDMASTER.get(), waveCounts);
     }
 
 }

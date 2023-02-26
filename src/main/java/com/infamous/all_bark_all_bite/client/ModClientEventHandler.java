@@ -9,7 +9,6 @@ import com.infamous.all_bark_all_bite.client.renderer.model.ABABWolfModel;
 import com.infamous.all_bark_all_bite.client.renderer.model.DogModel;
 import com.infamous.all_bark_all_bite.client.renderer.model.HoundmasterModel;
 import com.infamous.all_bark_all_bite.client.renderer.model.IllagerHoundModel;
-import com.infamous.all_bark_all_bite.common.network.ABABNetwork;
 import com.infamous.all_bark_all_bite.common.registry.ABABEntityTypes;
 import net.minecraft.world.entity.EntityType;
 import net.minecraftforge.api.distmarker.Dist;
@@ -17,15 +16,9 @@ import net.minecraftforge.client.event.EntityRenderersEvent;
 import net.minecraftforge.eventbus.api.EventPriority;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
-import net.minecraftforge.fml.event.lifecycle.FMLClientSetupEvent;
 
 @Mod.EventBusSubscriber(bus = Mod.EventBusSubscriber.Bus.MOD, modid = AllBarkAllBite.MODID, value = Dist.CLIENT)
 public class ModClientEventHandler {
-
-    @SubscribeEvent
-    static void onClientSetup(FMLClientSetupEvent event){
-        event.enqueueWork(ABABNetwork::register);
-    }
 
     @SubscribeEvent(priority = EventPriority.LOWEST)
     static void onRegisterLayerDefinitions(EntityRenderersEvent.RegisterLayerDefinitions event){
