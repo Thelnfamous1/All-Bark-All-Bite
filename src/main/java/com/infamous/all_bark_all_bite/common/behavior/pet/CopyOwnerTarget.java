@@ -1,8 +1,9 @@
 package com.infamous.all_bark_all_bite.common.behavior.pet;
 
+import com.google.common.collect.ImmutableMap;
 import com.infamous.all_bark_all_bite.common.behavior.TargetBehavior;
 import com.infamous.all_bark_all_bite.common.entity.OwnableMob;
-import com.infamous.all_bark_all_bite.common.util.AiUtil;
+import com.infamous.all_bark_all_bite.common.util.ai.AiUtil;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.Mob;
@@ -15,7 +16,7 @@ public class CopyOwnerTarget<T extends Mob & OwnableMob> extends TargetBehavior<
     private static final TargetingConditions COPY_OWNER_TARGETING = TargetingConditions.forNonCombat().ignoreLineOfSight().ignoreInvisibilityTesting();
 
     public CopyOwnerTarget() {
-        super(false);
+        super(ImmutableMap.of(), false);
     }
 
     @Override

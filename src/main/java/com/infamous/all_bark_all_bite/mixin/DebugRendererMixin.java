@@ -1,5 +1,6 @@
 package com.infamous.all_bark_all_bite.mixin;
 
+import com.infamous.all_bark_all_bite.AllBarkAllBite;
 import com.mojang.blaze3d.vertex.PoseStack;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.MultiBufferSource;
@@ -20,7 +21,7 @@ public class DebugRendererMixin {
 
     @Inject(method = "render", at = @At("RETURN"))
     private void doDebugRenderers(PoseStack poseStack, MultiBufferSource.BufferSource bufferSource, double camX, double camY, double camZ, CallbackInfo callbackInfo) {
-        if(Minecraft.getInstance().player.isHolding(Items.DEBUG_STICK)){
+        if(AllBarkAllBite.ENABLE_BRAIN_DEBUG && Minecraft.getInstance().player.isHolding(Items.DEBUG_STICK)){
             this.brainDebugRenderer.render(poseStack, bufferSource, camX, camY, camZ);
         }
     }

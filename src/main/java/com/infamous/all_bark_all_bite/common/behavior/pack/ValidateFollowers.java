@@ -2,12 +2,11 @@ package com.infamous.all_bark_all_bite.common.behavior.pack;
 
 import com.google.common.collect.ImmutableMap;
 import com.infamous.all_bark_all_bite.common.registry.ABABMemoryModuleTypes;
-import com.infamous.all_bark_all_bite.common.util.AiUtil;
-import com.infamous.all_bark_all_bite.common.ai.PackAi;
+import com.infamous.all_bark_all_bite.common.util.ai.AiUtil;
+import com.infamous.all_bark_all_bite.common.util.ai.PackAi;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
-import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.ai.behavior.Behavior;
 import net.minecraft.world.entity.ai.memory.MemoryStatus;
 
@@ -36,7 +35,7 @@ public class ValidateFollowers extends Behavior<LivingEntity> {
                     && follower.level == leader.level
                     && PackAi.isFollower(follower)
                     && AiUtil.isSameTypeAndFriendly(leader, follower)
-                    && follower.closerThan(leader, follower.getAttributeValue(Attributes.FOLLOW_RANGE))
+                    && follower.closerThan(leader, AiUtil.getFollowRange(follower))
                     && leader.level.getWorldBorder().isWithinBounds(follower.getBoundingBox());
         }
         return false;

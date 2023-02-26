@@ -5,11 +5,11 @@ import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.behavior.PositionTracker;
 import net.minecraft.world.phys.Vec3;
 
-public class PositionTrackerImpl implements PositionTracker {
+public class VectorTracker implements PositionTracker {
     private final BlockPos blockPos;
     private final Vec3 position;
 
-    public PositionTrackerImpl(Vec3 position) {
+    public VectorTracker(Vec3 position) {
         this.blockPos = new BlockPos(position).immutable();
         this.position = position;
     }
@@ -31,6 +31,6 @@ public class PositionTrackerImpl implements PositionTracker {
 
     @Override
     public String toString() {
-        return "PositionTrackerImpl{position=" + this.position + ", blockPos=" + this.blockPos + "}";
+        return "VectorTracker{position=" + this.position + ", blockPos=" + this.blockPos + "}";
     }
 }

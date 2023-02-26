@@ -1,11 +1,13 @@
 package com.infamous.all_bark_all_bite.common.item;
 
-import com.infamous.all_bark_all_bite.common.ai.CommandAi;
+import com.infamous.all_bark_all_bite.common.util.ai.CommandAi;
+import com.infamous.all_bark_all_bite.config.ABABConfig;
 import com.infamous.all_bark_all_bite.common.logic.PetManagement;
 import com.infamous.all_bark_all_bite.common.logic.entity_manager.MultiEntityManager;
 import com.infamous.all_bark_all_bite.common.registry.ABABInstruments;
 import com.infamous.all_bark_all_bite.common.registry.ABABItems;
-import com.infamous.all_bark_all_bite.common.util.AiUtil;
+import com.infamous.all_bark_all_bite.common.util.ai.AiUtil;
+import com.infamous.all_bark_all_bite.common.util.PetUtil;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.Holder;
 import net.minecraft.nbt.CompoundTag;
@@ -16,9 +18,7 @@ import net.minecraft.tags.TagKey;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
-import net.minecraft.world.entity.OwnableEntity;
 import net.minecraft.world.entity.PathfinderMob;
-import net.minecraft.world.entity.animal.horse.AbstractHorse;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Instrument;
 import net.minecraft.world.item.ItemStack;
@@ -63,8 +63,7 @@ public class PetWhistleItem extends AdjustableInstrumentItem{
     }
 
     private static boolean isOwnedBy(Entity target, Entity owner) {
-        return target instanceof OwnableEntity ownable && owner.getUUID().equals(ownable.getOwnerUUID())
-                || target instanceof AbstractHorse horse && owner.getUUID().equals(horse.getOwnerUUID());
+        return PetUtil.getOwnerUUID(target).filter(uuid -> uuid.equals(owner.getUUID())).isPresent();
     }
 
     @Nullable
@@ -85,30 +84,24 @@ public class PetWhistleItem extends AdjustableInstrumentItem{
             UUID petUUID = getPetUUID(useItem);
 
             if(instrument == ABABInstruments.ATTACK_WHISTLE.get()){
-                AiUtil.getTargetedEntity(user, 16)
+                AiUtil.getTargetedEntity(user, ABABConfig.whistleAttackMaxDistance.get())
                         .filter(LivingEntity.class::isInstance)
                         .map(LivingEntity.class::cast)
                         .ifPresent(target -> commandPet(petManager, dog -> CommandAi.commandAttack(dog, target, user), petUUID));
-            }
-            if(instrument == ABABInstruments.COME_WHISTLE.get()){
+            } else if(instrument == ABABInstruments.COME_WHISTLE.get()){
                 commandPet(petManager, pet -> CommandAi.commandCome(pet, user, serverLevel), petUUID);
-            }
-            if(instrument == ABABInstruments.FOLLOW_WHISTLE.get()){
+            } else if(instrument == ABABInstruments.FOLLOW_WHISTLE.get()){
                 commandPet(petManager, pet -> CommandAi.commandFollow(pet, user), petUUID);
-            }
-            if(instrument == ABABInstruments.FREE_WHISTLE.get()){
+            } else if(instrument == ABABInstruments.FREE_WHISTLE.get()){
                 commandPet(petManager, pet -> CommandAi.commandFree(pet, user), petUUID);
-            }
-            if(instrument == ABABInstruments.GO_WHISTLE.get()){
-                HitResult hitResult = AiUtil.getHitResult(user, 16);
+            } else if(instrument == ABABInstruments.GO_WHISTLE.get()){
+                HitResult hitResult = AiUtil.getHitResult(user, ABABConfig.whistleGoMaxDistance.get());
                 if(hitResult.getType() != HitResult.Type.MISS){
                     commandPet(petManager, pet -> CommandAi.commandGo(pet, user, hitResult), petUUID);
                 }
-            }
-            if(instrument == ABABInstruments.HEEL_WHISTLE.get()){
+            } else if(instrument == ABABInstruments.HEEL_WHISTLE.get()){
                 commandPet(petManager, pet -> CommandAi.commandHeel(pet, user), petUUID);
-            }
-            if(instrument == ABABInstruments.SIT_WHISTLE.get()){
+            } else if(instrument == ABABInstruments.SIT_WHISTLE.get()){
                 commandPet(petManager, pet -> CommandAi.commandSit(pet, user), petUUID);
             }
         }

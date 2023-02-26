@@ -2,7 +2,7 @@ package com.infamous.all_bark_all_bite.common.sensor.vibration;
 
 import com.google.common.collect.ImmutableSet;
 import com.infamous.all_bark_all_bite.AllBarkAllBite;
-import com.infamous.all_bark_all_bite.common.util.BrainUtil;
+import com.infamous.all_bark_all_bite.common.util.ai.BrainUtil;
 import com.infamous.all_bark_all_bite.common.util.MiscUtil;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.Entity;
@@ -26,11 +26,13 @@ public class VibrationSensor<E extends LivingEntity, VLC extends EntityVibration
     protected final EntityVibrationListenerConfig.Constructor<E, VLC> listenerConfigFactory;
     protected final MemoryModuleType<EntityVibrationListener<E, VLC>> listenerMemory;
     private DynamicGameEventListener<EntityVibrationListener<E, VLC>> dynamicVibrationListener;
+    private final int defaultListenerRange;
 
-    public VibrationSensor(EntityVibrationListenerConfig.Constructor<E, VLC> listenerConfigFactory, MemoryModuleType<EntityVibrationListener<E, VLC>> listenerMemory) {
+    public VibrationSensor(EntityVibrationListenerConfig.Constructor<E, VLC> listenerConfigFactory, MemoryModuleType<EntityVibrationListener<E, VLC>> listenerMemory, int defaultListenerRange) {
         super(1); // needs to tick every second like an entity, this is fine because we are not doing list searches every tick
         this.listenerConfigFactory = listenerConfigFactory;
         this.listenerMemory = listenerMemory;
+        this.defaultListenerRange = defaultListenerRange;
     }
 
     @Override
@@ -71,11 +73,11 @@ public class VibrationSensor<E extends LivingEntity, VLC extends EntityVibration
     protected EntityVibrationListener<E, VLC> createDefaultListener(E mob) {
         PositionSource positionSource = new EntityPositionSource(mob, mob.getEyeHeight());
         VLC listenerConfig = this.listenerConfigFactory.create();
-        return new EntityVibrationListener<>(positionSource, this.defaultListenerRange(), listenerConfig, null, 0.0F, 0);
+        return new EntityVibrationListener<>(positionSource, this.getDefaultListenerRange(), listenerConfig, null, 0.0F, 0);
     }
 
-    protected int defaultListenerRange() {
-        return 64;
+    protected int getDefaultListenerRange() {
+        return this.defaultListenerRange;
     }
 
     @Override

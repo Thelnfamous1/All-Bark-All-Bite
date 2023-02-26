@@ -1,7 +1,7 @@
 package com.infamous.all_bark_all_bite.common.behavior.hunter;
 
 import com.google.common.collect.ImmutableMap;
-import com.infamous.all_bark_all_bite.common.ai.HunterAi;
+import com.infamous.all_bark_all_bite.common.util.ai.HunterAi;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.util.valueproviders.UniformInt;
 import net.minecraft.world.entity.LivingEntity;

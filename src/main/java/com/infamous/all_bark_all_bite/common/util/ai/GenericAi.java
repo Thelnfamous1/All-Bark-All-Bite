@@ -1,8 +1,7 @@
-package com.infamous.all_bark_all_bite.common.ai;
+package com.infamous.all_bark_all_bite.common.util.ai;
 
 import com.google.common.collect.ImmutableList;
 import com.infamous.all_bark_all_bite.common.registry.ABABMemoryModuleTypes;
-import com.infamous.all_bark_all_bite.common.util.AiUtil;
 import com.infamous.all_bark_all_bite.common.util.ReflectionUtil;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.Mob;

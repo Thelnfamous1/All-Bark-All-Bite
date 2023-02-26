@@ -1,13 +1,16 @@
 package com.infamous.all_bark_all_bite.common.behavior.pet;
 
 import com.google.common.collect.ImmutableMap;
-import com.infamous.all_bark_all_bite.common.ai.GenericAi;
-import com.infamous.all_bark_all_bite.common.util.AiUtil;
+import com.infamous.all_bark_all_bite.common.registry.ABABMemoryModuleTypes;
+import com.infamous.all_bark_all_bite.common.util.ai.GenericAi;
+import com.infamous.all_bark_all_bite.config.ABABConfig;
+import com.infamous.all_bark_all_bite.common.util.ai.AiUtil;
 import com.infamous.all_bark_all_bite.common.util.CompatUtil;
 import com.infamous.all_bark_all_bite.common.util.DICompat;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.util.Mth;
+import net.minecraft.util.Unit;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.PathfinderMob;
 import net.minecraft.world.entity.ai.behavior.Behavior;
@@ -29,7 +32,6 @@ public class FollowOwner<E extends PathfinderMob> extends Behavior<E> {
     private static final int MIN_HORIZONTAL_DISTANCE_FROM_PLAYER_WHEN_TELEPORTING = 2;
     private static final int MAX_HORIZONTAL_DISTANCE_FROM_PLAYER_WHEN_TELEPORTING = 3;
     private static final int MAX_VERTICAL_DISTANCE_FROM_PLAYER_WHEN_TELEPORTING = 1;
-    public static final int TELEPORT_DISTANCE = 12;
     private final Predicate<E> dontFollowIf;
 
     private final Function<E, Optional<LivingEntity>> entityGetter;
@@ -49,7 +51,10 @@ public class FollowOwner<E extends PathfinderMob> extends Behavior<E> {
     }
 
     public FollowOwner(Predicate<E> dontFollowIf, Function<E, Optional<LivingEntity>> entityGetter, float speedModifier, int closeEnough, ToIntFunction<E> tooFarFunction, boolean canFly) {
-        super(ImmutableMap.of(MemoryModuleType.LOOK_TARGET, MemoryStatus.REGISTERED, MemoryModuleType.WALK_TARGET, MemoryStatus.REGISTERED));
+        super(ImmutableMap.of(
+                ABABMemoryModuleTypes.IS_FOLLOWING.get(), MemoryStatus.REGISTERED,
+                MemoryModuleType.LOOK_TARGET, MemoryStatus.REGISTERED,
+                MemoryModuleType.WALK_TARGET, MemoryStatus.REGISTERED));
         this.dontFollowIf = dontFollowIf;
         this.entityGetter = entityGetter;
         this.speedModifier = speedModifier;
@@ -79,6 +84,7 @@ public class FollowOwner<E extends PathfinderMob> extends Behavior<E> {
 
     @Override
     public void start(ServerLevel level, E mob, long gameTime) {
+        mob.getBrain().setMemory(ABABMemoryModuleTypes.IS_FOLLOWING.get(), Unit.INSTANCE);
         this.calculatePathCounter = 0;
         this.oldWaterCost = mob.getPathfindingMalus(BlockPathTypes.WATER);
         mob.setPathfindingMalus(BlockPathTypes.WATER, 0.0F);
@@ -95,10 +101,9 @@ public class FollowOwner<E extends PathfinderMob> extends Behavior<E> {
         return false;
     }
 
+    @Override
     public boolean canStillUse(ServerLevel level, E mob, long gameTime) {
-        if (mob.getNavigation().isDone()) {
-            return false;
-        } else if (this.dontFollowIf(mob)) {
+        if (this.dontFollowIf(mob)) {
             return false;
         } else {
             Optional<LivingEntity> entityOptional = this.getOwner(mob);
@@ -121,16 +126,10 @@ public class FollowOwner<E extends PathfinderMob> extends Behavior<E> {
         LivingEntity owner = this.getOwner(mob).get();
         BehaviorUtils.lookAtEntity(mob, owner);
 
-        if(CompatUtil.isDILoaded()){
-            if (DICompat.hasDIAmphibiousEnchant(mob) && mob.isInWaterOrBubble() && mob.closerThan(owner, TELEPORT_DISTANCE)) {
-                this.goToEntity(mob);
-            }
-        }
-
         if (--this.calculatePathCounter <= 0) {
             this.calculatePathCounter = 10;
             if (!mob.isLeashed() && !mob.isPassenger()) {
-                if (!mob.closerThan(owner, TELEPORT_DISTANCE)) {
+                if (!mob.closerThan(owner, ABABConfig.petTeleportDistanceTrigger.get())) {
                     FollowOwner.teleportToEntity(owner, level, mob, this.canFly);
                 } else {
                     this.goToEntity(mob);
@@ -193,7 +192,10 @@ public class FollowOwner<E extends PathfinderMob> extends Behavior<E> {
     private static int randomIntInclusive(PathfinderMob mob, int min, int max) {
         return mob.getRandom().nextInt(max - min + 1) + min;
     }
+
+    @Override
     public void stop(ServerLevel level, E mob, long gameTime) {
+        mob.getBrain().eraseMemory(ABABMemoryModuleTypes.IS_FOLLOWING.get());
         GenericAi.stopWalking(mob);
         mob.setPathfindingMalus(BlockPathTypes.WATER, this.oldWaterCost);
     }

@@ -2,21 +2,21 @@ package com.infamous.all_bark_all_bite.common.entity.wolf;
 
 import com.google.common.collect.ImmutableList;
 import com.infamous.all_bark_all_bite.common.ABABTags;
-import com.infamous.all_bark_all_bite.common.ai.GenericAi;
-import com.infamous.all_bark_all_bite.common.ai.TrustAi;
-import com.infamous.all_bark_all_bite.common.behavior.*;
+import com.infamous.all_bark_all_bite.common.util.ai.*;
+import com.infamous.all_bark_all_bite.common.behavior.misc.*;
 import com.infamous.all_bark_all_bite.common.behavior.pack.HowlForPack;
 import com.infamous.all_bark_all_bite.common.behavior.pack.JoinOrCreatePackAndFollow;
 import com.infamous.all_bark_all_bite.common.behavior.pack.ValidateFollowers;
 import com.infamous.all_bark_all_bite.common.behavior.pack.ValidateLeader;
+import com.infamous.all_bark_all_bite.common.behavior.pet.Beg;
+import com.infamous.all_bark_all_bite.common.behavior.sleep.MoveToNonSkySeeingSpot;
 import com.infamous.all_bark_all_bite.common.behavior.sleep.WakeUpTrigger;
+import com.infamous.all_bark_all_bite.config.ABABConfig;
 import com.infamous.all_bark_all_bite.common.entity.SharedWolfAi;
 import com.infamous.all_bark_all_bite.common.entity.SharedWolfBrain;
 import com.infamous.all_bark_all_bite.common.logic.BrainMaker;
 import com.infamous.all_bark_all_bite.common.registry.ABABActivities;
 import com.infamous.all_bark_all_bite.common.registry.ABABMemoryModuleTypes;
-import com.infamous.all_bark_all_bite.common.util.AiUtil;
-import com.infamous.all_bark_all_bite.common.util.BrainUtil;
 import com.mojang.datafixers.util.Pair;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
@@ -50,8 +50,8 @@ public class WolfBrain {
                 SharedWolfBrain.getStalkPackage(), ABABMemoryModuleTypes.STALK_TARGET.get());
         brainMaker.initActivityWithConditions(Activity.REST,
                 SharedWolfBrain.getRestPackage(createIdleLookBehaviors(), true), SharedWolfBrain.getRestConditions(ABABMemoryModuleTypes.IS_LEVEL_DAY.get()));
-        brainMaker.initActivity(Activity.IDLE,
-                getIdlePackage());
+        brainMaker.initActivityWithConditions(Activity.IDLE,
+                getIdlePackage(), SharedWolfBrain.getIdleConditions());
 
         brainMaker.initCoreActivity(Activity.CORE,
                 getCorePackage());
@@ -75,15 +75,11 @@ public class WolfBrain {
                 new WakeUpTrigger<>(SharedWolfAi::wantsToWakeUp),
                 new AgeChangeTrigger<>(SharedWolfBrain::onAgeChanged),
                 new Swim(SharedWolfAi.JUMP_CHANCE_IN_WATER),
-                new RunIf<>(SharedWolfAi::shouldPanic, new AnimalPanic(SharedWolfAi.SPEED_MODIFIER_PANICKING), true),
+                SharedWolfBrain.createAnimalPanic(),
                 new Eat(SharedWolfAi::setAteRecently, SharedWolfAi.EAT_DURATION),
                 new LookAtTargetSink(45, 90),
-                new MoveToTargetSink(),
-                new CopyMemoryWithExpiry<>(
-                        SharedWolfAi::isNearDisliked,
-                        ABABMemoryModuleTypes.NEAREST_VISIBLE_DISLIKED.get(),
-                        MemoryModuleType.AVOID_TARGET,
-                        SharedWolfAi.AVOID_DURATION),
+                SharedWolfBrain.createMoveToTargetSink(),
+                SharedWolfBrain.copyDislikedToAvoidTarget(),
                 new UpdateUnitMemory<>(TamableAnimal::isOrderedToSit, ABABMemoryModuleTypes.IS_ORDERED_TO_SIT.get()),
                 new UpdateUnitMemory<>(SharedWolfAi::hasShelter, ABABMemoryModuleTypes.IS_SHELTERED.get()),
                 new UpdateUnitMemory<>(SharedWolfAi::isInDayTime, ABABMemoryModuleTypes.IS_LEVEL_DAY.get()),
@@ -95,7 +91,7 @@ public class WolfBrain {
     }
 
     private static boolean isAlert(Wolf wolf) {
-        return SharedWolfAi.alertable(wolf, ABABTags.WOLF_HUNT_TARGETS, ABABTags.WOLF_ALWAYS_HOSTILES);
+        return SharedWolfAi.alertable(wolf, ABABTags.WOLF_HUNT_TARGETS, ABABTags.WOLF_ALWAYS_HOSTILES, ABABTags.WOLF_DISLIKED);
     }
 
     private static ImmutableList<? extends Pair<Integer, ? extends Behavior<? super Wolf>>> getUpdatePackage(List<Activity> activities){
@@ -114,8 +110,8 @@ public class WolfBrain {
                 ABABMemoryModuleTypes.POUNCE_TARGET.get(),
                 ABABMemoryModuleTypes.HOWL_LOCATION.get());
 
-        if(TrustAi.likes(wolf, attacker)){
-            TrustAi.decrementTrust(wolf, WolfAi.TRUST_INCREMENT);
+        if(!wolf.isTame() && TrustAi.isLikedBy(wolf, attacker)){
+            TrustAi.decrementTrust(wolf, ABABConfig.wolfTrustDecrement.get());
         }
 
         SharedWolfAi.reactToAttack(wolf, attacker);
@@ -145,10 +141,10 @@ public class WolfBrain {
     }
 
     private static ImmutableList<? extends Pair<Integer, ? extends Behavior<? super Wolf>>> getIdlePackage(){
-        return BrainUtil.createPriorityPairs(0, ImmutableList.of(BrainUtil.tryAllBehaviorsInOrderIfAbsent(
+        return BrainUtil.createPriorityPairs(0,
                 ImmutableList.of(
                         new Sprint<>(SharedWolfAi::canMove, SharedWolfAi.TOO_FAR_FROM_WALK_TARGET),
-                        new RunIf<>(SharedWolfBrain::isFollowingOwner, SharedWolfAi.createFollowOwner(SharedWolfAi.SPEED_MODIFIER_WALKING), true),
+                        new RunIf<>(CommandAi::isFollowing, SharedWolfAi.createFollowOwner(SharedWolfAi.SPEED_MODIFIER_WALKING), true),
                         BrainUtil.tryAllBehaviorsInOrderIfAbsent(
                                 ImmutableList.of(
                                         new RunIf<>(WolfBrain::canBeTempted, new FollowTemptation(SharedWolfAi::getSpeedModifierTempted), true),
@@ -158,18 +154,17 @@ public class WolfBrain {
                                         new JoinOrCreatePackAndFollow<>(SharedWolfAi.ADULT_FOLLOW_RANGE, SharedWolfAi.SPEED_MODIFIER_FOLLOWING_ADULT),
                                         new BabyFollowAdult<>(SharedWolfAi.ADULT_FOLLOW_RANGE, SharedWolfAi.SPEED_MODIFIER_FOLLOWING_ADULT)
                                 ),
-                                ABABMemoryModuleTypes.IS_ORDERED_TO_FOLLOW.get(),
-                                ABABMemoryModuleTypes.IS_ORDERED_TO_HEEL.get()
+                                ABABMemoryModuleTypes.IS_ORDERED_TO_FOLLOW.get()
                         ),
                         SharedWolfAi.createGoToWantedItem(false),
-                        createIdleMovementBehaviors(),
+                        new RunIf<>(Predicate.not(SharedWolfBrain::isActivelyFollowing), createIdleMovementBehaviors(), true),
                         beg(),
                         createIdleLookBehaviors()
-                ), ABABMemoryModuleTypes.IS_SLEEPING.get(), ABABMemoryModuleTypes.IS_ORDERED_TO_SIT.get())));
+        ));
     }
 
     private static boolean canBeTempted(Wolf wolf){
-        return wolf.isTame() || GenericAi.getTemptingPlayer(wolf).map(temptingPlayer -> WolfAi.isOwnedByOrLikes(wolf, temptingPlayer)).orElse(false);
+        return wolf.isTame() || GenericAi.getTemptingPlayer(wolf).map(temptingPlayer -> WolfAi.isAlliedTo(wolf, temptingPlayer)).orElse(false);
     }
 
     private static RunOne<TamableAnimal> createIdleLookBehaviors() {

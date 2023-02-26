@@ -1,13 +1,14 @@
 package com.infamous.all_bark_all_bite.common.entity.dog;
 
+import com.infamous.all_bark_all_bite.AllBarkAllBite;
 import com.infamous.all_bark_all_bite.common.ABABTags;
-import com.infamous.all_bark_all_bite.common.ai.GenericAi;
+import com.infamous.all_bark_all_bite.common.util.ai.GenericAi;
 import com.infamous.all_bark_all_bite.common.entity.*;
 import com.infamous.all_bark_all_bite.common.registry.ABABDogVariants;
 import com.infamous.all_bark_all_bite.common.registry.ABABEntityDataSerializers;
 import com.infamous.all_bark_all_bite.common.registry.ABABEntityTypes;
 import com.infamous.all_bark_all_bite.common.registry.ABABMemoryModuleTypes;
-import com.infamous.all_bark_all_bite.common.util.AiUtil;
+import com.infamous.all_bark_all_bite.common.util.ai.AiUtil;
 import com.infamous.all_bark_all_bite.common.util.DebugUtil;
 import com.infamous.all_bark_all_bite.common.util.MiscUtil;
 import com.mojang.serialization.Dynamic;
@@ -77,11 +78,13 @@ public class Dog extends TamableAnimal implements InterestedMob, ShakingMob, Var
         this.setPathfindingMalus(BlockPathTypes.POWDER_SNOW, -1.0F);
         this.setPathfindingMalus(BlockPathTypes.DANGER_POWDER_SNOW, -1.0F);
         this.setCanPickUpLoot(this.canPickUpLoot());
+        this.getNavigation().setCanFloat(true);
         this.animationController = new SharedWolfAnimationController(this, TamableAnimal.DATA_FLAGS_ID, Entity.DATA_POSE);
     }
 
     public static AttributeSupplier.Builder createAttributes() {
         return Mob.createMobAttributes()
+                .add(Attributes.FOLLOW_RANGE, 64.0D)
                 .add(Attributes.MOVEMENT_SPEED, 0.3D)
                 .add(Attributes.MAX_HEALTH, 20.0D)
                 .add(Attributes.ATTACK_DAMAGE, 4.0D);
@@ -217,7 +220,10 @@ public class Dog extends TamableAnimal implements InterestedMob, ShakingMob, Var
             Optional<InteractionResult> mobInteract = DogAi.mobInteract(this, player, hand);
             if(mobInteract.isEmpty()){
                 InteractionResult animalInteractResult = super.mobInteract(player, hand);
-                boolean willNotBreed = !animalInteractResult.consumesAction() || this.isBaby();
+                if(animalInteractResult.consumesAction()){
+                    this.setPersistenceRequired();
+                }
+                boolean willNotBreed = !animalInteractResult.consumesAction();
                 if (willNotBreed && this.isOwnedBy(player)) {
                     SharedWolfAi.manualCommand(this, player);
                     return InteractionResult.CONSUME;
@@ -417,10 +423,12 @@ public class Dog extends TamableAnimal implements InterestedMob, ShakingMob, Var
     protected void sendDebugPackets() {
         super.sendDebugPackets();
         DebugPackets.sendEntityBrain(this);
-        if(this.level instanceof ServerLevel serverLevel){
+        if(AllBarkAllBite.ENABLE_BRAIN_DEBUG && this.level instanceof ServerLevel serverLevel){
             DebugUtil.sendEntityBrain(this, serverLevel,
+                    ABABMemoryModuleTypes.FOLLOW_TRIGGER_DISTANCE.get(),
+                    ABABMemoryModuleTypes.IS_ALERT.get(),
+                    ABABMemoryModuleTypes.IS_FOLLOWING.get(),
                     ABABMemoryModuleTypes.IS_ORDERED_TO_FOLLOW.get(),
-                    ABABMemoryModuleTypes.IS_ORDERED_TO_HEEL.get(),
                     ABABMemoryModuleTypes.IS_ORDERED_TO_SIT.get());
         }
     }
@@ -437,6 +445,11 @@ public class Dog extends TamableAnimal implements InterestedMob, ShakingMob, Var
         MobEffectInstance jumpEffectInstance = this.getEffect(MobEffects.JUMP);
         float jumpEffectFallReduction = jumpEffectInstance == null ? 0.0F : (float)(jumpEffectInstance.getAmplifier() + 1);
         return Mth.ceil((fallDistance - SharedWolfAi.FALL_REDUCTION - jumpEffectFallReduction) * fallDamageMultiplier);
+    }
+
+    @Override
+    public boolean removeWhenFarAway(double p_28174_) {
+        return !this.isTame() && this.tickCount > 2400;
     }
 
     // VariantMob

@@ -1,9 +1,9 @@
-package com.infamous.all_bark_all_bite.common.behavior;
+package com.infamous.all_bark_all_bite.common.behavior.misc;
 
 import com.google.common.collect.ImmutableMap;
-import com.infamous.all_bark_all_bite.common.ai.GenericAi;
+import com.infamous.all_bark_all_bite.common.util.ai.GenericAi;
 import com.infamous.all_bark_all_bite.common.registry.ABABActivities;
-import com.infamous.all_bark_all_bite.common.util.PositionTrackerImpl;
+import com.infamous.all_bark_all_bite.common.util.VectorTracker;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.entity.PathfinderMob;
@@ -56,7 +56,7 @@ public class PerchAndSearch<E extends PathfinderMob> extends Behavior<E> {
         double relZ = Math.sin(randomLookAngle);
         this.lookTime = 80 + random.nextInt(20);
         Vec3 lookAtPos = new Vec3(mob.getX() + relX, mob.getEyeY(), mob.getZ() + relZ);
-        mob.getBrain().setMemory(MemoryModuleType.LOOK_TARGET, new PositionTrackerImpl(lookAtPos));
+        mob.getBrain().setMemory(MemoryModuleType.LOOK_TARGET, new VectorTracker(lookAtPos));
     }
 
     @Override

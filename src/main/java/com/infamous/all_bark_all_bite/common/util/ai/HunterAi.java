@@ -1,4 +1,4 @@
-package com.infamous.all_bark_all_bite.common.ai;
+package com.infamous.all_bark_all_bite.common.util.ai;
 
 import com.infamous.all_bark_all_bite.common.registry.ABABMemoryModuleTypes;
 import net.minecraft.util.valueproviders.UniformInt;

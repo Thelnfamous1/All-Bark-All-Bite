@@ -1,7 +1,6 @@
 package com.infamous.all_bark_all_bite.mixin;
 
-import com.infamous.all_bark_all_bite.AllBarkAllBite;
-import com.infamous.all_bark_all_bite.common.entity.wolf.WolfAi;
+import com.infamous.all_bark_all_bite.common.entity.wolf.WolfHooks;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
@@ -23,15 +22,14 @@ public abstract class LivingEntityMixin extends Entity {
     @Inject(method = "brainProvider", at = @At("RETURN"), cancellable = true)
     private void handleBrainProvider(CallbackInfoReturnable<Brain.Provider<?>> cir){
         if(this.getType() == EntityType.WOLF){
-            AllBarkAllBite.LOGGER.info("Adding memory and sensor types to {}", this);
-            cir.setReturnValue(Brain.provider(WolfAi.MEMORY_TYPES, WolfAi.SENSOR_TYPES));
+            cir.setReturnValue(WolfHooks.getWolfBrainProvider());
         }
     }
 
     @Inject(method = "getEatingSound", at = @At("HEAD"), cancellable = true)
     private void handleGetEatingSound(ItemStack stack, CallbackInfoReturnable<SoundEvent> cir) {
         if(this.getType() == EntityType.WOLF){
-            cir.setReturnValue(WolfAi.getWolfEatingSound());
+            cir.setReturnValue(WolfHooks.getWolfEatingSound());
         }
     }
 }

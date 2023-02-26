@@ -1,7 +1,7 @@
 package com.infamous.all_bark_all_bite.mixin;
 
-import com.infamous.all_bark_all_bite.common.ai.GenericAi;
-import com.infamous.all_bark_all_bite.common.entity.wolf.WolfAi;
+import com.infamous.all_bark_all_bite.common.util.ai.GenericAi;
+import com.infamous.all_bark_all_bite.common.entity.wolf.WolfHooks;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.Mob;
@@ -25,7 +25,7 @@ public abstract class MobMixin extends LivingEntity {
     @Inject(method = "wantsToPickUp", at = @At("HEAD"), cancellable = true)
     private void wantsToPickUp(ItemStack stack, CallbackInfoReturnable<Boolean> cir) {
         if(this.getType() == EntityType.WOLF){
-            cir.setReturnValue(WolfAi.wolfWantsToPickUp(stack, (Mob)(Object)this));
+            cir.setReturnValue(WolfHooks.wolfWantsToPickUp(stack, (Mob)(Object)this));
         }
     }
 
@@ -39,14 +39,14 @@ public abstract class MobMixin extends LivingEntity {
     @Inject(method = "canTakeItem", at = @At("RETURN"), cancellable = true)
     private void canTakeItem(ItemStack stack, CallbackInfoReturnable<Boolean> cir) {
         if(this.getType() == EntityType.WOLF){
-            cir.setReturnValue(WolfAi.canWolfTakeItem(stack, (Mob)(Object)this, cir.getReturnValue()));
+            cir.setReturnValue(WolfHooks.canWolfTakeItem(stack, (Mob)(Object)this, cir.getReturnValue()));
         }
     }
 
     @Inject(method = "canHoldItem", at = @At("HEAD"), cancellable = true)
     private void canHoldItem(ItemStack itemStack, CallbackInfoReturnable<Boolean> cir) {
         if(this.getType() == EntityType.WOLF && ((Mob)(Object)this) instanceof Animal animal){
-            cir.setReturnValue(WolfAi.canWolfHoldItem(itemStack, animal));
+            cir.setReturnValue(WolfHooks.canWolfHoldItem(itemStack, animal));
         }
     }
 
@@ -54,7 +54,7 @@ public abstract class MobMixin extends LivingEntity {
     private void pickUpItem(ItemEntity itemEntity, CallbackInfo ci) {
         if(this.getType() == EntityType.WOLF){
             ci.cancel();
-            WolfAi.onWolfPickUpItem(itemEntity, (Mob) (Object)this);
+            WolfHooks.onWolfPickUpItem(itemEntity, (Mob) (Object)this);
         }
     }
 }

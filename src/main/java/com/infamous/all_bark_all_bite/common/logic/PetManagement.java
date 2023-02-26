@@ -3,14 +3,16 @@ package com.infamous.all_bark_all_bite.common.logic;
 import com.google.common.collect.Maps;
 import com.infamous.all_bark_all_bite.AllBarkAllBite;
 import com.infamous.all_bark_all_bite.common.logic.entity_manager.MultiEntityManager;
+import com.infamous.all_bark_all_bite.common.util.PetUtil;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.Entity;
-import net.minecraft.world.entity.OwnableEntity;
-import net.minecraft.world.entity.animal.horse.AbstractHorse;
+import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
 import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.event.entity.EntityJoinLevelEvent;
+import net.minecraftforge.event.entity.player.PlayerInteractEvent;
+import net.minecraftforge.eventbus.api.EventPriority;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
 
@@ -27,16 +29,7 @@ public class PetManagement {
     }
 
     private static boolean isValidPet(UUID ownerUUID, Entity entity){
-        if(entity instanceof OwnableEntity ownable){
-            UUID petOwnerUUID = ownable.getOwnerUUID();
-            if(petOwnerUUID == null) return false;
-            return petOwnerUUID.equals(ownerUUID);
-        } else if(entity instanceof AbstractHorse horse){
-            UUID horseOwnerUUID = horse.getOwnerUUID();
-            if(horseOwnerUUID == null) return false;
-            return horseOwnerUUID.equals(ownerUUID);
-        }
-        return false;
+        return PetUtil.getOwnerUUID(entity).filter(uuid -> uuid.equals(ownerUUID)).isPresent();
     }
 
     public static MultiEntityManager getPetManager(ResourceKey<Level> dimension, UUID ownerUUID){
@@ -53,12 +46,20 @@ public class PetManagement {
             Level level = event.getLevel();
             if(!level.isClientSide){
                 Entity entity = event.getEntity();
-                if(entity instanceof OwnableEntity ownable){
-                    UUID ownerUUID = ownable.getOwnerUUID();
-                    if(ownerUUID != null){
-                        PetManagement.getPetManager(level.dimension(), ownerUUID).add(entity);
-                    }
-                }
+                PetUtil.getOwnerUUID(entity)
+                        .ifPresent(uuid -> PetManagement.getPetManager(level.dimension(), uuid).add(entity));
+            }
+        }
+        @SubscribeEvent(priority = EventPriority.LOWEST)
+        static void onEntityInteract(PlayerInteractEvent.EntityInteract event) {
+            Player player = event.getEntity();
+            Entity target = event.getTarget();
+            Level level = event.getLevel();
+            if (!level.isClientSide) {
+                UUID playerUUID = player.getUUID();
+                PetUtil.getOwnerUUID(target)
+                        .filter(uuid -> uuid.equals(playerUUID))
+                        .ifPresent(uuid -> PetManagement.getPetManager(level.dimension(), uuid).add(target));
             }
         }
 

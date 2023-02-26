@@ -13,6 +13,7 @@ import net.minecraft.world.level.pathfinder.Node;
 import net.minecraft.world.level.pathfinder.Path;
 
 import javax.annotation.Nullable;
+import java.util.Map;
 
 public abstract class TargetBehavior<E extends Mob> extends Behavior<E> {
     private static final int EMPTY_REACH_CACHE = 0;
@@ -22,10 +23,12 @@ public abstract class TargetBehavior<E extends Mob> extends Behavior<E> {
     private final boolean mustReach;
     private int reachCache;
     private int reachCacheTime;
-    public TargetBehavior(boolean mustReach) {
-        super(ImmutableMap.of(
-                MemoryModuleType.ATTACK_TARGET, MemoryStatus.REGISTERED,
-                MemoryModuleType.CANT_REACH_WALK_TARGET_SINCE, MemoryStatus.REGISTERED));
+    public TargetBehavior(Map<MemoryModuleType<?>, MemoryStatus> additionalMemories, boolean mustReach) {
+        super(ImmutableMap.<MemoryModuleType<?>, MemoryStatus>builder()
+                .putAll(additionalMemories)
+                .put(MemoryModuleType.ATTACK_TARGET, MemoryStatus.REGISTERED)
+                .put(MemoryModuleType.CANT_REACH_WALK_TARGET_SINCE, MemoryStatus.REGISTERED)
+                .build());
         this.mustReach = mustReach;
     }
 

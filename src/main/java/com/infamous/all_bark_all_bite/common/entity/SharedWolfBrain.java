@@ -2,16 +2,22 @@ package com.infamous.all_bark_all_bite.common.entity;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
-import com.infamous.all_bark_all_bite.common.ai.*;
-import com.infamous.all_bark_all_bite.common.behavior.*;
 import com.infamous.all_bark_all_bite.common.behavior.hunter.*;
+import com.infamous.all_bark_all_bite.common.behavior.long_jump.LeapAtTarget;
+import com.infamous.all_bark_all_bite.common.behavior.misc.HurtByEntityTrigger;
+import com.infamous.all_bark_all_bite.common.behavior.misc.Sprint;
+import com.infamous.all_bark_all_bite.common.behavior.misc.UpdateActivity;
+import com.infamous.all_bark_all_bite.common.behavior.misc.UpdateTarget;
+import com.infamous.all_bark_all_bite.common.behavior.pet.DefendLikedPlayer;
 import com.infamous.all_bark_all_bite.common.behavior.pet.OwnerHurtByTarget;
 import com.infamous.all_bark_all_bite.common.behavior.pet.OwnerHurtTarget;
 import com.infamous.all_bark_all_bite.common.behavior.pet.SitWhenOrderedTo;
 import com.infamous.all_bark_all_bite.common.behavior.sleep.SleepOnGround;
 import com.infamous.all_bark_all_bite.common.registry.ABABMemoryModuleTypes;
-import com.infamous.all_bark_all_bite.common.util.AiUtil;
-import com.infamous.all_bark_all_bite.common.util.BrainUtil;
+import com.infamous.all_bark_all_bite.common.util.ai.AiUtil;
+import com.infamous.all_bark_all_bite.common.util.ai.BrainUtil;
+import com.infamous.all_bark_all_bite.common.util.ai.GenericAi;
+import com.infamous.all_bark_all_bite.common.util.ai.HunterAi;
 import com.mojang.datafixers.util.Pair;
 import net.minecraft.Util;
 import net.minecraft.util.Unit;
@@ -51,6 +57,7 @@ public class SharedWolfBrain {
         return BrainUtil.createPriorityPairs(0,
                 ImmutableList.of(
                         new OwnerHurtByTarget<>(SharedWolfAi::canDefendOwner, SharedWolfAi::wantsToAttack),
+                        new RunIf<>(Predicate.not(TamableAnimal::isTame), new DefendLikedPlayer<>()),
                         new OwnerHurtTarget<>(SharedWolfAi::canDefendOwner, SharedWolfAi::wantsToAttack),
                         new HurtByEntityTrigger<>(onHurtByEntity),
                         new StartAttacking<>(SharedWolfAi::canStartAttacking, SharedWolfAi::findNearestValidAttackTarget),
@@ -194,16 +201,11 @@ public class SharedWolfBrain {
             restConditions.add(Pair.of(ABABMemoryModuleTypes.IS_SHELTERED.get(), MemoryStatus.VALUE_PRESENT));
             restConditions.add(Pair.of(timeMemory, MemoryStatus.VALUE_PRESENT));
             restConditions.add(Pair.of(ABABMemoryModuleTypes.IS_ORDERED_TO_FOLLOW.get(), MemoryStatus.VALUE_ABSENT));
-            restConditions.add(Pair.of(ABABMemoryModuleTypes.IS_ORDERED_TO_HEEL.get(), MemoryStatus.VALUE_ABSENT));
             restConditions.add(Pair.of(ABABMemoryModuleTypes.IS_ALERT.get(), MemoryStatus.VALUE_ABSENT));
             restConditions.add(Pair.of(MemoryModuleType.WALK_TARGET, MemoryStatus.VALUE_ABSENT));
             restConditions.add(Pair.of(MemoryModuleType.TEMPTING_PLAYER, MemoryStatus.VALUE_ABSENT));
             return restConditions;
         });
-    }
-
-    public static boolean isFollowingOwner(TamableAnimal dog) {
-        return CommandAi.isFollowing(dog) || CommandAi.isHeeling(dog);
     }
 
     public static void fetchItem(LivingEntity livingEntity) {
@@ -231,5 +233,32 @@ public class SharedWolfBrain {
                 && !SharedWolfAi.isAlert(mob)
                 && HunterAi.getPounceTarget(mob).isEmpty()
                 && mob.getPose() != Pose.CROUCHING;
+    }
+
+    public static Set<Pair<MemoryModuleType<?>, MemoryStatus>> getIdleConditions() {
+        return ImmutableSet.of(
+                Pair.of(ABABMemoryModuleTypes.IS_SLEEPING.get(), MemoryStatus.VALUE_ABSENT),
+                Pair.of(ABABMemoryModuleTypes.IS_ORDERED_TO_SIT.get(), MemoryStatus.VALUE_ABSENT)
+        );
+    }
+
+    public static boolean isActivelyFollowing(LivingEntity wolf){
+        return wolf.getBrain().hasMemoryValue(ABABMemoryModuleTypes.IS_FOLLOWING.get());
+    }
+
+    public static RunIf<TamableAnimal> createMoveToTargetSink() {
+        return new RunIf<>(SharedWolfAi::canMove, new MoveToTargetSink(), true);
+    }
+
+    public static RunIf<TamableAnimal> createAnimalPanic() {
+        return new RunIf<>(SharedWolfAi::shouldPanic, new AnimalPanic(SharedWolfAi.SPEED_MODIFIER_PANICKING), true);
+    }
+
+    public static CopyMemoryWithExpiry<TamableAnimal, LivingEntity> copyDislikedToAvoidTarget() {
+        return new CopyMemoryWithExpiry<>(
+                SharedWolfAi::isNearDisliked,
+                ABABMemoryModuleTypes.NEAREST_VISIBLE_DISLIKED.get(),
+                MemoryModuleType.AVOID_TARGET,
+                SharedWolfAi.AVOID_DURATION);
     }
 }

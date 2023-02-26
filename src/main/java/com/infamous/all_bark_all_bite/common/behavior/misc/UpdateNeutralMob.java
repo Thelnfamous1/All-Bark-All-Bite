@@ -1,7 +1,7 @@
-package com.infamous.all_bark_all_bite.common.behavior;
+package com.infamous.all_bark_all_bite.common.behavior.misc;
 
 import com.google.common.collect.ImmutableMap;
-import com.infamous.all_bark_all_bite.common.ai.AngerAi;
+import com.infamous.all_bark_all_bite.common.util.ai.AngerAi;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.Mob;
@@ -23,7 +23,10 @@ public class UpdateNeutralMob<T extends Mob & NeutralMob> extends Behavior<T> {
         if(angerTarget != null && mob.getTarget() != null && angerTarget != mob.getTarget()){
             mob.setTarget(angerTarget);
             mob.setPersistentAngerTarget(angerTarget.getUUID());
-            mob.setRemainingPersistentAngerTime(AngerAi.getAngryAtTime(mob));
+        }
+        int angryAtTime = AngerAi.getAngryAtTime(mob);
+        if(mob.getRemainingPersistentAngerTime() != angryAtTime) {
+            mob.setRemainingPersistentAngerTime(angryAtTime);
         }
     }
 }

@@ -1,6 +1,7 @@
 package com.infamous.all_bark_all_bite.common.behavior.pet;
 
-import com.infamous.all_bark_all_bite.common.util.AiUtil;
+import com.google.common.collect.ImmutableMap;
+import com.infamous.all_bark_all_bite.common.util.ai.AiUtil;
 import com.infamous.all_bark_all_bite.common.behavior.TargetBehavior;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.LivingEntity;
@@ -18,13 +19,14 @@ public class OwnerHurtByTarget<M extends Mob & OwnableEntity> extends TargetBeha
     private int timestamp;
     private final Predicate<M> canCheck;
     private final TriPredicate<M, LivingEntity, LivingEntity> wantsToAttack;
+    private LivingEntity owner;
 
     public OwnerHurtByTarget(){
         this(mob -> true, (mob, target, owner) -> true);
     }
 
     public OwnerHurtByTarget(Predicate<M> canCheck, TriPredicate<M, LivingEntity, LivingEntity> wantsToAttack) {
-        super(false);
+        super(ImmutableMap.of(), false);
         this.canCheck = canCheck;
         this.wantsToAttack = wantsToAttack;
     }
@@ -32,16 +34,16 @@ public class OwnerHurtByTarget<M extends Mob & OwnableEntity> extends TargetBeha
     @Override
     protected boolean checkExtraStartConditions(ServerLevel level, M tamable) {
         if (this.canCheck.test(tamable)) {
-            Optional<LivingEntity> maybeOwner = AiUtil.getOwner(tamable);
-            if (maybeOwner.isEmpty()) {
+            Optional<LivingEntity> owner = AiUtil.getOwner(tamable);
+            if (owner.isEmpty()) {
                 return false;
             } else {
-                LivingEntity owner = maybeOwner.get();
-                this.ownerLastHurtBy = owner.getLastHurtByMob();
-                int lastHurtByMobTimestamp = owner.getLastHurtByMobTimestamp();
+                this.owner = owner.get();
+                this.ownerLastHurtBy = this.owner.getLastHurtByMob();
+                int lastHurtByMobTimestamp = this.owner.getLastHurtByMobTimestamp();
                 return lastHurtByMobTimestamp != this.timestamp
                         && this.canAttack(tamable, this.ownerLastHurtBy, TargetingConditions.DEFAULT)
-                        && this.wantsToAttack.test(tamable, this.ownerLastHurtBy, owner);
+                        && this.wantsToAttack.test(tamable, this.ownerLastHurtBy, this.owner);
             }
         } else {
             return false;
@@ -51,7 +53,7 @@ public class OwnerHurtByTarget<M extends Mob & OwnableEntity> extends TargetBeha
     @Override
     protected void start(ServerLevel level, M tamable, long gameTime) {
         StartAttacking.setAttackTarget(tamable, this.ownerLastHurtBy);
-        AiUtil.getOwner(tamable).ifPresent(owner -> this.timestamp = owner.getLastHurtByMobTimestamp());
+        this.timestamp = this.owner.getLastHurtByMobTimestamp();
         super.start(level, tamable, gameTime);
     }
 }

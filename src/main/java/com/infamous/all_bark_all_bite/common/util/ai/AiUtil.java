@@ -1,4 +1,4 @@
-package com.infamous.all_bark_all_bite.common.util;
+package com.infamous.all_bark_all_bite.common.util.ai;
 
 import com.infamous.all_bark_all_bite.common.logic.MobInteraction;
 import com.infamous.all_bark_all_bite.mixin.LivingEntityAccessor;
@@ -15,6 +15,7 @@ import net.minecraft.world.InteractionResult;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.entity.*;
 import net.minecraft.world.entity.ai.Brain;
+import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.ai.behavior.BlockPosTracker;
 import net.minecraft.world.entity.ai.behavior.EntityTracker;
 import net.minecraft.world.entity.ai.behavior.PositionTracker;
@@ -328,4 +329,7 @@ public class AiUtil {
         entity.level.addFreshEntity(drop);
     }
 
+    public static double getFollowRange(LivingEntity mob) {
+        return mob.getAttributeValue(Attributes.FOLLOW_RANGE);
+    }
 }

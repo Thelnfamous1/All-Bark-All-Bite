@@ -1,4 +1,4 @@
-package com.infamous.all_bark_all_bite.common.behavior;
+package com.infamous.all_bark_all_bite.common.behavior.misc;
 
 import com.google.common.collect.ImmutableMap;
 import com.mojang.datafixers.util.Pair;

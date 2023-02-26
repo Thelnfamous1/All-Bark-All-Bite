@@ -1,9 +1,9 @@
 package com.infamous.all_bark_all_bite.common.behavior.pack;
 
 import com.google.common.collect.ImmutableMap;
-import com.infamous.all_bark_all_bite.common.util.AiUtil;
-import com.infamous.all_bark_all_bite.common.ai.GenericAi;
-import com.infamous.all_bark_all_bite.common.ai.PackAi;
+import com.infamous.all_bark_all_bite.common.util.ai.AiUtil;
+import com.infamous.all_bark_all_bite.common.util.ai.GenericAi;
+import com.infamous.all_bark_all_bite.common.util.ai.PackAi;
 import com.infamous.all_bark_all_bite.common.registry.ABABMemoryModuleTypes;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.util.valueproviders.UniformInt;

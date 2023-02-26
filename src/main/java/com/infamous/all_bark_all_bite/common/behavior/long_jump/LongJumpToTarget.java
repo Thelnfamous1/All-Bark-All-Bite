@@ -2,7 +2,7 @@ package com.infamous.all_bark_all_bite.common.behavior.long_jump;
 
 import com.google.common.collect.ImmutableMap;
 import com.infamous.all_bark_all_bite.common.registry.ABABMemoryModuleTypes;
-import com.infamous.all_bark_all_bite.common.ai.LongJumpAi;
+import com.infamous.all_bark_all_bite.common.util.ai.LongJumpAi;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundEvent;

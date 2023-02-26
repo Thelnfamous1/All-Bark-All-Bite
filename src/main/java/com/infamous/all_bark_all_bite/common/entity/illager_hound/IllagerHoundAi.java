@@ -27,6 +27,7 @@ public class IllagerHoundAi {
                     MemoryModuleType.CANT_REACH_WALK_TARGET_SINCE,
                     MemoryModuleType.HURT_BY,
                     MemoryModuleType.HURT_BY_ENTITY,
+                    ABABMemoryModuleTypes.IS_FOLLOWING.get(),
                     MemoryModuleType.LONG_JUMP_COOLDOWN_TICKS,
                     MemoryModuleType.LONG_JUMP_MID_JUMP,
                     MemoryModuleType.LOOK_TARGET,

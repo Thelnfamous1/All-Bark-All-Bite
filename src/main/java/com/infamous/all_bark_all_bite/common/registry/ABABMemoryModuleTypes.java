@@ -9,6 +9,7 @@ import com.infamous.all_bark_all_bite.common.vibration.WolfVibrationListenerConf
 import com.infamous.all_bark_all_bite.common.sensor.vibration.EntityVibrationListener;
 import com.mojang.serialization.Codec;
 import net.minecraft.core.GlobalPos;
+import net.minecraft.util.ExtraCodecs;
 import net.minecraft.util.Unit;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.behavior.PositionTracker;
@@ -119,10 +120,6 @@ public class ABABMemoryModuleTypes {
             "pounce_target",
             () -> new MemoryModuleType<>(Optional.empty()));
 
-    public static RegistryObject<MemoryModuleType<Unit>> IS_ORDERED_TO_HEEL = MEMORY_MODULE_TYPES.register(
-            "is_ordered_to_heel",
-            () -> new MemoryModuleType<>(Optional.of(Codec.unit(Unit.INSTANCE))));
-
     public static RegistryObject<MemoryModuleType<Integer>> POUNCE_COOLDOWN_TICKS = MEMORY_MODULE_TYPES.register(
             "pounce_cooldown_ticks",
             () -> new MemoryModuleType<>(Optional.of(Codec.INT)));
@@ -139,12 +136,16 @@ public class ABABMemoryModuleTypes {
             "trust",
             () -> new MemoryModuleType<>(Optional.of(Codec.INT)));
 
-    public static RegistryObject<MemoryModuleType<Integer>> MAX_TRUST = MEMORY_MODULE_TYPES.register(
-            "max_trust",
-            () -> new MemoryModuleType<>(Optional.of(Codec.INT)));
-
     public static RegistryObject<MemoryModuleType<Unit>> IS_SLEEPING = MEMORY_MODULE_TYPES.register(
             "is_sleeping",
             () -> new MemoryModuleType<>(Optional.of(Codec.unit(Unit.INSTANCE))));
+
+    public static RegistryObject<MemoryModuleType<Integer>> FOLLOW_TRIGGER_DISTANCE = MEMORY_MODULE_TYPES.register(
+            "follow_trigger_distance",
+            () -> new MemoryModuleType<>(Optional.of(ExtraCodecs.NON_NEGATIVE_INT)));
+
+    public static RegistryObject<MemoryModuleType<Unit>> IS_FOLLOWING = MEMORY_MODULE_TYPES.register(
+            "is_following",
+            () -> new MemoryModuleType<>(Optional.empty()));
 
 }

@@ -5,16 +5,13 @@ import com.infamous.all_bark_all_bite.client.renderer.model.ABABWolfModel;
 import com.infamous.all_bark_all_bite.client.renderer.model.layer.SharedWolfCollarLayer;
 import com.infamous.all_bark_all_bite.client.renderer.model.layer.SharedWolfHeldItemLayer;
 import com.infamous.all_bark_all_bite.client.util.RWCompatClient;
-import com.infamous.all_bark_all_bite.common.entity.wolf.WolfAi;
+import com.infamous.all_bark_all_bite.config.ABABConfig;
 import com.infamous.all_bark_all_bite.common.util.CompatUtil;
 import com.mojang.blaze3d.vertex.PoseStack;
-import com.mojang.math.Vector3f;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.entity.EntityRendererProvider;
 import net.minecraft.client.renderer.entity.MobRenderer;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraft.util.Mth;
-import net.minecraft.world.entity.Pose;
 import net.minecraft.world.entity.animal.Wolf;
 
 public class ABABWolfRenderer extends MobRenderer<Wolf, ABABWolfModel<Wolf>> {
@@ -46,31 +43,6 @@ public class ABABWolfRenderer extends MobRenderer<Wolf, ABABWolfModel<Wolf>> {
    }
 
    @Override
-   protected void setupRotations(Wolf wolf, PoseStack poseStack, float ageInTicks, float lerpYBodyRot, float partialTick) {
-      if (this.isShaking(wolf)) {
-         lerpYBodyRot += (float)(Math.cos((double)wolf.tickCount * 3.25D) * Math.PI * (double)0.4F);
-      }
-
-      poseStack.mulPose(Vector3f.YP.rotationDegrees(180.0F - lerpYBodyRot));
-
-      if (wolf.deathTime > 0) {
-         float deathFlipProgress = ((float)wolf.deathTime + partialTick - 1.0F) / 20.0F * 1.6F;
-         deathFlipProgress = Mth.sqrt(deathFlipProgress);
-         if (deathFlipProgress > 1.0F) {
-            deathFlipProgress = 1.0F;
-         }
-
-         poseStack.mulPose(Vector3f.ZP.rotationDegrees(deathFlipProgress * this.getFlipDegrees(wolf)));
-      } else if (wolf.isAutoSpinAttack()) {
-         poseStack.mulPose(Vector3f.XP.rotationDegrees(-90.0F - wolf.getXRot()));
-         poseStack.mulPose(Vector3f.YP.rotationDegrees(((float)wolf.tickCount + partialTick) * -75.0F));
-      } else if (!wolf.hasPose(Pose.SLEEPING) && isEntityUpsideDown(wolf)) {
-         poseStack.translate(0.0D, wolf.getBbHeight() + 0.1F, 0.0D);
-         poseStack.mulPose(Vector3f.ZP.rotationDegrees(180.0F));
-      }
-   }
-
-   @Override
    public ResourceLocation getTextureLocation(Wolf wolf) {
       if (wolf.isTame()) {
          return WOLF_TAME_LOCATION;
@@ -81,7 +53,7 @@ public class ABABWolfRenderer extends MobRenderer<Wolf, ABABWolfModel<Wolf>> {
 
    @Override
    protected void scale(Wolf wolf, PoseStack poseStack, float partialTick) {
-      float scaleFactor = WolfAi.WOLF_SIZE_SCALE;
+      float scaleFactor = ABABConfig.wolfRenderSizeScale.get().floatValue() * ABABConfig.wolfHitboxSizeScale.get().floatValue();
       if (wolf.isBaby()) {
          scaleFactor *= 0.5F;
          this.shadowRadius = DEFAULT_SHADOW_RADIUS * 0.5F;

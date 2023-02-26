@@ -2,27 +2,25 @@ package com.infamous.all_bark_all_bite.common;
 
 import com.google.common.collect.Maps;
 import com.infamous.all_bark_all_bite.AllBarkAllBite;
-import com.infamous.all_bark_all_bite.common.ai.TrustAi;
 import com.infamous.all_bark_all_bite.common.entity.DogSpawner;
-import com.infamous.all_bark_all_bite.common.entity.EntityAnimationController;
 import com.infamous.all_bark_all_bite.common.entity.SharedWolfAi;
 import com.infamous.all_bark_all_bite.common.entity.dog.Dog;
+import com.infamous.all_bark_all_bite.common.entity.dog.DogHooks;
 import com.infamous.all_bark_all_bite.common.entity.wolf.WolfAi;
-import com.infamous.all_bark_all_bite.common.entity.wolf.WolfBrain;
+import com.infamous.all_bark_all_bite.common.entity.wolf.WolfHooks;
 import com.infamous.all_bark_all_bite.common.goal.LookAtTargetSinkGoal;
 import com.infamous.all_bark_all_bite.common.goal.MoveToTargetSinkGoal;
 import com.infamous.all_bark_all_bite.common.item.PetWhistleItem;
 import com.infamous.all_bark_all_bite.common.registry.ABABEntityTypes;
 import com.infamous.all_bark_all_bite.common.registry.ABABItems;
-import com.infamous.all_bark_all_bite.common.registry.ABABMemoryModuleTypes;
 import com.infamous.all_bark_all_bite.common.util.*;
+import com.infamous.all_bark_all_bite.common.util.ai.AiUtil;
 import net.minecraft.core.BlockPos;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.*;
-import net.minecraft.world.entity.ai.Brain;
 import net.minecraft.world.entity.ai.goal.AvoidEntityGoal;
 import net.minecraft.world.entity.ai.goal.target.NearestAttackableTargetGoal;
 import net.minecraft.world.entity.ai.memory.MemoryModuleType;
@@ -86,14 +84,8 @@ public class ForgeEventHandler {
         addMobDogInteractionGoals(entity);
 
         // make the Wolf brain
-        if(entity instanceof Wolf wolf && entity.getType() == EntityType.WOLF){
-            wolf.goalSelector.removeAllGoals();
-            wolf.targetSelector.removeAllGoals();
-            //noinspection unchecked
-            WolfBrain.makeBrain((Brain<Wolf>) wolf.getBrain());
-            if(!event.loadedFromDisk()) {
-                WolfAi.initMemories(wolf, wolf.getRandom());
-            }
+        if(entity.getType() == EntityType.WOLF){
+            WolfHooks.onWolfJoinLevel((Wolf)entity, event.loadedFromDisk());
         }
 
         // add Brain-like pathfinding behaviors for non-Brain-using pets so the "Come" and "Go" whistle commands work for them
@@ -105,13 +97,14 @@ public class ForgeEventHandler {
         }
     }
 
-    private static void addMobDogInteractionGoals(Entity entity) {
-        if(entity instanceof Fox fox && fox.getType().is(ABABTags.DOG_ALWAYS_HOSTILES)){
+    private static void addMobDogInteractionGoals(Entity mob) {
+        EntityType<?> type = mob.getType();
+        if(mob instanceof Fox fox && type.is(ABABTags.DOG_ALWAYS_HOSTILES)){
             //noinspection ConstantConditions
             fox.goalSelector.addGoal(4, new AvoidEntityGoal<>(fox, Dog.class, 8.0F, 1.6D, 1.4D,
                     (le) -> !((Dog)le).isTame() && !(boolean) ReflectionUtil.callMethod(FOX_IS_DEFENDING, fox)));
         }
-        if(entity instanceof Rabbit rabbit && rabbit.getType().is(ABABTags.DOG_HUNT_TARGETS)){
+        if(mob instanceof Rabbit rabbit && type.is(ABABTags.DOG_HUNT_TARGETS)){
             rabbit.goalSelector.addGoal(4, new AvoidEntityGoal<>(rabbit, Dog.class, 10.0F, 2.2D, 2.2D){
                 @Override
                 public boolean canUse() {
@@ -119,10 +112,10 @@ public class ForgeEventHandler {
                 }
             });
         }
-        if(entity instanceof AbstractSkeleton skeleton && skeleton.getType().is(ABABTags.DOG_ALWAYS_HOSTILES)){
+        if(mob instanceof AbstractSkeleton skeleton && type.is(ABABTags.DOG_ALWAYS_HOSTILES)){
             skeleton.goalSelector.addGoal(3, new AvoidEntityGoal<>(skeleton, Dog.class, 6.0F, 1.0D, 1.2D));
         }
-        if(entity instanceof Llama llama && llama.getType().is(ABABTags.DOG_DISLIKED)){
+        if(mob instanceof Llama llama && type.is(ABABTags.DOG_DISLIKED)){
             llama.targetSelector.addGoal(2, new NearestAttackableTargetGoal<>(llama, Dog.class, 16, false, true,
                     (le) -> !((Dog)le).isTame()){
                 @Override
@@ -137,56 +130,22 @@ public class ForgeEventHandler {
     static void onEntitySize(EntityEvent.Size event){
         Entity entity = event.getEntity();
         if(entity.getType() == EntityType.WOLF){
-            EntityDimensions newSize = event.getNewSize();
-            newSize = resetIfSleeping(entity, newSize);
-            newSize = unfixIfNeeded(newSize);
-            EntityDimensions resize = newSize.scale(WolfAi.WOLF_SIZE_SCALE);
-            resize = resizeForLongJumpIfNeeded(entity, resize);
+            EntityDimensions resize = WolfHooks.onWolfSize(entity, event.getNewSize());
             event.setNewSize(resize, true);
         } else if(entity.getType() == ABABEntityTypes.DOG.get()){
-            EntityDimensions newSize = event.getNewSize();
-            newSize = resetIfSleeping(entity, newSize);
-            newSize = unfixIfNeeded(newSize);
-            newSize = resizeForLongJumpIfNeeded(entity, newSize);
+            EntityDimensions newSize = DogHooks.onDogSize(entity, event.getNewSize());
             event.setNewSize(newSize, true);
         }
     }
 
-    private static EntityDimensions resetIfSleeping(Entity entity, EntityDimensions newSize) {
-        if(entity.hasPose(Pose.SLEEPING)){
-            newSize = entity.getDimensions(Pose.STANDING);
-        }
-        return newSize;
-    }
-
-    private static EntityDimensions unfixIfNeeded(EntityDimensions newSize) {
-        if(newSize.fixed){
-            newSize = new EntityDimensions(newSize.width, newSize.height, false);
-        }
-        return newSize;
-    }
-
-    private static EntityDimensions resizeForLongJumpIfNeeded(Entity entity, EntityDimensions resize) {
-        if(entity.hasPose(Pose.LONG_JUMPING)){
-            resize = resize.scale(SharedWolfAi.LONG_JUMPING_SCALE);
-        }
-        return resize;
-    }
-
     @SubscribeEvent
     static void onLivingUpdate(LivingEvent.LivingTickEvent event){
-        LivingEntity livingEntity = event.getEntity();
+        LivingEntity entity = event.getEntity();
+        Level level = entity.level;
         if(!event.isCanceled()
-                && livingEntity instanceof Wolf wolf
-                && livingEntity.getType() == EntityType.WOLF
-                && wolf.level instanceof ServerLevel level){
-            WolfAi.updateAi(level, wolf);
-            DebugUtil.sendEntityBrain(wolf, level,
-                    ABABMemoryModuleTypes.TRUST.get(),
-                    ABABMemoryModuleTypes.MAX_TRUST.get(),
-                    ABABMemoryModuleTypes.IS_ORDERED_TO_FOLLOW.get(),
-                    ABABMemoryModuleTypes.IS_ORDERED_TO_HEEL.get(),
-                    ABABMemoryModuleTypes.IS_ORDERED_TO_SIT.get());
+                && entity.getType() == EntityType.WOLF
+                && !level.isClientSide){
+            WolfHooks.onWolfUpdate((Wolf)entity, (ServerLevel) level);
         }
     }
 
@@ -228,20 +187,21 @@ public class ForgeEventHandler {
     @SubscribeEvent(priority = EventPriority.LOWEST)
     static void onEntityInteract(PlayerInteractEvent.EntityInteract event){
         if(event.isCanceled()) return;
+        Player player = event.getEntity();
+        Entity target = event.getTarget();
 
         if(event.getItemStack().is(ABABItems.WHISTLE.get())){
-            if(PetWhistleItem.interactWithPet(event.getItemStack(), event.getEntity(), event.getTarget(), event.getHand())){
+            if(PetWhistleItem.interactWithPet(event.getItemStack(), player, target, event.getHand())){
                 event.setCanceled(true);
                 event.setCancellationResult(InteractionResult.SUCCESS);
                 return;
             }
         }
 
-        if(!event.getItemStack().is(ABABTags.HAS_WOLF_INTERACTION) && !event.getEntity().isSecondaryUseActive()){
-            Entity target = event.getTarget();
-            if(target instanceof Wolf wolf && target.getType() == EntityType.WOLF){
+        if(!event.getItemStack().is(ABABTags.HAS_WOLF_INTERACTION) && !player.isSecondaryUseActive()){
+            if(target.getType() == EntityType.WOLF){
                 event.setCanceled(true);
-                event.setCancellationResult(AiUtil.interactOn(event.getEntity(), wolf, event.getHand(), WolfAi::mobInteract));
+                event.setCancellationResult(AiUtil.interactOn(player, (Wolf)target, event.getHand(), WolfAi::mobInteract));
             }
         }
     }
@@ -249,13 +209,8 @@ public class ForgeEventHandler {
     @SubscribeEvent
     static void onBabySpawn(BabyEntitySpawnEvent event){
         AgeableMob child = event.getChild();
-        if(child instanceof Wolf pup && child.getType() == EntityType.WOLF){
-            Player player = event.getCausedByPlayer();
-            if(player != null){
-                TrustAi.setTrust(pup, 0);
-                TrustAi.setRandomMaxTrust(pup, WolfAi.MAX_TRUST);
-                TrustAi.setLikedPlayer(pup, player);
-            }
+        if(child != null && child.getType() == EntityType.WOLF){
+            WolfHooks.onWolfPupSpawn((Wolf)child, event.getCausedByPlayer());
         }
     }
 
@@ -270,7 +225,8 @@ public class ForgeEventHandler {
     static void onLivingJump(LivingEvent.LivingJumpEvent event){
         LivingEntity entity = event.getEntity();
         if(entity.getType() == EntityType.WOLF){
-            entity.level.broadcastEntityEvent(entity, EntityAnimationController.JUMPING_EVENT_ID);
+            WolfHooks.onWolfJump(entity);
         }
     }
+
 }

@@ -1,12 +1,12 @@
-package com.infamous.all_bark_all_bite.common.ai;
+package com.infamous.all_bark_all_bite.common.util.ai;
 
 import com.infamous.all_bark_all_bite.common.behavior.pet.FollowOwner;
+import com.infamous.all_bark_all_bite.config.ABABConfig;
 import com.infamous.all_bark_all_bite.common.entity.LookTargetAccessor;
 import com.infamous.all_bark_all_bite.common.entity.SharedWolfAi;
 import com.infamous.all_bark_all_bite.common.entity.WalkTargetAccessor;
 import com.infamous.all_bark_all_bite.common.registry.ABABActivities;
 import com.infamous.all_bark_all_bite.common.registry.ABABMemoryModuleTypes;
-import com.infamous.all_bark_all_bite.common.util.AiUtil;
 import com.infamous.all_bark_all_bite.common.util.CompatUtil;
 import com.infamous.all_bark_all_bite.common.util.DICompat;
 import com.infamous.all_bark_all_bite.common.util.ReflectionUtil;
@@ -62,7 +62,7 @@ public class CommandAi {
     public static void commandCome(PathfinderMob pet, LivingEntity owner, ServerLevel serverLevel) {
         handleStates(pet, false, true);
         yieldAsPet(pet);
-        if(pet.closerThan(owner, FollowOwner.TELEPORT_DISTANCE)){
+        if(pet.closerThan(owner, ABABConfig.petTeleportDistanceTrigger.get())){
             navigateToTarget(pet, owner, SharedWolfAi.SPEED_MODIFIER_WALKING);
         } else{
             FollowOwner.teleportToEntity(owner, serverLevel, pet, pet instanceof FlyingAnimal);
@@ -80,7 +80,7 @@ public class CommandAi {
         handleStates(pet, false, true);
         yieldAsPet(pet);
         stopFollowing(pet);
-        stopHeeling(pet);
+        resetFollowTriggerDistance(pet);
     }
 
     public static void commandFollow(PathfinderMob pet, LivingEntity user) {
@@ -93,15 +93,16 @@ public class CommandAi {
         }
         handleStates(pet, false, true);
         yieldAsPet(pet);
-        stopHeeling(pet);
+        resetFollowTriggerDistance(pet);
         setFollowing(pet);
+
     }
 
     public static void commandGo(PathfinderMob pet, LivingEntity user, HitResult hitResult) {
         handleStates(pet, false, true);
         yieldAsPet(pet);
         stopFollowing(pet);
-        stopHeeling(pet);
+        resetFollowTriggerDistance(pet);
         if(hitResult instanceof BlockHitResult blockHitResult){
             navigateToTarget(pet, blockHitResult.getBlockPos(), SharedWolfAi.SPEED_MODIFIER_WALKING);
         } else if(hitResult instanceof EntityHitResult entityHitResult){
@@ -115,7 +116,7 @@ public class CommandAi {
         }
         handleStates(pet, false, true);
         yieldAsPet(pet);
-        stopFollowing(pet);
+        setFollowing(pet);
         setHeeling(pet);
     }
 
@@ -184,14 +185,14 @@ public class CommandAi {
     }
 
     public static void setHeeling(LivingEntity entity) {
-        entity.getBrain().setMemory(ABABMemoryModuleTypes.IS_ORDERED_TO_HEEL.get(), Unit.INSTANCE);
+        entity.getBrain().setMemory(ABABMemoryModuleTypes.FOLLOW_TRIGGER_DISTANCE.get(), SharedWolfAi.CLOSE_ENOUGH_TO_OWNER);
     }
 
-    public static void stopHeeling(LivingEntity entity) {
-        entity.getBrain().eraseMemory(ABABMemoryModuleTypes.IS_ORDERED_TO_HEEL.get());
+    public static void resetFollowTriggerDistance(LivingEntity entity) {
+        entity.getBrain().setMemory(ABABMemoryModuleTypes.FOLLOW_TRIGGER_DISTANCE.get(), SharedWolfAi.TOO_FAR_FROM_OWNER);
     }
 
-    public static boolean isHeeling(LivingEntity entity){
-        return entity.getBrain().hasMemoryValue(ABABMemoryModuleTypes.IS_ORDERED_TO_HEEL.get());
+    public static int getFollowTriggerDistance(LivingEntity entity){
+        return entity.getBrain().getMemory(ABABMemoryModuleTypes.FOLLOW_TRIGGER_DISTANCE.get()).orElse(SharedWolfAi.TOO_FAR_FROM_OWNER);
     }
 }

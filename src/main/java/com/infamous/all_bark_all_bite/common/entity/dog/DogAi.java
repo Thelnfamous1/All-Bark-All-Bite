@@ -2,10 +2,11 @@ package com.infamous.all_bark_all_bite.common.entity.dog;
 
 import com.google.common.collect.ImmutableList;
 import com.infamous.all_bark_all_bite.common.ABABTags;
-import com.infamous.all_bark_all_bite.common.util.AiUtil;
-import com.infamous.all_bark_all_bite.common.ai.CommandAi;
-import com.infamous.all_bark_all_bite.common.ai.DigAi;
-import com.infamous.all_bark_all_bite.common.ai.GenericAi;
+import com.infamous.all_bark_all_bite.config.ABABConfig;
+import com.infamous.all_bark_all_bite.common.util.ai.AiUtil;
+import com.infamous.all_bark_all_bite.common.util.ai.CommandAi;
+import com.infamous.all_bark_all_bite.common.util.ai.DigAi;
+import com.infamous.all_bark_all_bite.common.util.ai.GenericAi;
 import com.infamous.all_bark_all_bite.common.entity.SharedWolfAi;
 import com.infamous.all_bark_all_bite.common.registry.ABABMemoryModuleTypes;
 import com.infamous.all_bark_all_bite.common.registry.ABABSensorTypes;
@@ -49,15 +50,16 @@ public class DogAi {
             ABABMemoryModuleTypes.DOG_VIBRATION_LISTENER.get(),
             ABABMemoryModuleTypes.FETCHING_DISABLED.get(),
             ABABMemoryModuleTypes.FETCHING_ITEM.get(),
+            ABABMemoryModuleTypes.FOLLOW_TRIGGER_DISTANCE.get(),
             //MemoryModuleType.HAS_HUNTING_COOLDOWN,
             MemoryModuleType.HUNTED_RECENTLY,
             MemoryModuleType.HURT_BY,
             MemoryModuleType.HURT_BY_ENTITY,
             MemoryModuleType.INTERACTION_TARGET,
             ABABMemoryModuleTypes.IS_ALERT.get(),
+            ABABMemoryModuleTypes.IS_FOLLOWING.get(),
             ABABMemoryModuleTypes.IS_LEVEL_NIGHT.get(),
             ABABMemoryModuleTypes.IS_ORDERED_TO_FOLLOW.get(),
-            ABABMemoryModuleTypes.IS_ORDERED_TO_HEEL.get(),
             ABABMemoryModuleTypes.IS_ORDERED_TO_SIT.get(),
             MemoryModuleType.IS_PANICKING,
             ABABMemoryModuleTypes.IS_SHELTERED.get(),
@@ -109,8 +111,6 @@ public class DogAi {
             SensorType.NEAREST_ITEMS,
             SensorType.NEAREST_PLAYERS
     );
-    public static final int DIG_MAX_XZ_DISTANCE = 10;
-    public static final int DIG_MAX_Y_DISTANCE = 7;
 
     /**
      * Called by {@link Dog#mobInteract(Player, InteractionHand)}
@@ -123,7 +123,7 @@ public class DogAi {
         if(dog.isTame()){
             if (!(item instanceof DyeItem dyeItem)) {
                 if(canBury(stack) && !AiUtil.hasAnyMemory(dog, ABABMemoryModuleTypes.DIG_LOCATION.get(), MemoryModuleType.DIG_COOLDOWN)){
-                    Optional<BlockPos> digLocation = DigAi.generateDigLocation(dog, DIG_MAX_XZ_DISTANCE, DIG_MAX_Y_DISTANCE, bp -> level.getBlockState(bp.below()).is(ABABTags.DOG_CAN_DIG));
+                    Optional<BlockPos> digLocation = DigAi.generateDigLocation(dog, ABABConfig.dogDigMaxXZDistance.get(), ABABConfig.dogDigMaxYDistance.get(), bp -> level.getBlockState(bp.below()).is(ABABTags.DOG_CAN_DIG));
                     if(digLocation.isPresent()){
                         CommandAi.yieldAsPet(dog);
                         DigAi.setDigLocation(dog, digLocation.get());
@@ -146,7 +146,7 @@ public class DogAi {
                 if (dyecolor != dog.getCollarColor()) {
                     dog.setCollarColor(dyecolor);
                     dog.usePlayerItem(player, hand, stack);
-
+                    dog.setPersistenceRequired();
                     return Optional.of(InteractionResult.CONSUME);
                 }
             }
@@ -158,9 +158,10 @@ public class DogAi {
             } else {
                 level.broadcastEntityEvent(dog, SharedWolfAi.FAILED_TAME_ID);
             }
+            dog.setPersistenceRequired();
             return Optional.of(InteractionResult.CONSUME);
         }
-        return Optional.of(InteractionResult.PASS);
+        return Optional.empty();
     }
 
     public static Optional<SoundEvent> getSoundForCurrentActivity(Dog dog) {

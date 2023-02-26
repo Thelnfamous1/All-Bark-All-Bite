@@ -1,4 +1,4 @@
-package com.infamous.all_bark_all_bite.common.ai;
+package com.infamous.all_bark_all_bite.common.util.ai;
 
 import net.minecraft.util.valueproviders.UniformInt;
 import net.minecraft.world.entity.EntityType;

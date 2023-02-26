@@ -1,7 +1,7 @@
 package com.infamous.all_bark_all_bite.mixin;
 
 import com.infamous.all_bark_all_bite.common.entity.*;
-import com.infamous.all_bark_all_bite.common.entity.wolf.WolfAi;
+import com.infamous.all_bark_all_bite.common.entity.wolf.WolfHooks;
 import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.world.InteractionHand;
@@ -9,7 +9,6 @@ import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.TamableAnimal;
-import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.animal.Animal;
 import net.minecraft.world.entity.animal.Wolf;
 import net.minecraft.world.entity.player.Player;
@@ -61,22 +60,17 @@ public abstract class WolfMixin extends TamableAnimal implements AnimalAccessor,
     @Inject(method = "setTame", at = @At("HEAD"), cancellable = true)
     private void handleSetTame(boolean tame, CallbackInfo ci){
         super.setTame(tame);
-        this.setHealth((float) this.getAttributeBaseValue(Attributes.MAX_HEALTH));
         ci.cancel(); // don't allow vanilla's changes to the wolf's health and attack damage upon tame
     }
 
     @Inject(method = "canMate", at = @At("HEAD"), cancellable = true)
     private void handleCanMate(Animal partner, CallbackInfoReturnable<Boolean> cir){
-        if (partner != this) {
-            cir.setReturnValue(partner instanceof Wolf mate
-                    && SharedWolfAi.canMove(this) && SharedWolfAi.canMove(mate)
-                    && this.isInLove() && mate.isInLove());
-        }
+        cir.setReturnValue(WolfHooks.canWolfMate(this, partner));
     }
 
     @Inject(method = "getAmbientSound", at = @At("HEAD"), cancellable = true)
     private void handleGetAmbientSound(CallbackInfoReturnable<SoundEvent> cir){
-        cir.setReturnValue(this.level.isClientSide ? null : WolfAi.getSoundForCurrentActivity((Wolf)((Object)this)).orElse(null));
+        cir.setReturnValue(WolfHooks.getWolfAmbientSound((Wolf) ((Object) this)));
     }
 
     @Override

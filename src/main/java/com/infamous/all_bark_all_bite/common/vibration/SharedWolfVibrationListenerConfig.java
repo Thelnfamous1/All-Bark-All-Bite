@@ -3,7 +3,7 @@ package com.infamous.all_bark_all_bite.common.vibration;
 import com.infamous.all_bark_all_bite.common.entity.SharedWolfAi;
 import com.infamous.all_bark_all_bite.common.registry.ABABGameEvents;
 import com.infamous.all_bark_all_bite.common.sensor.vibration.EntityVibrationListenerConfig;
-import com.infamous.all_bark_all_bite.common.ai.PackAi;
+import com.infamous.all_bark_all_bite.common.util.ai.PackAi;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.GlobalPos;
 import net.minecraft.server.level.ServerLevel;

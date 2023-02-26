@@ -1,4 +1,4 @@
-package com.infamous.all_bark_all_bite.common.ai;
+package com.infamous.all_bark_all_bite.common.util.ai;
 
 import com.infamous.all_bark_all_bite.common.registry.ABABMemoryModuleTypes;
 import net.minecraft.world.entity.LivingEntity;
@@ -34,35 +34,8 @@ public class TrustAi {
         return wolf.getBrain().getMemory(ABABMemoryModuleTypes.TRUST.get()).orElse(0);
     }
 
-    public static void eraseTrust(LivingEntity wolf){
-        wolf.getBrain().eraseMemory(ABABMemoryModuleTypes.TRUST.get());
+    public static boolean isLikedBy(Wolf wolf, LivingEntity player) {
+        return wolf.getBrain().getMemory(MemoryModuleType.LIKED_PLAYER).filter(uuid -> uuid.equals(player.getUUID())).isPresent();
     }
 
-    public static void erasedLikedPlayer(LivingEntity wolf){
-        wolf.getBrain().eraseMemory(MemoryModuleType.LIKED_PLAYER);
-    }
-
-    public static void setMaxTrust(LivingEntity wolf, int maxTrust) {
-        wolf.getBrain().setMemory(ABABMemoryModuleTypes.MAX_TRUST.get(), maxTrust);
-    }
-
-    public static int getMaxTrust(LivingEntity wolf) {
-        return wolf.getBrain().getMemory(ABABMemoryModuleTypes.MAX_TRUST.get()).orElse(0);
-    }
-
-    public static boolean likes(Wolf wolf, LivingEntity player) {
-        return getLikedPlayer(wolf).orElse(null) == player;
-    }
-
-    public static void eraseMaxTrust(LivingEntity wolf) {
-        wolf.getBrain().eraseMemory(ABABMemoryModuleTypes.MAX_TRUST.get());
-    }
-
-    public static boolean isFullyTrusting(Wolf wolf) {
-        return getTrust(wolf) >= getMaxTrust(wolf);
-    }
-
-    public static void setRandomMaxTrust(LivingEntity wolf, int maxTrust) {
-        setMaxTrust(wolf, wolf.getRandom().nextInt(maxTrust) + 1);
-    }
 }

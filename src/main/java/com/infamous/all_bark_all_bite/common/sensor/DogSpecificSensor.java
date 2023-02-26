@@ -2,11 +2,12 @@ package com.infamous.all_bark_all_bite.common.sensor;
 
 import com.google.common.collect.ImmutableSet;
 import com.infamous.all_bark_all_bite.common.ABABTags;
+import com.infamous.all_bark_all_bite.config.ABABConfig;
 import com.infamous.all_bark_all_bite.common.entity.SharedWolfAi;
 import com.infamous.all_bark_all_bite.common.entity.dog.Dog;
 import com.infamous.all_bark_all_bite.common.entity.dog.DogAi;
 import com.infamous.all_bark_all_bite.common.registry.ABABMemoryModuleTypes;
-import com.infamous.all_bark_all_bite.common.util.AiUtil;
+import com.infamous.all_bark_all_bite.common.util.ai.AiUtil;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.Brain;
@@ -19,8 +20,6 @@ import java.util.Optional;
 import java.util.Set;
 
 public class DogSpecificSensor extends Sensor<Dog> {
-
-    private static final int TARGET_DETECTION_DISTANCE = 16;
 
     @Override
     public Set<MemoryModuleType<?>> requires() {
@@ -72,12 +71,12 @@ public class DogSpecificSensor extends Sensor<Dog> {
     }
 
     private static boolean isAttackable(Dog dog, LivingEntity livingEntity) {
-        return livingEntity.getType().is(ABABTags.DOG_ALWAYS_HOSTILES) && AiUtil.isClose(dog, livingEntity, TARGET_DETECTION_DISTANCE)
+        return livingEntity.getType().is(ABABTags.DOG_ALWAYS_HOSTILES) && AiUtil.isClose(dog, livingEntity, ABABConfig.dogTargetDetectionDistance.get())
                 && AiUtil.isAttackable(dog, livingEntity, true) && SharedWolfAi.wantsToAttack(dog, livingEntity);
     }
 
     private static boolean isHuntable(Dog dog, LivingEntity livingEntity) {
-        return livingEntity.getType().is(ABABTags.DOG_HUNT_TARGETS) && AiUtil.isClose(dog, livingEntity, TARGET_DETECTION_DISTANCE)
+        return livingEntity.getType().is(ABABTags.DOG_HUNT_TARGETS) && AiUtil.isClose(dog, livingEntity, ABABConfig.dogTargetDetectionDistance.get())
                 && AiUtil.isAttackable(dog, livingEntity, true) && SharedWolfAi.wantsToAttack(dog, livingEntity);
     }
 

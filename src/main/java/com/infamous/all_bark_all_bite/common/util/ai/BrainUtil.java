@@ -1,8 +1,9 @@
-package com.infamous.all_bark_all_bite.common.util;
+package com.infamous.all_bark_all_bite.common.util.ai;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
+import com.infamous.all_bark_all_bite.common.util.ReflectionUtil;
 import com.mojang.datafixers.util.Pair;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.Brain;

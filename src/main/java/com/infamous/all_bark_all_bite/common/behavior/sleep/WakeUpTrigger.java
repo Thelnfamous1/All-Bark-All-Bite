@@ -1,7 +1,7 @@
 package com.infamous.all_bark_all_bite.common.behavior.sleep;
 
 import com.google.common.collect.ImmutableMap;
-import com.infamous.all_bark_all_bite.common.ai.GenericAi;
+import com.infamous.all_bark_all_bite.common.util.ai.GenericAi;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.behavior.Behavior;

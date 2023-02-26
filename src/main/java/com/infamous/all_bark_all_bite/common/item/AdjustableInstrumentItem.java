@@ -74,8 +74,8 @@ public class AdjustableInstrumentItem extends InstrumentItem {
     @Override
     public void fillItemCategory(CreativeModeTab tab, NonNullList<ItemStack> itemStacks) {
         if (this.allowedIn(tab)) {
-            for(Holder<Instrument> instrumentHolder : getInstruments()) {
-                ItemStack itemStack = create(this, instrumentHolder);
+            for(Holder<Instrument> instrument : this.getInstruments()) {
+                ItemStack itemStack = create(this, instrument);
                 itemStacks.add(itemStack);
             }
         }

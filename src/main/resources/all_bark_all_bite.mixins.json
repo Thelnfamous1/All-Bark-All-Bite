@@ -4,7 +4,6 @@
   "compatibilityLevel": "JAVA_17",
   "refmap": "all_bark_all_bite.refmap.json",
   "mixins": [
-    "AbstractHorseMixin",
     "LivingEntityAccessor",
     "LivingEntityMixin",
     "MobAccessor",
@@ -12,14 +11,14 @@
     "PathfinderMobMixin",
     "StructureTemplatePoolAccessor",
     "SwimMixin",
-    "TamableAnimalMixin",
     "VillagerGoalPackagesMixin",
     "WolfAccessor",
     "WolfMixin"
   ],
   "client": [
     "DebugRendererMixin",
-    "IllagerModelAccessor"
+    "IllagerModelAccessor",
+    "LivingEntityRendererMixin"
   ],
   "injectors": {
     "defaultRequire": 1

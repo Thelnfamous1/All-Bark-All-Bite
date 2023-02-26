@@ -5,7 +5,7 @@ import com.github.alexthe668.domesticationinnovation.DomesticationMod;
 import com.github.alexthe668.domesticationinnovation.server.block.DrumBlock;
 import com.github.alexthe668.domesticationinnovation.server.enchantment.DIEnchantmentRegistry;
 import com.github.alexthe668.domesticationinnovation.server.entity.TameableUtils;
-import com.infamous.all_bark_all_bite.common.ai.CommandAi;
+import com.infamous.all_bark_all_bite.common.util.ai.CommandAi;
 import com.infamous.all_bark_all_bite.common.entity.dog.Dog;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;

@@ -1,6 +1,7 @@
 package com.infamous.all_bark_all_bite.common.structure;
 
 import com.infamous.all_bark_all_bite.AllBarkAllBite;
+import com.infamous.all_bark_all_bite.config.ABABConfig;
 import com.infamous.all_bark_all_bite.mixin.StructureTemplatePoolAccessor;
 import com.mojang.datafixers.util.Pair;
 import net.minecraft.core.Holder;
@@ -74,27 +75,31 @@ public class StructurePieceAppender {
         Registry<StructureTemplatePool> templatePoolRegistry = event.getServer().registryAccess().registry(Registry.TEMPLATE_POOL_REGISTRY).orElseThrow();
         Registry<StructureProcessorList> processorListRegistry = event.getServer().registryAccess().registry(Registry.PROCESSOR_LIST_REGISTRY).orElseThrow();
 
-        addDogToCatPool(templatePoolRegistry, processorListRegistry, "black");
-        addDogToCatPool(templatePoolRegistry, processorListRegistry, "blue");
-        addDogToCatPool(templatePoolRegistry, processorListRegistry, "brown");
-        addDogToCatPool(templatePoolRegistry, processorListRegistry, "cream");
-        addDogToCatPool(templatePoolRegistry, processorListRegistry, "gold");
-        addDogToCatPool(templatePoolRegistry, processorListRegistry, "gray");
-        addDogToCatPool(templatePoolRegistry, processorListRegistry, "red");
-        addDogToCatPool(templatePoolRegistry, processorListRegistry, "white");
-        addDogToCatPool(templatePoolRegistry, processorListRegistry, "yellow");
-        addKennelToOutpost(templatePoolRegistry, processorListRegistry);
+        if(ABABConfig.addDogsToVillageCatPool.get()){
+            addDogToCatPool(templatePoolRegistry, processorListRegistry, "black");
+            addDogToCatPool(templatePoolRegistry, processorListRegistry, "blue");
+            addDogToCatPool(templatePoolRegistry, processorListRegistry, "brown");
+            addDogToCatPool(templatePoolRegistry, processorListRegistry, "cream");
+            addDogToCatPool(templatePoolRegistry, processorListRegistry, "gold");
+            addDogToCatPool(templatePoolRegistry, processorListRegistry, "gray");
+            addDogToCatPool(templatePoolRegistry, processorListRegistry, "red");
+            addDogToCatPool(templatePoolRegistry, processorListRegistry, "white");
+            addDogToCatPool(templatePoolRegistry, processorListRegistry, "yellow");
+        }
+        if(ABABConfig.addKennelToOutpostFeaturesPool.get()){
+            addKennelToOutpostPool(templatePoolRegistry, processorListRegistry);
+        }
     }
 
-    private static void addKennelToOutpost(Registry<StructureTemplatePool> templatePoolRegistry, Registry<StructureProcessorList> processorListRegistry) {
+    private static void addKennelToOutpostPool(Registry<StructureTemplatePool> templatePoolRegistry, Registry<StructureProcessorList> processorListRegistry) {
         addPieceToPool(templatePoolRegistry, processorListRegistry,
                 "pillager_outpost/feature_kennel",
                 new ResourceLocation("minecraft:pillager_outpost/features"), 1);
     }
 
-    private static void addDogToCatPool(Registry<StructureTemplatePool> templatePoolRegistry, Registry<StructureProcessorList> processorListRegistry, String suffix) {
+    private static void addDogToCatPool(Registry<StructureTemplatePool> templatePoolRegistry, Registry<StructureProcessorList> processorListRegistry, String variant) {
         addPieceToPool(templatePoolRegistry, processorListRegistry,
-                String.format("%s_%s", "village/common/animals/dog", suffix),
+                String.format("%s_%s", "village/common/animals/dog", variant),
                 new ResourceLocation("minecraft:village/common/cats"), 1);
     }
 

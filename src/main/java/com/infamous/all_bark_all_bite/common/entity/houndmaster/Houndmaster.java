@@ -2,7 +2,8 @@ package com.infamous.all_bark_all_bite.common.entity.houndmaster;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Maps;
-import com.infamous.all_bark_all_bite.common.ai.GenericAi;
+import com.infamous.all_bark_all_bite.AllBarkAllBite;
+import com.infamous.all_bark_all_bite.common.util.ai.GenericAi;
 import com.infamous.all_bark_all_bite.common.entity.illager_hound.IllagerHound;
 import com.infamous.all_bark_all_bite.common.registry.ABABEntityTypes;
 import com.infamous.all_bark_all_bite.common.registry.ABABInstruments;
@@ -161,7 +162,7 @@ public class Houndmaster extends AbstractIllager implements RangedAttackMob {
     protected void sendDebugPackets() {
         super.sendDebugPackets();
         DebugPackets.sendEntityBrain(this);
-        if(this.level instanceof ServerLevel serverLevel){
+        if(AllBarkAllBite.ENABLE_BRAIN_DEBUG && this.level instanceof ServerLevel serverLevel){
             DebugUtil.sendEntityBrain(this, serverLevel, MemoryModuleType.DUMMY);
         }
     }

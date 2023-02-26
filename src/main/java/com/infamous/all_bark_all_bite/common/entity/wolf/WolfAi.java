@@ -2,17 +2,16 @@ package com.infamous.all_bark_all_bite.common.entity.wolf;
 
 import com.google.common.collect.ImmutableList;
 import com.infamous.all_bark_all_bite.common.ABABTags;
-import com.infamous.all_bark_all_bite.common.ai.GenericAi;
-import com.infamous.all_bark_all_bite.common.ai.TrustAi;
+import com.infamous.all_bark_all_bite.common.util.ai.GenericAi;
+import com.infamous.all_bark_all_bite.common.util.ai.TrustAi;
+import com.infamous.all_bark_all_bite.config.ABABConfig;
 import com.infamous.all_bark_all_bite.common.entity.AnimalAccessor;
 import com.infamous.all_bark_all_bite.common.entity.SharedWolfAi;
 import com.infamous.all_bark_all_bite.common.registry.ABABActivities;
 import com.infamous.all_bark_all_bite.common.registry.ABABMemoryModuleTypes;
 import com.infamous.all_bark_all_bite.common.registry.ABABSensorTypes;
-import com.infamous.all_bark_all_bite.common.util.AiUtil;
-import com.infamous.all_bark_all_bite.common.util.BrainUtil;
+import com.infamous.all_bark_all_bite.common.util.ai.AiUtil;
 import com.infamous.all_bark_all_bite.common.util.MiscUtil;
-import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.util.RandomSource;
@@ -22,9 +21,7 @@ import net.minecraft.world.entity.*;
 import net.minecraft.world.entity.ai.memory.MemoryModuleType;
 import net.minecraft.world.entity.ai.sensing.Sensor;
 import net.minecraft.world.entity.ai.sensing.SensorType;
-import net.minecraft.world.entity.animal.Animal;
 import net.minecraft.world.entity.animal.Wolf;
-import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.entity.schedule.Activity;
 import net.minecraft.world.item.DyeColor;
@@ -32,7 +29,6 @@ import net.minecraft.world.item.DyeItem;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.event.ForgeEventFactory;
-import net.minecraftforge.event.entity.living.LivingEvent;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Collection;
@@ -47,6 +43,7 @@ public class WolfAi {
             MemoryModuleType.AVOID_TARGET,
             MemoryModuleType.BREED_TARGET,
             MemoryModuleType.CANT_REACH_WALK_TARGET_SINCE,
+            ABABMemoryModuleTypes.FOLLOW_TRIGGER_DISTANCE.get(),
             ABABMemoryModuleTypes.FOLLOWERS.get(),
             ABABMemoryModuleTypes.HOWL_LOCATION.get(),
             ABABMemoryModuleTypes.HOWLED_RECENTLY.get(),
@@ -56,9 +53,9 @@ public class WolfAi {
             MemoryModuleType.INTERACTION_TARGET,
             MemoryModuleType.ITEM_PICKUP_COOLDOWN_TICKS,
             ABABMemoryModuleTypes.IS_ALERT.get(),
+            ABABMemoryModuleTypes.IS_FOLLOWING.get(),
             ABABMemoryModuleTypes.IS_LEVEL_DAY.get(),
             ABABMemoryModuleTypes.IS_ORDERED_TO_FOLLOW.get(),
-            ABABMemoryModuleTypes.IS_ORDERED_TO_HEEL.get(),
             ABABMemoryModuleTypes.IS_ORDERED_TO_SIT.get(),
             MemoryModuleType.IS_PANICKING,
             ABABMemoryModuleTypes.IS_SHELTERED.get(),
@@ -74,7 +71,6 @@ public class WolfAi {
             ABABMemoryModuleTypes.NEAREST_ADULTS.get(),
             ABABMemoryModuleTypes.NEAREST_BABIES.get(),
             ABABMemoryModuleTypes.NEAREST_ALLIES.get(),
-            ABABMemoryModuleTypes.MAX_TRUST.get(),
             MemoryModuleType.NEAREST_ATTACKABLE,
             MemoryModuleType.NEAREST_LIVING_ENTITIES,
             MemoryModuleType.NEAREST_PLAYERS,
@@ -113,9 +109,6 @@ public class WolfAi {
             ABABSensorTypes.WOLF_SPECIFIC_SENSOR.get(),
             ABABSensorTypes.WOLF_VIBRATION_SENSOR.get()
     );
-    public static final float WOLF_SIZE_SCALE = 1.25F;
-    public static final int MAX_TRUST = 100;
-    public static final int TRUST_INCREMENT = 5;
 
     public static Optional<SoundEvent> getSoundForCurrentActivity(Wolf wolf) {
         return wolf.getBrain().getActiveNonCoreActivity().map((a) -> getSoundForActivity(wolf, a));
@@ -140,15 +133,6 @@ public class WolfAi {
         }
     }
 
-    /**
-     * Called by {@link com.infamous.all_bark_all_bite.common.ForgeEventHandler#onLivingUpdate(LivingEvent.LivingTickEvent)}
-     */
-    public static void updateAi(ServerLevel serverLevel, Wolf wolf) {
-        serverLevel.getProfiler().push("wolfBrain");
-        BrainUtil.getTypedBrain(wolf).tick(serverLevel, wolf);
-        serverLevel.getProfiler().pop();
-    }
-
     public static boolean isDisliked(Wolf wolf, LivingEntity livingEntity) {
         return SharedWolfAi.isDisliked(livingEntity, ABABTags.WOLF_DISLIKED)
                 || isDislikedPlayer(wolf, livingEntity);
@@ -157,17 +141,20 @@ public class WolfAi {
     public static boolean isDislikedPlayer(Wolf wolf, LivingEntity livingEntity) {
         return livingEntity instanceof Player player
                 && !wolf.isTame()
-                && !isOwnedByOrLikes(wolf, player)
+                && !isAlliedTo(wolf, player)
                 && !player.isDiscrete()
-                && EntitySelector.NO_CREATIVE_OR_SPECTATOR.test(player);
+                && !player.isSpectator()
+                && !player.isCreative();
     }
 
-    public static boolean isOwnedByOrLikes(Wolf wolf, LivingEntity entity) {
-        return wolf.isOwnedBy(entity) || TrustAi.likes(wolf, entity);
+    public static boolean isAlliedTo(Wolf wolf, LivingEntity entity) {
+        return wolf.isOwnedBy(entity) || TrustAi.isLikedBy(wolf, entity) || wolf.isAlliedTo(entity);
     }
 
     public static void initMemories(Wolf wolf, RandomSource random) {
         SharedWolfAi.initMemories(wolf, random);
+        int howlCooldownInTicks = SharedWolfAi.TIME_BETWEEN_HOWLS.sample(random);
+        SharedWolfAi.setHowledRecently(wolf, howlCooldownInTicks);
     }
 
     public static InteractionResult mobInteract(Wolf wolf, Player player, InteractionHand hand) {
@@ -188,7 +175,7 @@ public class WolfAi {
                         if(animalInteractionResult.consumesAction()){
                             AiUtil.animalEat(wolf, copy);
                         }
-                        boolean willNotBreed = !animalInteractionResult.consumesAction() || wolf.isBaby();
+                        boolean willNotBreed = !animalInteractionResult.consumesAction();
                         if (willNotBreed) {
                             SharedWolfAi.manualCommand(wolf, player);
                             return InteractionResult.CONSUME;
@@ -204,7 +191,7 @@ public class WolfAi {
                         return InteractionResult.SUCCESS;
                     }
                 }
-            } else if (TrustAi.likes(wolf, player) && !wolf.isAngry()) {
+            } else if (TrustAi.isLikedBy(wolf, player) && !wolf.isAngry()) {
                 Optional<InteractionResult> healInteraction = healInteraction(wolf, player, hand, itemInHand);
                 if(healInteraction.isPresent()){
                     updateTrust(wolf, player);
@@ -223,13 +210,12 @@ public class WolfAi {
     }
 
     private static void updateTrust(Wolf wolf, Player player) {
-        TrustAi.incrementTrust(wolf, TRUST_INCREMENT);
-        if(TrustAi.isFullyTrusting(wolf) && !ForgeEventFactory.onAnimalTame(wolf, player)){
+        TrustAi.incrementTrust(wolf, ABABConfig.wolfTrustIncrement.get());
+        int trust = TrustAi.getTrust(wolf);
+        int maxTrust = ABABConfig.wolfMaxTrust.get();
+        if(maxTrust > 0 && maxTrust <= trust && !ForgeEventFactory.onAnimalTame(wolf, player)){
             wolf.level.broadcastEntityEvent(wolf, SharedWolfAi.SUCCESSFUL_TAME_ID);
             SharedWolfAi.tame(wolf, player);
-            TrustAi.eraseTrust(wolf);
-            TrustAi.eraseMaxTrust(wolf);
-            TrustAi.erasedLikedPlayer(wolf);
         } else{
             wolf.level.broadcastEntityEvent(wolf, SharedWolfAi.FAILED_TAME_ID);
         }
@@ -244,32 +230,4 @@ public class WolfAi {
         return Optional.empty();
     }
 
-    // MobMixin helper methods
-    public static boolean wolfWantsToPickUp(ItemStack stack, Mob wolf) {
-        return ForgeEventFactory.getMobGriefingEvent(wolf.level, wolf) && wolf.canPickUpLoot() && SharedWolfAi.isAbleToPickUp(wolf, stack);
-    }
-
-    public static boolean canWolfTakeItem(ItemStack stack, Mob wolf, boolean canMobTakeItem) {
-        EquipmentSlot slot = Mob.getEquipmentSlotForItem(stack);
-        if (!wolf.getItemBySlot(slot).isEmpty()) {
-            return false;
-        } else {
-            return slot == EquipmentSlot.MAINHAND && canMobTakeItem;
-        }
-    }
-
-    public static boolean canWolfHoldItem(ItemStack itemStack, Animal wolf) {
-        ItemStack itemInMouth = wolf.getMainHandItem();
-        return itemInMouth.isEmpty() || wolf.isFood(itemStack) && !wolf.isFood(itemInMouth);
-    }
-
-    public static void onWolfPickUpItem(ItemEntity itemEntity, Mob wolf) {
-        wolf.onItemPickup(itemEntity);
-        SharedWolfAi.pickUpAndHoldItem(wolf, itemEntity);
-    }
-
-    // LivingEntityMixin helper methods
-    public static SoundEvent getWolfEatingSound() {
-        return SoundEvents.FOX_EAT;
-    }
 }

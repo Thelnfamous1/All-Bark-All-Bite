@@ -16,6 +16,7 @@ public class IllagerHoundRenderer extends MobRenderer<IllagerHound, IllagerHound
         super(context, new IllagerHoundModel<>(context.bakeLayer(ABABModelLayers.ILLAGER_HOUND)), 0.5F);
     }
 
+    @Override
     public ResourceLocation getTextureLocation(IllagerHound hound) {
         return ILLAGER_HOUND_LOCATION;
     }

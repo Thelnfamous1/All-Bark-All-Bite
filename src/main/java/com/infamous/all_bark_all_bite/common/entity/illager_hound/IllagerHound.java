@@ -1,5 +1,6 @@
 package com.infamous.all_bark_all_bite.common.entity.illager_hound;
 
+import com.infamous.all_bark_all_bite.AllBarkAllBite;
 import com.infamous.all_bark_all_bite.common.entity.EntityAnimationController;
 import com.infamous.all_bark_all_bite.common.entity.OwnableMob;
 import com.infamous.all_bark_all_bite.common.util.DebugUtil;
@@ -169,7 +170,7 @@ public class IllagerHound extends Monster implements OwnableMob {
     protected void sendDebugPackets() {
         super.sendDebugPackets();
         DebugPackets.sendEntityBrain(this);
-        if(this.level instanceof ServerLevel serverLevel){
+        if(AllBarkAllBite.ENABLE_BRAIN_DEBUG && this.level instanceof ServerLevel serverLevel){
             DebugUtil.sendEntityBrain(this, serverLevel, MemoryModuleType.DUMMY);
         }
     }
