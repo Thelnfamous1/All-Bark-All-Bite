@@ -1,18 +1,16 @@
 package com.infamous.all_bark_all_bite.common.entity.houndmaster;
 
-import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Maps;
-import com.infamous.all_bark_all_bite.AllBarkAllBite;
-import com.infamous.all_bark_all_bite.common.util.ai.GenericAi;
 import com.infamous.all_bark_all_bite.common.entity.illager_hound.IllagerHound;
+import com.infamous.all_bark_all_bite.common.logic.PetManagement;
 import com.infamous.all_bark_all_bite.common.registry.ABABEntityTypes;
 import com.infamous.all_bark_all_bite.common.registry.ABABInstruments;
 import com.infamous.all_bark_all_bite.common.registry.ABABSoundEvents;
-import com.infamous.all_bark_all_bite.common.util.DebugUtil;
 import com.infamous.all_bark_all_bite.common.util.MiscUtil;
+import com.infamous.all_bark_all_bite.common.util.ai.AiUtil;
+import com.infamous.all_bark_all_bite.config.ABABConfig;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
-import net.minecraft.network.protocol.game.DebugPackets;
 import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.network.syncher.SynchedEntityData;
@@ -25,15 +23,11 @@ import net.minecraft.world.DifficultyInstance;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.*;
-import net.minecraft.world.entity.ai.Brain;
 import net.minecraft.world.entity.ai.attributes.AttributeSupplier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.ai.goal.*;
 import net.minecraft.world.entity.ai.goal.target.HurtByTargetGoal;
 import net.minecraft.world.entity.ai.goal.target.NearestAttackableTargetGoal;
-import net.minecraft.world.entity.ai.memory.MemoryModuleType;
-import net.minecraft.world.entity.ai.sensing.Sensor;
-import net.minecraft.world.entity.ai.sensing.SensorType;
 import net.minecraft.world.entity.animal.IronGolem;
 import net.minecraft.world.entity.monster.AbstractIllager;
 import net.minecraft.world.entity.monster.Monster;
@@ -47,41 +41,35 @@ import net.minecraft.world.entity.raid.Raider;
 import net.minecraft.world.item.BowItem;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
+import net.minecraft.world.item.ProjectileWeaponItem;
 import net.minecraft.world.item.enchantment.Enchantment;
 import net.minecraft.world.item.enchantment.EnchantmentHelper;
 import net.minecraft.world.item.enchantment.Enchantments;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.ServerLevelAccessor;
+import net.minecraft.world.phys.AABB;
 import net.minecraftforge.common.ForgeSpawnEggItem;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.EnumSet;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 public class Houndmaster extends AbstractIllager implements RangedAttackMob {
     private static final EntityDataAccessor<Boolean> DATA_WHISTLING = SynchedEntityData.defineId(Houndmaster.class, EntityDataSerializers.BOOLEAN);
+    private static final int MAX_HOUNDS_TO_SUMMON = 3;
+    private static final int DEFAULT_WHISTLE_DELAY = MiscUtil.seconds(1);
 
     public final HoundmasterAnimationController animationController;
+    private int summonCooldown;
 
-    protected static final ImmutableList<? extends SensorType<? extends Sensor<? super Houndmaster>>> SENSOR_TYPES =
-            ImmutableList.of(
-                    SensorType.NEAREST_LIVING_ENTITIES
-            );
-    protected static final ImmutableList<? extends MemoryModuleType<?>> MEMORY_TYPES =
-            ImmutableList.of(
-                    MemoryModuleType.NEAREST_LIVING_ENTITIES,
-                    MemoryModuleType.NEAREST_VISIBLE_LIVING_ENTITIES
-            );
-    private static final String SUMMONED_HOUNDS_TAG = "summonedHounds";
-    private int whistleDelay;
-
-    private boolean summonedHounds;
+    private List<Entity> knownPetHounds = List.of();
 
     public Houndmaster(EntityType<? extends Houndmaster> type, Level level) {
         super(type, level);
         this.animationController = new HoundmasterAnimationController(this, DATA_WHISTLING, DATA_POSE);
-        this.whistleDelay = 20;
+        this.summonCooldown = DEFAULT_WHISTLE_DELAY;
     }
 
     @Override
@@ -89,8 +77,9 @@ public class Houndmaster extends AbstractIllager implements RangedAttackMob {
         super.registerGoals();
 
         this.goalSelector.addGoal(0, new FloatGoal(this));
-        this.goalSelector.addGoal(0, new Houndmaster.SummonHoundsGoal());
-        this.goalSelector.addGoal(5, new RangedBowAttackGoal<>(this, 0.5D, 20, 15.0F));
+        this.goalSelector.addGoal(1, new Houndmaster.SummonHoundsGoal());
+        this.goalSelector.addGoal(2, new Raider.HoldGroundAttackGoal(this, 10.0F));
+        this.goalSelector.addGoal(3, new RangedBowAttackGoal<>(this, 0.5D, 20, 15.0F));
         this.goalSelector.addGoal(8, new RandomStrollGoal(this, 0.6D));
         this.goalSelector.addGoal(9, new LookAtPlayerGoal(this, Player.class, 3.0F, 1.0F));
         this.goalSelector.addGoal(10, new LookAtPlayerGoal(this, Mob.class, 8.0F));
@@ -103,10 +92,10 @@ public class Houndmaster extends AbstractIllager implements RangedAttackMob {
 
     public static AttributeSupplier.Builder createAttributes() {
         return Monster.createMonsterAttributes()
-                .add(Attributes.MOVEMENT_SPEED, 0.5D)
-                .add(Attributes.FOLLOW_RANGE, 18.0D)
-                .add(Attributes.MAX_HEALTH, 32.0D)
-                .add(Attributes.ATTACK_DAMAGE, 5.0D);
+                .add(Attributes.ATTACK_DAMAGE, 5.0D)
+                .add(Attributes.FOLLOW_RANGE, 32.0D)
+                .add(Attributes.MAX_HEALTH, 24.0D)
+                .add(Attributes.MOVEMENT_SPEED, 0.35D);
     }
 
     @Override
@@ -124,6 +113,11 @@ public class Houndmaster extends AbstractIllager implements RangedAttackMob {
     }
 
     @Override
+    public boolean canFireProjectileWeapon(ProjectileWeaponItem item) {
+        return item instanceof BowItem;
+    }
+
+    @Override
     public void tick() {
         if (this.level.isClientSide()) {
             this.animationController.tickAnimations();
@@ -132,60 +126,26 @@ public class Houndmaster extends AbstractIllager implements RangedAttackMob {
     }
 
     @Override
-    protected Brain.Provider<?> brainProvider() {
-        return Brain.provider(MEMORY_TYPES, SENSOR_TYPES);
-    }
-
-    @SuppressWarnings("unchecked")
-    @Override
-    public Brain<Houndmaster> getBrain() {
-        return (Brain<Houndmaster>) super.getBrain();
-    }
-
-    @Override
     public void aiStep() {
         super.aiStep();
-        if(this.whistleDelay > 0){
-            this.whistleDelay--;
+        if(this.summonCooldown > 0){
+            this.summonCooldown--;
         }
-    }
-
-    @Override
-    protected void customServerAiStep() {
-        this.level.getProfiler().push("houndmasterBrain");
-        this.getBrain().tick((ServerLevel) this.level, this);
-        this.level.getProfiler().pop();
-        super.customServerAiStep();
-    }
-
-    @Override
-    protected void sendDebugPackets() {
-        super.sendDebugPackets();
-        DebugPackets.sendEntityBrain(this);
-        if(AllBarkAllBite.ENABLE_BRAIN_DEBUG && this.level instanceof ServerLevel serverLevel){
-            DebugUtil.sendEntityBrain(this, serverLevel, MemoryModuleType.DUMMY);
+        if(!this.level.isClientSide && this.summonCooldown == 0){
+            this.knownPetHounds = PetManagement.getPetManager(this.level.dimension(), this.getUUID())
+                    .stream()
+                    .filter(entity -> entity instanceof IllagerHound)
+                    .collect(Collectors.toList());
         }
-    }
-
-    @Override
-    public void addAdditionalSaveData(CompoundTag tag) {
-        super.addAdditionalSaveData(tag);
-        tag.putBoolean(SUMMONED_HOUNDS_TAG, this.summonedHounds);
-    }
-
-    @Override
-    public void readAdditionalSaveData(CompoundTag tag) {
-        super.readAdditionalSaveData(tag);
-        this.summonedHounds = tag.getBoolean(SUMMONED_HOUNDS_TAG);
     }
 
     @Override
     public AbstractIllager.IllagerArmPose getArmPose() {
         if(this.isAggressive()){
             if (this.isHolding(is -> is.getItem() instanceof BowItem)) {
-                return AbstractIllager.IllagerArmPose.BOW_AND_ARROW;
+                return IllagerArmPose.BOW_AND_ARROW;
             } else {
-                return AbstractIllager.IllagerArmPose.ATTACKING;
+                return IllagerArmPose.ATTACKING;
             }
         }
         return AbstractIllager.IllagerArmPose.NEUTRAL;
@@ -300,7 +260,6 @@ public class Houndmaster extends AbstractIllager implements RangedAttackMob {
     }
 
     class SummonHoundsGoal extends Goal {
-        private static final int HOUNDS_TO_SUMMON = 3;
         private int houndsToSummon;
         private int whistleTicks;
 
@@ -311,31 +270,44 @@ public class Houndmaster extends AbstractIllager implements RangedAttackMob {
 
         @Override
         public boolean canUse() {
-            return !Houndmaster.this.summonedHounds && Houndmaster.this.whistleDelay <= 0;
+            return Houndmaster.this.summonCooldown == 0 && Houndmaster.this.knownPetHounds.size() < MAX_HOUNDS_TO_SUMMON;
         }
 
         @Override
         public void start() {
             this.whistleTicks = this.adjustedTickDelay(ABABInstruments.WHISTLE_DURATION);
-            this.houndsToSummon = HOUNDS_TO_SUMMON;
+            this.houndsToSummon = MAX_HOUNDS_TO_SUMMON - Houndmaster.this.knownPetHounds.size();
             Houndmaster.this.playSound(ABABSoundEvents.COME_WHISTLE.get(), 1.0F, 1.0F);
             Houndmaster.this.setWhistling(true);
+        }
+
+        private AABB getTargetSearchArea(double followRange) {
+            return Houndmaster.this.getBoundingBox().inflate(followRange);
+        }
+
+        private List<IllagerHound> findNearbyWildHounds() {
+            return Houndmaster.this.level.getEntitiesOfClass(
+                    IllagerHound.class,
+                    this.getTargetSearchArea(AiUtil.getFollowRange(Houndmaster.this)),
+                    hound -> hound.isAlive() && hound.getOwnerUUID() == null);
+        }
+
+        @Override
+        public boolean canContinueToUse() {
+            return super.canContinueToUse() && this.whistleTicks > 0;
         }
 
         @Override
         public void tick() {
             --this.whistleTicks;
-            if (this.whistleTicks == 0) {
-                List<LivingEntity> nearbyMobs = GenericAi.getNearestLivingEntities(Houndmaster.this);
-                for(LivingEntity nearbyMob : nearbyMobs){
+            if (this.whistleTicks <= 0) {
+                List<IllagerHound> nearbyWildHounds = this.findNearbyWildHounds();
+                for(IllagerHound wildHound : nearbyWildHounds){
                     if(this.houndsToSummon <= 0) break;
-                    if(nearbyMob instanceof IllagerHound hound && hound.getOwnerUUID() == null){
-                        hound.setOwner(Houndmaster.this);
-                        this.houndsToSummon--;
-                    }
+                    wildHound.setOwner(Houndmaster.this);
+                    this.houndsToSummon--;
                 }
                 this.summonRemainingHounds();
-                Houndmaster.this.summonedHounds = true;
             }
         }
 
@@ -359,6 +331,7 @@ public class Houndmaster extends AbstractIllager implements RangedAttackMob {
         @Override
         public void stop() {
             Houndmaster.this.setWhistling(false);
+            Houndmaster.this.summonCooldown = MiscUtil.seconds(ABABConfig.houndmasterSummonCooldown.get());
         }
     }
 

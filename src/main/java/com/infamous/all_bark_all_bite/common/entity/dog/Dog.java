@@ -2,16 +2,15 @@ package com.infamous.all_bark_all_bite.common.entity.dog;
 
 import com.infamous.all_bark_all_bite.AllBarkAllBite;
 import com.infamous.all_bark_all_bite.common.ABABTags;
-import com.infamous.all_bark_all_bite.common.util.ai.GenericAi;
 import com.infamous.all_bark_all_bite.common.entity.*;
 import com.infamous.all_bark_all_bite.common.registry.ABABDogVariants;
 import com.infamous.all_bark_all_bite.common.registry.ABABEntityDataSerializers;
 import com.infamous.all_bark_all_bite.common.registry.ABABEntityTypes;
 import com.infamous.all_bark_all_bite.common.registry.ABABMemoryModuleTypes;
-import com.infamous.all_bark_all_bite.common.util.ai.AiUtil;
 import com.infamous.all_bark_all_bite.common.util.DebugUtil;
 import com.infamous.all_bark_all_bite.common.util.MiscUtil;
-import com.infamous.all_bark_all_bite.config.ABABConfig;
+import com.infamous.all_bark_all_bite.common.util.ai.AiUtil;
+import com.infamous.all_bark_all_bite.common.util.ai.GenericAi;
 import com.mojang.serialization.Dynamic;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
@@ -40,7 +39,6 @@ import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.entity.monster.Creeper;
 import net.minecraft.world.entity.monster.Ghast;
 import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.entity.projectile.AbstractArrow;
 import net.minecraft.world.food.FoodProperties;
 import net.minecraft.world.item.DyeColor;
 import net.minecraft.world.item.ItemStack;
@@ -85,10 +83,10 @@ public class Dog extends TamableAnimal implements InterestedMob, ShakingMob, Var
 
     public static AttributeSupplier.Builder createAttributes() {
         return Mob.createMobAttributes()
+                .add(Attributes.ATTACK_DAMAGE, 4.0D)
                 .add(Attributes.FOLLOW_RANGE, 64.0D)
-                .add(Attributes.MOVEMENT_SPEED, 0.3D)
-                .add(Attributes.MAX_HEALTH, ABABConfig.dogMaxHealth.get())
-                .add(Attributes.ATTACK_DAMAGE, ABABConfig.dogAttackDamage.get());
+                .add(Attributes.MAX_HEALTH, 20.0D)
+                .add(Attributes.MOVEMENT_SPEED, 0.3D);
     }
 
     @Override
@@ -198,13 +196,7 @@ public class Dog extends TamableAnimal implements InterestedMob, ShakingMob, Var
         if (this.isInvulnerableTo(source)) {
             return false;
         } else {
-            Entity sourceEntity = source.getEntity();
-
-            // for some reason, vanilla Wolves take reduced damage from non-players and non-arrows
-            if (sourceEntity != null && !(sourceEntity instanceof Player) && !(sourceEntity instanceof AbstractArrow)) {
-                amount = (amount + 1.0F) / 2.0F;
-            }
-
+            amount = SharedWolfAi.maybeReduceDamage(amount, source);
             return super.hurt(source, amount);
         }
     }

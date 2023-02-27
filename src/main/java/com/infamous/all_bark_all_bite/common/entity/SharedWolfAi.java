@@ -17,6 +17,7 @@ import net.minecraft.tags.TagKey;
 import net.minecraft.util.RandomSource;
 import net.minecraft.util.TimeUtil;
 import net.minecraft.util.valueproviders.UniformInt;
+import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.*;
 import net.minecraft.world.entity.ai.Brain;
 import net.minecraft.world.entity.ai.behavior.BehaviorUtils;
@@ -28,6 +29,7 @@ import net.minecraft.world.entity.ai.sensing.Sensor;
 import net.minecraft.world.entity.animal.Animal;
 import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.entity.projectile.AbstractArrow;
 import net.minecraft.world.entity.schedule.Activity;
 import net.minecraft.world.item.ItemStack;
 
@@ -418,4 +420,12 @@ public class SharedWolfAi {
         return true;
     }
 
+    public static float maybeReduceDamage(float amount, DamageSource source) {
+        Entity sourceEntity = source.getEntity();
+        // for some reason, vanilla Wolves take reduced damage from non-players and non-arrows
+        if (sourceEntity != null && !(sourceEntity instanceof Player) && !(sourceEntity instanceof AbstractArrow)) {
+            amount = (amount + 1.0F) / 2.0F;
+        }
+        return amount;
+    }
 }

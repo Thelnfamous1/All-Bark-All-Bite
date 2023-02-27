@@ -3,6 +3,7 @@ package com.infamous.all_bark_all_bite.common.entity.illager_hound;
 import com.infamous.all_bark_all_bite.AllBarkAllBite;
 import com.infamous.all_bark_all_bite.common.entity.EntityAnimationController;
 import com.infamous.all_bark_all_bite.common.entity.OwnableMob;
+import com.infamous.all_bark_all_bite.common.entity.SharedWolfAi;
 import com.infamous.all_bark_all_bite.common.util.DebugUtil;
 import com.mojang.serialization.Dynamic;
 import net.minecraft.core.BlockPos;
@@ -16,9 +17,7 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.world.damagesource.DamageSource;
-import net.minecraft.world.entity.Entity;
-import net.minecraft.world.entity.EntityType;
-import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.*;
 import net.minecraft.world.entity.ai.Brain;
 import net.minecraft.world.entity.ai.attributes.AttributeSupplier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
@@ -29,6 +28,7 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.phys.Vec3;
 import net.minecraft.world.scores.Team;
 import net.minecraftforge.common.ForgeSpawnEggItem;
 import net.minecraftforge.network.NetworkHooks;
@@ -53,9 +53,10 @@ public class IllagerHound extends Monster implements OwnableMob {
 
     public static AttributeSupplier.Builder createAttributes() {
         return Monster.createMonsterAttributes()
+                .add(Attributes.ATTACK_DAMAGE, 6.0D)
+                .add(Attributes.FOLLOW_RANGE, 64.0D)
                 .add(Attributes.MAX_HEALTH, 30.0D)
-                .add(Attributes.MOVEMENT_SPEED, 0.3D)
-                .add(Attributes.ATTACK_DAMAGE, 6.0D);
+                .add(Attributes.MOVEMENT_SPEED, 0.3D);
     }
 
     @Override
@@ -144,6 +145,16 @@ public class IllagerHound extends Monster implements OwnableMob {
     }
 
     @Override
+    public boolean hurt(DamageSource source, float amount) {
+        if (this.isInvulnerableTo(source)) {
+            return false;
+        } else {
+            amount = SharedWolfAi.maybeReduceDamage(amount, source);
+            return super.hurt(source, amount);
+        }
+    }
+
+    @Override
     public boolean doHurtTarget(Entity target) {
         this.level.broadcastEntityEvent(this, EntityAnimationController.ATTACKING_EVENT_ID);
         return super.doHurtTarget(target);
@@ -201,7 +212,27 @@ public class IllagerHound extends Monster implements OwnableMob {
 
     @Override
     public boolean canBeLeashed(Player player) {
-        return !this.isLeashed();
+        return !this.isAggressive() && !this.isLeashed();
+    }
+
+    @Override
+    protected float getStandingEyeHeight(Pose pose, EntityDimensions dimensions) {
+        return dimensions.height * 0.8F;
+    }
+
+    @Override
+    public float getSoundVolume() {
+        return 0.4F;
+    }
+
+    @Override
+    public int getMaxSpawnClusterSize() {
+        return 8;
+    }
+
+    @Override
+    public Vec3 getLeashOffset() {
+        return new Vec3(0.0D, 0.6F * this.getEyeHeight(), this.getBbWidth() * 0.4F);
     }
 
     @SuppressWarnings("ConstantConditions")
