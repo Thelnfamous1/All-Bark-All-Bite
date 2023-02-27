@@ -4,6 +4,7 @@ import com.infamous.all_bark_all_bite.AllBarkAllBite;
 import com.infamous.all_bark_all_bite.common.entity.dog.Dog;
 import com.infamous.all_bark_all_bite.common.entity.houndmaster.Houndmaster;
 import com.infamous.all_bark_all_bite.common.entity.illager_hound.IllagerHound;
+import com.infamous.all_bark_all_bite.common.logic.ABABRaiderTypes;
 import com.infamous.all_bark_all_bite.common.network.ABABNetwork;
 import com.infamous.all_bark_all_bite.common.registry.ABABEntityTypes;
 import net.minecraft.world.entity.EntityType;
@@ -60,6 +61,10 @@ public class ModEventHandler {
 
     @SubscribeEvent
     static void onCommonSetup(FMLCommonSetupEvent event){
-        event.enqueueWork(ABABNetwork::register);
+        event.enqueueWork( () -> {
+            ABABNetwork.register();
+            ABABRaiderTypes.initHoundmasterRaiderType();
+        });
     }
+
 }
