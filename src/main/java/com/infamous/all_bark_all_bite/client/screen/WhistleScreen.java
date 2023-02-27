@@ -3,15 +3,17 @@ package com.infamous.all_bark_all_bite.client.screen;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.infamous.all_bark_all_bite.AllBarkAllBite;
+import com.infamous.all_bark_all_bite.common.item.PetWhistleItem;
 import com.infamous.all_bark_all_bite.common.network.ABABNetwork;
 import com.infamous.all_bark_all_bite.common.network.ServerboundAdjustInstrumentPacket;
+import com.infamous.all_bark_all_bite.common.network.ServerboundUnbindPetWhistlePacket;
 import com.infamous.all_bark_all_bite.common.util.InstrumentUtil;
 import com.mojang.blaze3d.platform.InputConstants;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.PoseStack;
 import net.minecraft.ChatFormatting;
-import net.minecraft.client.GameNarrator;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.renderer.GameRenderer;
 import net.minecraft.client.resources.sounds.SimpleSoundInstance;
@@ -30,8 +32,10 @@ import net.minecraft.world.item.ItemStack;
 import java.util.List;
 import java.util.Optional;
 
-public class InstrumentAdjustmentScreen extends Screen {
-    private static final ResourceLocation BG_LOCATION = new ResourceLocation(AllBarkAllBite.MODID, "textures/gui/instrument_adjustment_pure.png");
+public class WhistleScreen extends Screen {
+    private static final Component CONTAINER_TITLE = Component.translatable(PetWhistleItem.CONTAINER_TITLE_ID);
+    private static final Component UNBIND_BUTTON_LABEL = Component.translatable(PetWhistleItem.UNBIND_BUTTON_LABEL_ID);
+    private static final ResourceLocation BG_LOCATION = new ResourceLocation(AllBarkAllBite.MODID, "textures/gui/whistle.png");
     private static final int SCROLLER_WIDTH = 12;
     private static final int SCROLLER_HEIGHT = 15;
     private static final int INSTRUMENTS_COLUMNS = 1; // 4 for stonecutter buttons
@@ -42,10 +46,14 @@ public class InstrumentAdjustmentScreen extends Screen {
     private static final int INSTRUMENTS_X = 52;
     private static final int INSTRUMENTS_Y = 14;
     private static final int INSTRUMENT_NAME_COLOR = 0xCCCCCC;
+    private static final int UNBIND_BUTTON_WIDTH = 36;
+    private static final int UNBIND_BUTTON_HEIGHT = 18;
+    private static final int UNBIND_BUTTON_X = 9;
+    private static final int UNBIND_BUTTON_Y = 32;
     protected int imageWidth = 176;
-    protected int imageHeight = 166;
+    protected int imageHeight = 84;
     private final Player owner;
-    private final ItemStack adjustableInstrument;
+    private final ItemStack whistle;
     private final InteractionHand hand;
     private final List<Holder<Instrument>> instruments;
     private int selectedInstrumentIndex = -1;
@@ -54,11 +62,12 @@ public class InstrumentAdjustmentScreen extends Screen {
     private int startIndex;
     private int leftPos;
     private int topPos;
+    private Button unbindButton;
 
-    public InstrumentAdjustmentScreen(Player owner, ItemStack adjustableInstrument, InteractionHand hand, Iterable<Holder<Instrument>> instruments) {
-        super(GameNarrator.NO_TITLE);
+    public WhistleScreen(Player owner, ItemStack whistle, InteractionHand hand, Iterable<Holder<Instrument>> instruments) {
+        super(CONTAINER_TITLE);
         this.owner = owner;
-        this.adjustableInstrument = adjustableInstrument;
+        this.whistle = whistle;
         this.hand = hand;
         this.instruments = ImmutableList.copyOf(instruments);
         this.minecraft = Minecraft.getInstance(); // need to do this to prevent NPEs
@@ -72,6 +81,16 @@ public class InstrumentAdjustmentScreen extends Screen {
         this.minecraft.keyboardHandler.setSendRepeatsToGui(true);
         this.leftPos = (this.width - this.imageWidth) / 2;
         this.topPos = (this.height - this.imageHeight) / 2;
+        this.unbindButton = this.addRenderableWidget(new Button(this.leftPos + UNBIND_BUTTON_X, this.topPos + UNBIND_BUTTON_Y, UNBIND_BUTTON_WIDTH, UNBIND_BUTTON_HEIGHT,
+                UNBIND_BUTTON_LABEL, (button) -> {
+            this.unbindWhistle();
+            this.updateUnbindButton();
+        }));
+        this.updateUnbindButton();
+    }
+
+    private void updateUnbindButton() {
+        this.unbindButton.active = PetWhistleItem.getBoundTo(this.whistle) != null;
     }
 
     @Override
@@ -252,9 +271,17 @@ public class InstrumentAdjustmentScreen extends Screen {
     }
 
     private void updateInstrument(Holder<Instrument> instrument) {
-        InstrumentUtil.setSoundVariantId(this.adjustableInstrument, instrument);
-        int slot = this.hand == InteractionHand.MAIN_HAND ? this.owner.getInventory().selected : Inventory.SLOT_OFFHAND;
-        ABABNetwork.INSTANCE.sendToServer(new ServerboundAdjustInstrumentPacket(slot, InstrumentUtil.getInstrumentLocation(instrument)));
+        InstrumentUtil.setSoundVariantId(this.whistle, instrument);
+        ABABNetwork.INSTANCE.sendToServer(new ServerboundAdjustInstrumentPacket(this.getSlot(), InstrumentUtil.getInstrumentLocation(instrument)));
+    }
+
+    private int getSlot() {
+        return this.hand == InteractionHand.MAIN_HAND ? this.owner.getInventory().selected : Inventory.SLOT_OFFHAND;
+    }
+
+    private void unbindWhistle() {
+        PetWhistleItem.unbind(this.whistle);
+        ABABNetwork.INSTANCE.sendToServer(new ServerboundUnbindPetWhistlePacket(this.getSlot()));
     }
 
 }

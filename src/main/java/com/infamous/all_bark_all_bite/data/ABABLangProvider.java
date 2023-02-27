@@ -42,6 +42,8 @@ public class ABABLangProvider extends LanguageProvider {
 
         this.add(AdjustableInstrumentItem.SECONDARY_USE_TOOLTIP, "Sneak & Use to Adjust");
         this.add(PetWhistleItem.getBoundToTooltipId(), "Bound to: %s");
+        this.add(PetWhistleItem.CONTAINER_TITLE_ID, "Whistle");
+        this.add(PetWhistleItem.UNBIND_BUTTON_LABEL_ID, "Unbind");
     }
 
     private void addWhistleWithDescription(RegistryObject<Instrument> whistle, String id, String description) {

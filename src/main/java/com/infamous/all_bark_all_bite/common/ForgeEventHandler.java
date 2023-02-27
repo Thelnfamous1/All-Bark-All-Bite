@@ -35,6 +35,7 @@ import net.minecraft.world.entity.animal.horse.AbstractHorse;
 import net.minecraft.world.entity.animal.horse.Llama;
 import net.minecraft.world.entity.monster.AbstractSkeleton;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.CustomSpawner;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
@@ -178,8 +179,8 @@ public class ForgeEventHandler {
         if(!player.isSpectator() && CompatUtil.isDILoaded()){
             Level level = player.getLevel();
             BlockPos blockPos = event.getPos();
-            boolean canSneakBypass = !player.isHolding(is -> is.doesSneakBypassUse(level, blockPos, player));
-            boolean sneakBypass = player.isSecondaryUseActive() && canSneakBypass;
+            boolean noSneakBypassUse = !player.isHolding(is -> is.doesSneakBypassUse(level, blockPos, player));
+            boolean sneakBypass = player.isSecondaryUseActive() && noSneakBypassUse;
             Event.Result useBlock = event.getUseBlock();
             if (useBlock == Event.Result.ALLOW || (useBlock != Event.Result.DENY && !sneakBypass)) {
                 BlockState blockState = level.getBlockState(blockPos);
@@ -193,16 +194,19 @@ public class ForgeEventHandler {
         if(event.isCanceled()) return;
         Player player = event.getEntity();
         Entity target = event.getTarget();
+        ItemStack itemStack = event.getItemStack();
 
-        if(event.getItemStack().is(ABABItems.WHISTLE.get())){
-            if(PetWhistleItem.interactWithPet(event.getItemStack(), player, target, event.getHand())){
+        if(player.getCooldowns().isOnCooldown(itemStack.getItem())) return;
+
+        if(itemStack.is(ABABItems.WHISTLE.get())){
+            if(PetWhistleItem.interactWithPet(itemStack, player, target, event.getHand())){
                 event.setCanceled(true);
                 event.setCancellationResult(InteractionResult.SUCCESS);
                 return;
             }
         }
 
-        if(!event.getItemStack().is(ABABTags.HAS_WOLF_INTERACTION) && !player.isSecondaryUseActive()){
+        if(!itemStack.is(ABABTags.HAS_WOLF_INTERACTION) && !player.isSecondaryUseActive()){
             if(target.getType() == EntityType.WOLF){
                 event.setCanceled(true);
                 event.setCancellationResult(AiUtil.interactOn(player, (Wolf)target, event.getHand(), WolfAi::mobInteract));

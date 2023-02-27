@@ -18,6 +18,15 @@ public class ABABNetwork {
     );
 
     public static void register(){
-        INSTANCE.registerMessage(COUNTER.getAndIncrement(), ServerboundAdjustInstrumentPacket.class, ServerboundAdjustInstrumentPacket::encoder, ServerboundAdjustInstrumentPacket::decoder, ServerboundAdjustInstrumentPacket::messageConsumer);
+        INSTANCE.registerMessage(COUNTER.getAndIncrement(),
+                ServerboundAdjustInstrumentPacket.class,
+                ServerboundAdjustInstrumentPacket::encoder,
+                ServerboundAdjustInstrumentPacket::decoder,
+                ServerboundAdjustInstrumentPacket::messageConsumer);
+        INSTANCE.registerMessage(COUNTER.getAndIncrement(),
+                ServerboundUnbindPetWhistlePacket.class,
+                ServerboundUnbindPetWhistlePacket::encoder,
+                ServerboundUnbindPetWhistlePacket::decoder,
+                ServerboundUnbindPetWhistlePacket::messageConsumer);
     }
 }

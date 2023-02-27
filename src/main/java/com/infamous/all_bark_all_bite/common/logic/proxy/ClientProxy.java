@@ -1,6 +1,6 @@
 package com.infamous.all_bark_all_bite.common.logic.proxy;
 
-import com.infamous.all_bark_all_bite.client.screen.InstrumentAdjustmentScreen;
+import com.infamous.all_bark_all_bite.client.screen.WhistleScreen;
 import com.infamous.all_bark_all_bite.common.item.AdjustableInstrumentItem;
 import net.minecraft.client.Minecraft;
 import net.minecraft.world.InteractionHand;
@@ -12,7 +12,7 @@ public class ClientProxy extends CommonProxy{
     @Override
     public void openItemGui(Player player, ItemStack stack, InteractionHand hand) {
         if(player.level.isClientSide && stack.getItem() instanceof AdjustableInstrumentItem adjustableInstrumentItem){
-            MINECRAFT.setScreen(new InstrumentAdjustmentScreen(player, stack, hand, adjustableInstrumentItem.getInstruments()));
+            MINECRAFT.setScreen(new WhistleScreen(player, stack, hand, adjustableInstrumentItem.getInstruments()));
         }
     }
 }

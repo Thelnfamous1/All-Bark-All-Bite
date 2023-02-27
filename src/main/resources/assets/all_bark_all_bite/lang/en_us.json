@@ -1,4 +1,6 @@
 {
+  "container.all_bark_all_bite.whistle": "Whistle",
+  "container.all_bark_all_bite.whistle.unbind": "Unbind",
   "entity.all_bark_all_bite.dog": "Dog",
   "entity.all_bark_all_bite.houndmaster": "Houndmaster",
   "entity.all_bark_all_bite.scavenger": "Scavenger",

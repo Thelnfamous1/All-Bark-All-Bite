@@ -1,13 +1,14 @@
 package com.infamous.all_bark_all_bite.common.item;
 
-import com.infamous.all_bark_all_bite.common.util.ai.CommandAi;
-import com.infamous.all_bark_all_bite.config.ABABConfig;
+import com.infamous.all_bark_all_bite.AllBarkAllBite;
 import com.infamous.all_bark_all_bite.common.logic.PetManagement;
 import com.infamous.all_bark_all_bite.common.logic.entity_manager.MultiEntityManager;
 import com.infamous.all_bark_all_bite.common.registry.ABABInstruments;
 import com.infamous.all_bark_all_bite.common.registry.ABABItems;
-import com.infamous.all_bark_all_bite.common.util.ai.AiUtil;
 import com.infamous.all_bark_all_bite.common.util.PetUtil;
+import com.infamous.all_bark_all_bite.common.util.ai.AiUtil;
+import com.infamous.all_bark_all_bite.common.util.ai.CommandAi;
+import com.infamous.all_bark_all_bite.config.ABABConfig;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.Holder;
 import net.minecraft.nbt.CompoundTag;
@@ -25,7 +26,6 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.HitResult;
-import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
@@ -38,6 +38,8 @@ public class PetWhistleItem extends AdjustableInstrumentItem{
     private static final String BOUND_TO_TAG = "BoundTo";
     private static final String NAME_TAG = "Name";
     private static final String UUID_TAG = "UUID";
+    public static final String CONTAINER_TITLE_ID = String.format("container.%s.%s", AllBarkAllBite.MODID, ABABItems.WHISTLE_NAME);
+    public static final String UNBIND_BUTTON_LABEL_ID = String.format("container.%s.%s.%s", AllBarkAllBite.MODID, ABABItems.WHISTLE_NAME, "unbind");
 
     public PetWhistleItem(Properties properties, TagKey<Instrument> instruments) {
         super(properties, instruments);
@@ -62,18 +64,28 @@ public class PetWhistleItem extends AdjustableInstrumentItem{
         return false;
     }
 
+    public static void unbind(ItemStack stack){
+        stack.removeTagKey(BOUND_TO_TAG);
+    }
+
+
     private static boolean isOwnedBy(Entity target, Entity owner) {
         return PetUtil.getOwnerUUID(target).filter(uuid -> uuid.equals(owner.getUUID())).isPresent();
     }
 
     @Nullable
     private static UUID getPetUUID(ItemStack stack){
-        CompoundTag petTag = stack.getTagElement(BOUND_TO_TAG);
+        CompoundTag petTag = getBoundTo(stack);
         if (petTag != null) {
             return petTag.getUUID(UUID_TAG);
 
         }
         return null;
+    }
+
+    @Nullable
+    public static CompoundTag getBoundTo(ItemStack stack) {
+        return stack.getTagElement(BOUND_TO_TAG);
     }
 
     public static void onItemUseStart(LivingEntity user, ItemStack useItem, ServerLevel serverLevel) {
@@ -118,14 +130,13 @@ public class PetWhistleItem extends AdjustableInstrumentItem{
     @Override
     public void appendHoverText(ItemStack itemStack, @Nullable Level level, List<Component> components, TooltipFlag tooltipFlag) {
         super.appendHoverText(itemStack, level, components, tooltipFlag);
-        CompoundTag petTag = itemStack.getTagElement(BOUND_TO_TAG);
+        CompoundTag petTag = getBoundTo(itemStack);
         if (petTag != null) {
             MutableComponent boundTooltip = Component.translatable(getBoundToTooltipId(), petTag.getString(NAME_TAG));
             components.add(boundTooltip.withStyle(ChatFormatting.GRAY));
         }
     }
 
-    @NotNull
     public static String getBoundToTooltipId() {
         return getWhistleAdditionalInfoTooltipId("bound_to");
     }
