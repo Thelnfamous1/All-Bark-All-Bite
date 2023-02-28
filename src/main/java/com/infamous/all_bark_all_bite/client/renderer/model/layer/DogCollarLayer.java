@@ -9,8 +9,8 @@ import net.minecraft.client.renderer.entity.RenderLayerParent;
 import net.minecraft.resources.ResourceLocation;
 
 public class DogCollarLayer extends SharedWolfCollarLayer<Dog, DogModel<Dog>> {
-   private static final ResourceLocation DOG_COLLAR_LOCATION = new ResourceLocation(AllBarkAllBite.MODID, "textures/entity/dog/dog_collar.png");
-   private static final ResourceLocation DOG_TAG_LOCATION = new ResourceLocation(AllBarkAllBite.MODID, "textures/entity/dog/dog_tag.png");
+   private static final ResourceLocation DOG_COLLAR_LOCATION = new ResourceLocation(AllBarkAllBite.MODID, "textures/entity/dog/collar/collar.png");
+   private static final ResourceLocation DOG_TAG_LOCATION = new ResourceLocation(AllBarkAllBite.MODID, "textures/entity/dog/collar/tag.png");
 
    public DogCollarLayer(RenderLayerParent<Dog, DogModel<Dog>> layerParent) {
       super(layerParent);

@@ -91,4 +91,12 @@ public class MiscUtil {
         MinecraftServer server = serverLevel.getServer();
         server.tell(new TickTask(server.getTickCount(), runnable));
     }
+
+    public static String getPngPath(String path) {
+        return String.format("%s.png", path);
+    }
+
+    public static String getEntityTexturePath(String entityPath, String texturePath) {
+        return String.format("textures/entity/%s", getPngPath(String.format("%s/%s", entityPath, texturePath)));
+    }
 }

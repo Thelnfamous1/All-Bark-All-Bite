@@ -47,7 +47,7 @@ public class WhistleScreen extends Screen {
     private static final int INSTRUMENTS_Y = 14;
     private static final int INSTRUMENT_NAME_COLOR = 0xCCCCCC;
     private static final int UNBIND_BUTTON_WIDTH = 36;
-    private static final int UNBIND_BUTTON_HEIGHT = 18;
+    private static final int UNBIND_BUTTON_HEIGHT = 20;
     private static final int UNBIND_BUTTON_X = 9;
     private static final int UNBIND_BUTTON_Y = 32;
     protected int imageWidth = 176;

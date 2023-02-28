@@ -8,12 +8,10 @@ import net.minecraft.client.renderer.entity.layers.RenderLayer;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.LivingEntity;
 
-public class SleepingEyesLayer<T extends LivingEntity, M extends EntityModel<T>> extends RenderLayer<T, M> {
-   private final ResourceLocation location;
+public abstract class SleepingLayer<T extends LivingEntity, M extends EntityModel<T>> extends RenderLayer<T, M> {
 
-   public SleepingEyesLayer(RenderLayerParent<T, M> parent, ResourceLocation location) {
+   public SleepingLayer(RenderLayerParent<T, M> parent) {
       super(parent);
-      this.location = location;
    }
 
    @Override
@@ -24,7 +22,5 @@ public class SleepingEyesLayer<T extends LivingEntity, M extends EntityModel<T>>
    }
 
    @Override
-   protected ResourceLocation getTextureLocation(T entity) {
-      return this.location;
-   }
+   protected abstract ResourceLocation getTextureLocation(T entity);
 }

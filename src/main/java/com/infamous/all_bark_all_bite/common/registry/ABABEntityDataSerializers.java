@@ -3,6 +3,7 @@ package com.infamous.all_bark_all_bite.common.registry;
 import com.infamous.all_bark_all_bite.AllBarkAllBite;
 import com.infamous.all_bark_all_bite.common.entity.EntityVariant;
 import net.minecraft.network.syncher.EntityDataSerializer;
+import net.minecraftforge.common.extensions.IForgeFriendlyByteBuf;
 import net.minecraftforge.registries.DeferredRegister;
 import net.minecraftforge.registries.ForgeRegistries;
 import net.minecraftforge.registries.IForgeRegistry;
@@ -15,6 +16,6 @@ public class ABABEntityDataSerializers {
     public static final RegistryObject<EntityDataSerializer<EntityVariant>> DOG_VARIANT = ENTITY_DATA_SERIALIZERS.register("dog_variant", () -> forgeId(ABABDogVariants.DOG_VARIANT_REGISTRY.get()));
 
     private static <T> EntityDataSerializer<T> forgeId(IForgeRegistry<T> registry) {
-        return EntityDataSerializer.simple((fbb, t) -> fbb.writeRegistryIdUnsafe(registry, t), (fbb) -> fbb.readRegistryIdUnsafe(registry));
+        return EntityDataSerializer.simple((fbb, t) -> fbb.writeRegistryId(registry, t), IForgeFriendlyByteBuf::readRegistryId);
     }
 }

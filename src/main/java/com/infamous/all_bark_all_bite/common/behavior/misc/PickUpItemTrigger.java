@@ -28,7 +28,7 @@ public class PickUpItemTrigger<E extends Mob> extends Behavior<E> {
     @SuppressWarnings("OptionalGetWithoutIsPresent")
     @Override
     protected boolean checkExtraStartConditions(ServerLevel level, E mob) {
-        ItemEntity nearestWantedItem = getNearestWantedItem(mob).get();
+        ItemEntity nearestWantedItem = this.getNearestWantedItem(mob).get();
         Vec3i pickupReach = ((MobAccessor)mob).callGetPickupReach();
         if (mob.canPickUpLoot() && mob.isAlive() && !((LivingEntityAccessor)mob).getDead() && ForgeEventFactory.getMobGriefingEvent(level, mob)) {
             AABB pickupBox = mob.getBoundingBox().inflate(pickupReach.getX(), pickupReach.getY(), pickupReach.getZ());

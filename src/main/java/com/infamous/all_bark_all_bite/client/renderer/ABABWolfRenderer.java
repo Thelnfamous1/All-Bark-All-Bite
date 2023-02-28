@@ -1,11 +1,10 @@
 package com.infamous.all_bark_all_bite.client.renderer;
 
-import com.infamous.all_bark_all_bite.AllBarkAllBite;
 import com.infamous.all_bark_all_bite.client.ABABModelLayers;
 import com.infamous.all_bark_all_bite.client.renderer.model.ABABWolfModel;
 import com.infamous.all_bark_all_bite.client.renderer.model.layer.SharedWolfCollarLayer;
 import com.infamous.all_bark_all_bite.client.renderer.model.layer.ItemInMouthLayer;
-import com.infamous.all_bark_all_bite.client.renderer.model.layer.SleepingEyesLayer;
+import com.infamous.all_bark_all_bite.client.renderer.model.layer.WolfSleepingLayer;
 import com.infamous.all_bark_all_bite.client.util.RWCompatClient;
 import com.infamous.all_bark_all_bite.common.util.CompatUtil;
 import com.infamous.all_bark_all_bite.config.ABABConfig;
@@ -17,7 +16,6 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.animal.Wolf;
 
 public class ABABWolfRenderer extends MobRenderer<Wolf, ABABWolfModel<Wolf>> {
-   private static final ResourceLocation WOLF_SLEEPING_EYES = new ResourceLocation(AllBarkAllBite.MODID, "textures/entity/wolf/wolf_sleeping_eyes.png");
    private static final float DEFAULT_SHADOW_RADIUS = 0.5F;
    private static final ResourceLocation WOLF_LOCATION = new ResourceLocation("textures/entity/wolf/wolf.png");
    private static final ResourceLocation WOLF_TAME_LOCATION = new ResourceLocation("textures/entity/wolf/wolf_tame.png");
@@ -25,7 +23,7 @@ public class ABABWolfRenderer extends MobRenderer<Wolf, ABABWolfModel<Wolf>> {
 
    public ABABWolfRenderer(EntityRendererProvider.Context context) {
       super(context, new ABABWolfModel<>(context.bakeLayer(ABABModelLayers.WOLF)), DEFAULT_SHADOW_RADIUS);
-      this.addLayer(new SleepingEyesLayer<>(this, WOLF_SLEEPING_EYES));
+      this.addLayer(new WolfSleepingLayer(this));
       this.addLayer(new SharedWolfCollarLayer<>(this));
       this.addLayer(new ItemInMouthLayer<>(this, context.getItemInHandRenderer()));
       if(CompatUtil.isRevampedWolfLoaded()){
