@@ -66,7 +66,7 @@ public class ABABConfig {
             houndmasterSummonCooldown = b
                     .comment("Determines the minimum number of seconds it takes for the Houndmaster to attempt to summon new Scavengers after losing any of them.\n" +
                             "Setting this to -1 effectively disables the feature.")
-                    .defineInRange("houndmaster_summon_cooldown", 17, -1, 1200);
+                    .defineInRange("houndmaster_summon_cooldown", 30, -1, 1200);
 
             petTeleportDistanceTrigger = b
                     .comment("""
