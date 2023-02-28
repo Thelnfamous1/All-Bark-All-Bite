@@ -2,6 +2,7 @@ package com.infamous.all_bark_all_bite.mixin;
 
 import com.infamous.all_bark_all_bite.common.entity.*;
 import com.infamous.all_bark_all_bite.common.entity.wolf.WolfHooks;
+import com.infamous.all_bark_all_bite.common.util.ai.AiUtil;
 import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.world.InteractionHand;
@@ -22,7 +23,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 @Mixin(Wolf.class)
-public abstract class WolfMixin extends TamableAnimal implements AnimalAccessor, AnimationControllerAccessor<SharedWolfAnimationController> {
+public abstract class WolfMixin extends TamableAnimal implements AnimalAccess, AnimationControllerAccess<SharedWolfAnimationController> {
     private SharedWolfAnimationController animationController;
 
     protected WolfMixin(EntityType<? extends TamableAnimal> type, Level level) {
@@ -80,6 +81,7 @@ public abstract class WolfMixin extends TamableAnimal implements AnimalAccessor,
 
     @Override
     public void takeItemFromPlayer(Player player, InteractionHand hand, ItemStack itemStack) {
+        AiUtil.animalEat(this, itemStack);
         this.usePlayerItem(player, hand, itemStack);
     }
 

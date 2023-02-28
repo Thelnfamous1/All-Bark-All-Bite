@@ -2,9 +2,9 @@ package com.infamous.all_bark_all_bite.common.util.ai;
 
 import com.infamous.all_bark_all_bite.common.behavior.pet.FollowOwner;
 import com.infamous.all_bark_all_bite.config.ABABConfig;
-import com.infamous.all_bark_all_bite.common.entity.LookTargetAccessor;
+import com.infamous.all_bark_all_bite.common.entity.LookTargetAccess;
 import com.infamous.all_bark_all_bite.common.entity.SharedWolfAi;
-import com.infamous.all_bark_all_bite.common.entity.WalkTargetAccessor;
+import com.infamous.all_bark_all_bite.common.entity.WalkTargetAccess;
 import com.infamous.all_bark_all_bite.common.registry.ABABActivities;
 import com.infamous.all_bark_all_bite.common.registry.ABABMemoryModuleTypes;
 import com.infamous.all_bark_all_bite.common.util.CompatUtil;
@@ -156,8 +156,8 @@ public class CommandAi {
                 BlockPos blockPos = (BlockPos) target;
                 lookTarget = new BlockPosTracker(blockPos);
             }
-            WalkTargetAccessor.cast(mob).setWalkTarget(walkTarget);
-            LookTargetAccessor.cast(mob).setLookTarget(lookTarget);
+            WalkTargetAccess.cast(mob).setWalkTarget(walkTarget);
+            LookTargetAccess.cast(mob).setLookTarget(lookTarget);
         }
     }
 

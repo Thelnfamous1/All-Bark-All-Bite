@@ -4,7 +4,7 @@ package com.infamous.all_bark_all_bite.client.renderer.model;// Made with Blockb
 
 
 import com.infamous.all_bark_all_bite.client.renderer.model.animation.WolfAnimation;
-import com.infamous.all_bark_all_bite.common.entity.AnimationControllerAccessor;
+import com.infamous.all_bark_all_bite.common.entity.AnimationControllerAccess;
 import com.infamous.all_bark_all_bite.common.entity.SharedWolfAnimationController;
 import com.infamous.all_bark_all_bite.mixin.WolfAccessor;
 import net.minecraft.client.model.ColorableHierarchicalModel;
@@ -87,7 +87,7 @@ public class ABABWolfModel<T extends Wolf> extends ColorableHierarchicalModel<T>
 	public void setupAnim(T wolf, float limbSwing, float limbSwingAmount, float ageInTicks, float netHeadYaw, float headPitch) {
 		this.root().getAllParts().forEach(ModelPart::resetPose);
 		this.animateHeadLookTarget(netHeadYaw, headPitch);
-		AnimationControllerAccessor<SharedWolfAnimationController> aca = AnimationControllerAccessor.cast(wolf);
+		AnimationControllerAccess<SharedWolfAnimationController> aca = AnimationControllerAccess.cast(wolf);
 		SharedWolfAnimationController animationController = aca.getAnimationController();
 		this.animate(animationController.attackAnimationState, WolfAnimation.ATTACK, ageInTicks);
 		this.animate(animationController.babyAnimationState, WolfAnimation.BABY, ageInTicks);

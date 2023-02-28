@@ -34,10 +34,10 @@ public abstract class MobMixin extends LivingEntity {
         }
     }
 
-    @Inject(method = "canPickUpLoot", at = @At("HEAD"), cancellable = true)
+    @Inject(method = "canPickUpLoot", at = @At("RETURN"), cancellable = true)
     private void handleCanPickUpLoot(CallbackInfoReturnable<Boolean> cir) {
         if(this.getType() == EntityType.WOLF){
-            cir.setReturnValue(!GenericAi.isOnPickupCooldown(this));
+            cir.setReturnValue(cir.getReturnValue() && !GenericAi.isOnPickupCooldown(this));
         }
     }
 

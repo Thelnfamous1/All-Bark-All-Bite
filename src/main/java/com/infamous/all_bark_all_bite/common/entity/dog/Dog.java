@@ -382,7 +382,7 @@ public class Dog extends TamableAnimal implements InterestedMob, ShakingMob, Var
 
     @Override
     public boolean canPickUpLoot() {
-        return !GenericAi.isOnPickupCooldown(this);
+        return super.canPickUpLoot() && !GenericAi.isOnPickupCooldown(this);
     }
 
     @Override

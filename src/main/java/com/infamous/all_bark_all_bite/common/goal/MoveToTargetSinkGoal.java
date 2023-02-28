@@ -1,6 +1,6 @@
 package com.infamous.all_bark_all_bite.common.goal;
 
-import com.infamous.all_bark_all_bite.common.entity.WalkTargetAccessor;
+import com.infamous.all_bark_all_bite.common.entity.WalkTargetAccess;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.entity.Mob;
 import net.minecraft.world.entity.PathfinderMob;
@@ -17,7 +17,7 @@ import java.util.EnumSet;
 public class MoveToTargetSinkGoal extends Goal {
     private static final int MAX_COOLDOWN_BEFORE_RETRYING = 40;
     private final PathfinderMob mob;
-    private final WalkTargetAccessor walkTargetAccessor;
+    private final WalkTargetAccess walkTargetAccess;
     private long lastAttemptTimestamp;
     @Nullable
     private Path path;
@@ -28,13 +28,13 @@ public class MoveToTargetSinkGoal extends Goal {
 
     public MoveToTargetSinkGoal(PathfinderMob mob) {
         this.mob = mob;
-        this.walkTargetAccessor = WalkTargetAccessor.cast(this.mob);
+        this.walkTargetAccess = WalkTargetAccess.cast(this.mob);
         this.setFlags(EnumSet.of(Flag.MOVE));
     }
 
     @Override
     public boolean canUse() {
-        WalkTarget walkTarget = this.walkTargetAccessor.getWalkTarget();
+        WalkTarget walkTarget = this.walkTargetAccess.getWalkTarget();
         if(this.mob.isPathFinding() || walkTarget == null){
             return false;
         } else if (this.lastAttemptTimestamp > this.mob.level.getGameTime()) {
@@ -45,7 +45,7 @@ public class MoveToTargetSinkGoal extends Goal {
                 this.lastTargetPos = walkTarget.getTarget().currentBlockPosition();
                 return true;
             } else {
-                this.walkTargetAccessor.setWalkTarget(null);
+                this.walkTargetAccess.setWalkTarget(null);
                 return false;
             }
         }
@@ -63,7 +63,7 @@ public class MoveToTargetSinkGoal extends Goal {
         if(this.mob.level.getGameTime() > this.endTimestamp){
             return false;
         } else if (this.path != null && this.lastTargetPos != null) {
-            WalkTarget walkTarget = this.walkTargetAccessor.getWalkTarget();
+            WalkTarget walkTarget = this.walkTargetAccess.getWalkTarget();
             PathNavigation pathNavigation = this.mob.getNavigation();
             return !pathNavigation.isDone() && walkTarget != null && !this.reachedTarget(this.mob, walkTarget);
         } else {
@@ -79,7 +79,7 @@ public class MoveToTargetSinkGoal extends Goal {
         }
 
         if (path != null && this.lastTargetPos != null) {
-            WalkTarget walktarget = this.walkTargetAccessor.getWalkTarget();
+            WalkTarget walktarget = this.walkTargetAccess.getWalkTarget();
             if (walktarget != null && walktarget.getTarget().currentBlockPosition().distSqr(this.lastTargetPos) > 4.0D && this.tryComputePath(this.mob, walktarget)) {
                 this.lastTargetPos = walktarget.getTarget().currentBlockPosition();
                 this.start();
@@ -90,13 +90,13 @@ public class MoveToTargetSinkGoal extends Goal {
 
     @Override
     public void stop() {
-        WalkTarget walkTarget = this.walkTargetAccessor.getWalkTarget();
+        WalkTarget walkTarget = this.walkTargetAccess.getWalkTarget();
         if (walkTarget != null && !this.reachedTarget(this.mob, walkTarget) && this.mob.getNavigation().isStuck()) {
             this.lastAttemptTimestamp = this.mob.level.getGameTime() + this.mob.getRandom().nextInt(MAX_COOLDOWN_BEFORE_RETRYING);
         }
 
         this.mob.getNavigation().stop();
-        this.walkTargetAccessor.setWalkTarget(null);
+        this.walkTargetAccess.setWalkTarget(null);
         this.path = null;
     }
 

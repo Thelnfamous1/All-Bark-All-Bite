@@ -1,7 +1,7 @@
 package com.infamous.all_bark_all_bite.mixin;
 
-import com.infamous.all_bark_all_bite.common.entity.LookTargetAccessor;
-import com.infamous.all_bark_all_bite.common.entity.WalkTargetAccessor;
+import com.infamous.all_bark_all_bite.common.entity.LookTargetAccess;
+import com.infamous.all_bark_all_bite.common.entity.WalkTargetAccess;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.Mob;
 import net.minecraft.world.entity.PathfinderMob;
@@ -12,7 +12,7 @@ import org.jetbrains.annotations.Nullable;
 import org.spongepowered.asm.mixin.Mixin;
 
 @Mixin(PathfinderMob.class)
-public abstract class PathfinderMobMixin extends Mob implements WalkTargetAccessor, LookTargetAccessor {
+public abstract class PathfinderMobMixin extends Mob implements WalkTargetAccess, LookTargetAccess {
     private WalkTarget walkTarget;
     private PositionTracker lookTarget;
 

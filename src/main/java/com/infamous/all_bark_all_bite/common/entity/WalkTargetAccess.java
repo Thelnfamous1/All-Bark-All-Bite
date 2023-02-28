@@ -4,10 +4,10 @@ import net.minecraft.world.entity.PathfinderMob;
 import net.minecraft.world.entity.ai.memory.WalkTarget;
 import org.jetbrains.annotations.Nullable;
 
-public interface WalkTargetAccessor {
+public interface WalkTargetAccess {
 
-    static WalkTargetAccessor cast(PathfinderMob pathfinderMob){
-        return (WalkTargetAccessor) pathfinderMob;
+    static WalkTargetAccess cast(PathfinderMob pathfinderMob){
+        return (WalkTargetAccess) pathfinderMob;
     }
 
     @Nullable

@@ -5,7 +5,7 @@ import com.infamous.all_bark_all_bite.common.ABABTags;
 import com.infamous.all_bark_all_bite.common.util.ai.GenericAi;
 import com.infamous.all_bark_all_bite.common.util.ai.TrustAi;
 import com.infamous.all_bark_all_bite.config.ABABConfig;
-import com.infamous.all_bark_all_bite.common.entity.AnimalAccessor;
+import com.infamous.all_bark_all_bite.common.entity.AnimalAccess;
 import com.infamous.all_bark_all_bite.common.entity.SharedWolfAi;
 import com.infamous.all_bark_all_bite.common.registry.ABABActivities;
 import com.infamous.all_bark_all_bite.common.registry.ABABMemoryModuleTypes;
@@ -170,10 +170,10 @@ public class WolfAi {
                     if(healInteraction.isPresent()) return healInteraction.get();
 
                     if (!(item instanceof DyeItem dyeItem)) {
-                        ItemStack copy = itemInHand.copy(); // retain a copy of the item before it is potentially consumed during animalInteract
-                        InteractionResult animalInteractionResult = AnimalAccessor.cast(wolf).animalInteract(player, hand);
+                        InteractionResult animalInteractionResult = AnimalAccess.cast(wolf).animalInteract(player, hand);
                         if(animalInteractionResult.consumesAction()){
-                            AiUtil.animalEat(wolf, copy);
+                            // Might have weird behavior if the count actually matters for a modded item's nutrition
+                            AiUtil.animalEat(wolf, itemInHand);
                         }
                         boolean willNotBreed = !animalInteractionResult.consumesAction();
                         if (willNotBreed) {
@@ -186,7 +186,7 @@ public class WolfAi {
                     DyeColor dyeColor = dyeItem.getDyeColor();
                     if (dyeColor != wolf.getCollarColor()) {
                         wolf.setCollarColor(dyeColor);
-                        AnimalAccessor.cast(wolf).takeItemFromPlayer(player, hand, itemInHand);
+                        AnimalAccess.cast(wolf).takeItemFromPlayer(player, hand, itemInHand);
 
                         return InteractionResult.SUCCESS;
                     }
@@ -199,13 +199,13 @@ public class WolfAi {
                 }
 
                 if(itemInHand.is(ABABTags.WOLF_LOVED)){
-                    AnimalAccessor.cast(wolf).takeItemFromPlayer(player, hand, itemInHand);
+                    AnimalAccess.cast(wolf).takeItemFromPlayer(player, hand, itemInHand);
                     updateTrust(wolf, player);
                     return InteractionResult.CONSUME;
                 }
             }
 
-            return AnimalAccessor.cast(wolf).animalInteract(player, hand);
+            return AnimalAccess.cast(wolf).animalInteract(player, hand);
         }
     }
 
@@ -223,8 +223,7 @@ public class WolfAi {
 
     private static Optional<InteractionResult> healInteraction(Wolf wolf, Player player, InteractionHand hand, ItemStack itemInHand) {
         if (wolf.isFood(itemInHand) && AiUtil.isInjured(wolf)) {
-            AiUtil.animalEat(wolf, itemInHand);
-            AnimalAccessor.cast(wolf).takeItemFromPlayer(player, hand, itemInHand);
+            AnimalAccess.cast(wolf).takeItemFromPlayer(player, hand, itemInHand);
             return Optional.of(InteractionResult.SUCCESS);
         }
         return Optional.empty();

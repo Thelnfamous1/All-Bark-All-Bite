@@ -4,10 +4,10 @@ import net.minecraft.world.entity.PathfinderMob;
 import net.minecraft.world.entity.ai.behavior.PositionTracker;
 import org.jetbrains.annotations.Nullable;
 
-public interface LookTargetAccessor {
+public interface LookTargetAccess {
 
-    static LookTargetAccessor cast(PathfinderMob mob){
-        return (LookTargetAccessor) mob;
+    static LookTargetAccess cast(PathfinderMob mob){
+        return (LookTargetAccess) mob;
     }
 
     @Nullable
