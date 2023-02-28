@@ -1,5 +1,6 @@
 package com.infamous.all_bark_all_bite.mixin;
 
+import net.minecraft.core.Vec3i;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.Mob;
@@ -12,4 +13,7 @@ public interface MobAccessor {
 
     @Invoker
     InteractionResult callCheckAndHandleImportantInteractions(Player player, InteractionHand hand);
+
+    @Invoker
+    Vec3i callGetPickupReach();
 }

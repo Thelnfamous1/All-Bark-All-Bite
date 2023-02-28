@@ -74,6 +74,7 @@ public class WolfBrain {
                 new HurtByTrigger<>(SharedWolfBrain::onHurtBy),
                 new WakeUpTrigger<>(SharedWolfAi::wantsToWakeUp),
                 new AgeChangeTrigger<>(SharedWolfBrain::onAgeChanged),
+                new PickUpItemTrigger<>(WolfHooks::onWolfPickUpItem),
                 new Swim(SharedWolfAi.JUMP_CHANCE_IN_WATER),
                 SharedWolfBrain.createAnimalPanic(),
                 new Eat(SharedWolfAi::setAteRecently),

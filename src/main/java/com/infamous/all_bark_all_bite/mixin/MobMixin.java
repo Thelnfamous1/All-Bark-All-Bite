@@ -1,8 +1,7 @@
 package com.infamous.all_bark_all_bite.mixin;
 
-import com.infamous.all_bark_all_bite.common.util.CompatUtil;
-import com.infamous.all_bark_all_bite.common.util.ai.GenericAi;
 import com.infamous.all_bark_all_bite.common.entity.wolf.WolfHooks;
+import com.infamous.all_bark_all_bite.common.util.ai.GenericAi;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.Mob;
@@ -11,17 +10,13 @@ import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import org.spongepowered.asm.mixin.Mixin;
-import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
-import org.spongepowered.asm.mixin.injection.Redirect;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 @Mixin(Mob.class)
 public abstract class MobMixin extends LivingEntity {
-
-    @Shadow protected abstract void pickUpItem(ItemEntity p_21471_);
 
     protected MobMixin(EntityType<? extends LivingEntity> type, Level level) {
         super(type, level);
@@ -60,15 +55,6 @@ public abstract class MobMixin extends LivingEntity {
         if(this.getType() == EntityType.WOLF){
             ci.cancel();
             WolfHooks.onWolfPickUpItem((Mob) (Object)this, itemEntity);
-        }
-    }
-
-    @Redirect(method = "aiStep", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/entity/Mob;pickUpItem(Lnet/minecraft/world/entity/item/ItemEntity;)V"))
-    private void handleAiStep(Mob instance, ItemEntity itemEntity){
-        if(this.getType() == EntityType.WOLF && CompatUtil.isRevampedWolfLoaded()){
-            WolfHooks.onWolfPickUpItem(instance, itemEntity);
-        } else{
-            this.pickUpItem(itemEntity);
         }
     }
 }
