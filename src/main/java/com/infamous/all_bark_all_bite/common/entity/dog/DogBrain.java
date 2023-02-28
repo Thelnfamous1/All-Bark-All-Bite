@@ -134,7 +134,7 @@ public class DogBrain {
                 new Swim(SharedWolfAi.JUMP_CHANCE_IN_WATER),
                 SharedWolfBrain.createAnimalPanic(),
                 new RunIf<>(TamableAnimal::isTame, new StartItemActivityWithItemIfSeen<>(DogBrain::canFetchItemEntity, ABABMemoryModuleTypes.FETCHING_ITEM.get(), ABABMemoryModuleTypes.FETCHING_DISABLED.get(), ABABMemoryModuleTypes.DISABLE_WALK_TO_FETCH_ITEM.get())),
-                new RunIf<>(DogBrain::isNotHoldingBuryOrFetchItem, new Eat(SharedWolfAi::setAteRecently, SharedWolfAi.EAT_DURATION), true),
+                new RunIf<>(DogBrain::isNotHoldingBuryOrFetchItem, new Eat(SharedWolfAi::setAteRecently), true),
                 SharedWolfBrain.createLookAtTargetSink(),
                 SharedWolfBrain.createMoveToTargetSink(),
                 SharedWolfBrain.copyDislikedToAvoidTarget(),

@@ -76,7 +76,7 @@ public class WolfBrain {
                 new AgeChangeTrigger<>(SharedWolfBrain::onAgeChanged),
                 new Swim(SharedWolfAi.JUMP_CHANCE_IN_WATER),
                 SharedWolfBrain.createAnimalPanic(),
-                new Eat(SharedWolfAi::setAteRecently, SharedWolfAi.EAT_DURATION),
+                new Eat(SharedWolfAi::setAteRecently),
                 SharedWolfBrain.createLookAtTargetSink(),
                 SharedWolfBrain.createMoveToTargetSink(),
                 SharedWolfBrain.copyDislikedToAvoidTarget(),

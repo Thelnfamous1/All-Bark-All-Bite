@@ -53,7 +53,7 @@ public class CommandAi {
     public static void commandAttack(PathfinderMob pet, LivingEntity target, LivingEntity owner) {
         handleStates(pet, false, true);
         yieldAsPet(pet);
-        if(pet.canAttack(target)){
+        if(pet.canAttack(target) && owner.canAttack(target)){
             StartAttacking.setAttackTarget(pet, target);
             pet.setTarget(target);
         }
