@@ -2,6 +2,7 @@ package com.infamous.all_bark_all_bite.common.entity;
 
 import com.infamous.all_bark_all_bite.common.behavior.pet.FollowOwner;
 import com.infamous.all_bark_all_bite.common.behavior.sleep.MoveToNonSkySeeingSpot;
+import com.infamous.all_bark_all_bite.common.entity.wolf.WolfHooks;
 import com.infamous.all_bark_all_bite.common.registry.ABABGameEvents;
 import com.infamous.all_bark_all_bite.common.registry.ABABMemoryModuleTypes;
 import com.infamous.all_bark_all_bite.common.util.CompatUtil;
@@ -310,14 +311,14 @@ public class SharedWolfAi {
     }
 
     public static boolean isAbleToPickUp(Mob mob, ItemStack stack) {
-        if (AiUtil.hasAnyMemory(mob,
-                MemoryModuleType.ATTACK_TARGET,
-                MemoryModuleType.AVOID_TARGET,
-                MemoryModuleType.IS_PANICKING,
-                MemoryModuleType.BREED_TARGET)) {
+        if (!mob.getBrain().isActive(Activity.IDLE)) {
             return false;
         } else {
-            return mob.canHoldItem(stack);
+            if(mob.getType() == EntityType.WOLF && CompatUtil.isRevampedWolfLoaded()){
+                return WolfHooks.canWolfHoldItem(stack, (Animal) mob);
+            } else {
+                return mob.canHoldItem(stack);
+            }
         }
     }
 

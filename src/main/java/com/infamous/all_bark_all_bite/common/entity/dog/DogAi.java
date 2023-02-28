@@ -2,25 +2,25 @@ package com.infamous.all_bark_all_bite.common.entity.dog;
 
 import com.google.common.collect.ImmutableList;
 import com.infamous.all_bark_all_bite.common.ABABTags;
-import com.infamous.all_bark_all_bite.config.ABABConfig;
-import com.infamous.all_bark_all_bite.common.util.ai.AiUtil;
-import com.infamous.all_bark_all_bite.common.util.ai.CommandAi;
-import com.infamous.all_bark_all_bite.common.util.ai.DigAi;
-import com.infamous.all_bark_all_bite.common.util.ai.GenericAi;
 import com.infamous.all_bark_all_bite.common.entity.SharedWolfAi;
 import com.infamous.all_bark_all_bite.common.registry.ABABMemoryModuleTypes;
 import com.infamous.all_bark_all_bite.common.registry.ABABSensorTypes;
 import com.infamous.all_bark_all_bite.common.util.MiscUtil;
+import com.infamous.all_bark_all_bite.common.util.ai.AiUtil;
+import com.infamous.all_bark_all_bite.common.util.ai.CommandAi;
+import com.infamous.all_bark_all_bite.common.util.ai.DigAi;
+import com.infamous.all_bark_all_bite.common.util.ai.GenericAi;
+import com.infamous.all_bark_all_bite.config.ABABConfig;
 import net.minecraft.core.BlockPos;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.LivingEntity;
-import net.minecraft.world.entity.Mob;
 import net.minecraft.world.entity.ai.memory.MemoryModuleType;
 import net.minecraft.world.entity.ai.sensing.Sensor;
 import net.minecraft.world.entity.ai.sensing.SensorType;
+import net.minecraft.world.entity.animal.Animal;
 import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.entity.schedule.Activity;
@@ -185,7 +185,7 @@ public class DogAi {
     /**
      * Called by {@link Dog#wantsToPickUp(ItemStack)}
      */
-    public static boolean wantsToPickup(Mob dog, ItemStack stack) {
+    public static boolean wantsToPickup(Animal dog, ItemStack stack) {
         return DigAi.getDigLocation(dog).isEmpty() && SharedWolfAi.isAbleToPickUp(dog, stack);
     }
 

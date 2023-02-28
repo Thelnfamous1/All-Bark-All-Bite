@@ -222,10 +222,10 @@ public class WhistleScreen extends Screen {
     private boolean clickMenuButton(int index) {
         if (this.isValidInstrumentIndex(index)) {
             this.selectedInstrumentIndex = index;
-            //this.setupResultSlot();
-        }
 
-        return true;
+            return true;
+        }
+        return false;
     }
 
     private boolean isValidInstrumentIndex(int index) {

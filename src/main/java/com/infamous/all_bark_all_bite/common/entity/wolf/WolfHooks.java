@@ -89,7 +89,7 @@ public class WolfHooks {
         return itemInMouth.isEmpty() || wolf.isFood(itemStack) && !wolf.isFood(itemInMouth);
     }
 
-    public static void onWolfPickUpItem(ItemEntity itemEntity, Mob wolf) {
+    public static void onWolfPickUpItem(Mob wolf, ItemEntity itemEntity) {
         wolf.onItemPickup(itemEntity);
         SharedWolfAi.pickUpAndHoldItem(wolf, itemEntity);
     }

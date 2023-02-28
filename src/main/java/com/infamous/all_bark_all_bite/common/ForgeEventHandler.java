@@ -196,8 +196,6 @@ public class ForgeEventHandler {
         Entity target = event.getTarget();
         ItemStack itemStack = event.getItemStack();
 
-        if(player.getCooldowns().isOnCooldown(itemStack.getItem())) return;
-
         if(itemStack.is(ABABItems.WHISTLE.get())){
             if(PetWhistleItem.interactWithPet(itemStack, player, target, event.getHand())){
                 event.setCanceled(true);

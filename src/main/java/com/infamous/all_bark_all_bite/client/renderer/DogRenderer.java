@@ -4,7 +4,7 @@ import com.infamous.all_bark_all_bite.AllBarkAllBite;
 import com.infamous.all_bark_all_bite.client.ABABModelLayers;
 import com.infamous.all_bark_all_bite.client.renderer.model.DogModel;
 import com.infamous.all_bark_all_bite.client.renderer.model.layer.DogCollarLayer;
-import com.infamous.all_bark_all_bite.client.renderer.model.layer.SharedWolfHeldItemLayer;
+import com.infamous.all_bark_all_bite.client.renderer.model.layer.ItemInMouthLayer;
 import com.infamous.all_bark_all_bite.client.renderer.model.layer.SleepingEyesLayer;
 import com.infamous.all_bark_all_bite.common.entity.dog.Dog;
 import com.mojang.blaze3d.vertex.PoseStack;
@@ -22,7 +22,7 @@ public class DogRenderer extends MobRenderer<Dog, DogModel<Dog>> {
       super(context, new DogModel<>(context.bakeLayer(ABABModelLayers.DOG)), DEFAULT_SHADOW_RADIUS);
       this.addLayer(new SleepingEyesLayer<>(this, DOG_SLEEPING_EYES));
       this.addLayer(new DogCollarLayer(this));
-      this.addLayer(new SharedWolfHeldItemLayer<>(this, context.getItemInHandRenderer()));
+      this.addLayer(new ItemInMouthLayer<>(this, context.getItemInHandRenderer()));
    }
 
    @Override

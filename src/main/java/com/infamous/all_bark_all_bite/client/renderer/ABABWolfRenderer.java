@@ -4,7 +4,7 @@ import com.infamous.all_bark_all_bite.AllBarkAllBite;
 import com.infamous.all_bark_all_bite.client.ABABModelLayers;
 import com.infamous.all_bark_all_bite.client.renderer.model.ABABWolfModel;
 import com.infamous.all_bark_all_bite.client.renderer.model.layer.SharedWolfCollarLayer;
-import com.infamous.all_bark_all_bite.client.renderer.model.layer.SharedWolfHeldItemLayer;
+import com.infamous.all_bark_all_bite.client.renderer.model.layer.ItemInMouthLayer;
 import com.infamous.all_bark_all_bite.client.renderer.model.layer.SleepingEyesLayer;
 import com.infamous.all_bark_all_bite.client.util.RWCompatClient;
 import com.infamous.all_bark_all_bite.common.util.CompatUtil;
@@ -27,7 +27,7 @@ public class ABABWolfRenderer extends MobRenderer<Wolf, ABABWolfModel<Wolf>> {
       super(context, new ABABWolfModel<>(context.bakeLayer(ABABModelLayers.WOLF)), DEFAULT_SHADOW_RADIUS);
       this.addLayer(new SleepingEyesLayer<>(this, WOLF_SLEEPING_EYES));
       this.addLayer(new SharedWolfCollarLayer<>(this));
-      this.addLayer(new SharedWolfHeldItemLayer<>(this, context.getItemInHandRenderer()));
+      this.addLayer(new ItemInMouthLayer<>(this, context.getItemInHandRenderer()));
       if(CompatUtil.isRevampedWolfLoaded()){
          this.addLayer(RWCompatClient.getRWArmorLayer(this, context));
       }
