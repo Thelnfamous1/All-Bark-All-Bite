@@ -1,6 +1,74 @@
 {
-  "parent": "minecraft:item/generated",
-  "textures": {
-    "layer0": "all_bark_all_bite:item/whistle"
-  }
+	"credit": "Made with Blockbench",
+	"textures": {
+		"0": "all_bark_all_bite:item/whistle",
+		"particle": "all_bark_all_bite:item/whistle"
+	},
+	"elements": [
+		{
+			"name": "whistle",
+			"from": [8, 8.5, 8],
+			"to": [10, 11.5, 10],
+			"rotation": {"angle": 0, "axis": "x", "origin": [-0.5, 2.75, 5.5]},
+			"faces": {
+				"north": {"uv": [6, 10, 8, 13], "texture": "#0"},
+				"east": {"uv": [4, 10, 6, 13], "texture": "#0"},
+				"south": {"uv": [10, 10, 12, 13], "texture": "#0"},
+				"west": {"uv": [8, 10, 10, 13], "texture": "#0"},
+				"up": {"uv": [8, 10, 6, 8], "texture": "#0"},
+				"down": {"uv": [10, 8, 8, 10], "texture": "#0"}
+			}
+		},
+		{
+			"name": "whistle",
+			"from": [8, 9.5, 10],
+			"to": [10, 11.5, 13],
+			"rotation": {"angle": 0, "axis": "x", "origin": [-0.5, 2.75, 5.5]},
+			"faces": {
+				"north": {"uv": [6, 6, 8, 8], "texture": "#0"},
+				"east": {"uv": [3, 6, 6, 8], "texture": "#0"},
+				"south": {"uv": [11, 6, 13, 8], "texture": "#0"},
+				"west": {"uv": [8, 6, 11, 8], "texture": "#0"},
+				"up": {"uv": [8, 6, 6, 3], "texture": "#0"},
+				"down": {"uv": [10, 3, 8, 6], "texture": "#0"}
+			}
+		}
+	],
+	"gui_light": "front",
+	"display": {
+		"thirdperson_righthand": {
+			"translation": [-1, -1.5, -2]
+		},
+		"thirdperson_lefthand": {
+			"translation": [1, -1.5, -2]
+		},
+		"firstperson_righthand": {
+			"translation": [-5, 2, 0]
+		},
+		"firstperson_lefthand": {
+			"translation": [-3, 2, 0]
+		},
+		"gui": {
+			"rotation": [0, 90, 0],
+			"translation": [-5.25, -4, 0],
+			"scale": [2, 2, 2]
+		},
+		"head": {
+			"translation": [-1.5, 3.5, -10.5],
+			"scale": [2, 2, 2]
+		},
+		"fixed": {
+			"rotation": [0, 90, 0],
+			"translation": [-5, -4, 3],
+			"scale": [2, 2, 2]
+		}
+	},
+	"groups": [
+		{
+			"name": "whistle",
+			"origin": [-7, 15.75, -2],
+			"color": 0,
+			"children": [0, 1]
+		}
+	]
 }
