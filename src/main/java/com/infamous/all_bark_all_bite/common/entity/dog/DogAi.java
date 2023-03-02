@@ -44,6 +44,7 @@ public class DogAi {
             MemoryModuleType.AVOID_TARGET,
             MemoryModuleType.BREED_TARGET,
             MemoryModuleType.CANT_REACH_WALK_TARGET_SINCE,
+            ABABMemoryModuleTypes.TAG_COOLING_DOWN.get(),
             MemoryModuleType.DIG_COOLDOWN,
             ABABMemoryModuleTypes.DIG_LOCATION.get(),
             ABABMemoryModuleTypes.DISABLE_WALK_TO_FETCH_ITEM.get(),

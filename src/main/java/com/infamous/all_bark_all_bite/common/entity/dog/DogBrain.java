@@ -258,7 +258,7 @@ public class DogBrain {
                                         SharedWolfBrain.createBreedBehavior(ABABEntityTypes.DOG.get()),
                                         new RunIf<>(livingEntity -> SharedWolfAi.wantsToFindShelter(livingEntity, false), new MoveToNonSkySeeingSpot(SharedWolfAi.SPEED_MODIFIER_WALKING), true),
                                         new BabyFollowAdult<>(SharedWolfAi.ADULT_FOLLOW_RANGE, SharedWolfAi.SPEED_MODIFIER_FOLLOWING_ADULT),
-                                        new PlayTagWithOtherBabies(SharedWolfAi.SPEED_MODIFIER_RETREATING, SharedWolfAi.SPEED_MODIFIER_CHASING)
+                                        new PlayTagWithOtherBabies(SharedWolfAi.SPEED_MODIFIER_RETREATING, SharedWolfAi.SPEED_MODIFIER_CHASING, SharedWolfAi.TAG_DURATION)
                                 ),
                                 ABABMemoryModuleTypes.IS_ORDERED_TO_FOLLOW.get()
                         ),

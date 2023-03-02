@@ -3,10 +3,11 @@ package com.infamous.all_bark_all_bite.common.behavior.misc;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
 import com.infamous.all_bark_all_bite.common.registry.ABABMemoryModuleTypes;
-import com.infamous.all_bark_all_bite.common.util.MiscUtil;
 import com.infamous.all_bark_all_bite.common.util.ai.AiUtil;
 import com.infamous.all_bark_all_bite.common.util.ai.GenericAi;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.util.Unit;
+import net.minecraft.util.valueproviders.UniformInt;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.PathfinderMob;
 import net.minecraft.world.entity.ai.Brain;
@@ -30,27 +31,29 @@ public class PlayTagWithOtherBabies extends Behavior<PathfinderMob> {
    private final BiPredicate<ServerLevel, Vec3> validFleePos;
    private final float fleeSpeedModifier;
    private final float chaseSpeedModifier;
+   private final UniformInt tagCooldown;
    private static final int MAX_CHASERS_PER_TARGET = 5;
-   private static final int AVERAGE_WAIT_TIME_BETWEEN_RUNS = 10;
 
-   public PlayTagWithOtherBabies(float fleeSpeedModifier, float chaseSpeedModifier){
-      this((level, vec3) -> true, fleeSpeedModifier, chaseSpeedModifier);
+   public PlayTagWithOtherBabies(float fleeSpeedModifier, float chaseSpeedModifier, UniformInt tagCooldown){
+      this((level, vec3) -> true, fleeSpeedModifier, chaseSpeedModifier, tagCooldown);
    }
 
-   public PlayTagWithOtherBabies(BiPredicate<ServerLevel, Vec3> validFleePos, float fleeSpeedModifier, float chaseSpeedModifier) {
+   public PlayTagWithOtherBabies(BiPredicate<ServerLevel, Vec3> validFleePos, float fleeSpeedModifier, float chaseSpeedModifier, UniformInt tagCooldown) {
       super(ImmutableMap.of(
               ABABMemoryModuleTypes.NEAREST_VISIBLE_BABIES.get(), MemoryStatus.VALUE_PRESENT,
+              ABABMemoryModuleTypes.TAG_COOLING_DOWN.get(), MemoryStatus.VALUE_ABSENT,
               MemoryModuleType.WALK_TARGET, MemoryStatus.VALUE_ABSENT,
               MemoryModuleType.LOOK_TARGET, MemoryStatus.REGISTERED,
               MemoryModuleType.INTERACTION_TARGET, MemoryStatus.REGISTERED));
       this.validFleePos = validFleePos;
       this.fleeSpeedModifier = fleeSpeedModifier;
       this.chaseSpeedModifier = chaseSpeedModifier;
+      this.tagCooldown = tagCooldown;
    }
 
    @Override
    protected boolean checkExtraStartConditions(ServerLevel level, PathfinderMob mob) {
-      return mob.isBaby() && MiscUtil.oneInChance(mob.getRandom(), AVERAGE_WAIT_TIME_BETWEEN_RUNS) && this.hasFriendsNearby(mob);
+      return mob.isBaby() && this.hasFriendsNearby(mob);
    }
 
    @Override
@@ -58,12 +61,17 @@ public class PlayTagWithOtherBabies extends Behavior<PathfinderMob> {
       LivingEntity chasingMe = this.seeIfSomeoneIsChasingMe(mob);
       if (chasingMe != null) {
          this.fleeFromChaser(level, mob);
+         mob.getBrain().setMemoryWithExpiry(ABABMemoryModuleTypes.TAG_COOLING_DOWN.get(), Unit.INSTANCE, this.tagCooldown.sample(mob.getRandom()));
       } else {
          Optional<LivingEntity> someoneBeingChased = this.findSomeoneBeingChased(mob);
          if (someoneBeingChased.isPresent()) {
             this.chaseKid(mob, someoneBeingChased.get());
+            mob.getBrain().setMemoryWithExpiry(ABABMemoryModuleTypes.TAG_COOLING_DOWN.get(), Unit.INSTANCE, this.tagCooldown.sample(mob.getRandom()));
          } else {
-            this.findSomeoneToChase(mob).ifPresent((kid) -> this.chaseKid(mob, kid));
+            this.findSomeoneToChase(mob).ifPresent((kid) -> {
+               this.chaseKid(mob, kid);
+               mob.getBrain().setMemoryWithExpiry(ABABMemoryModuleTypes.TAG_COOLING_DOWN.get(), Unit.INSTANCE, this.tagCooldown.sample(mob.getRandom()));
+            });
          }
       }
    }

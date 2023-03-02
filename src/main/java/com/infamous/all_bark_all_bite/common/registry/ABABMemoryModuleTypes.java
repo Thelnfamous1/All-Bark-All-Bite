@@ -148,4 +148,8 @@ public class ABABMemoryModuleTypes {
             "is_following",
             () -> new MemoryModuleType<>(Optional.empty()));
 
+    public static RegistryObject<MemoryModuleType<Unit>> TAG_COOLING_DOWN = MEMORY_MODULE_TYPES.register(
+            "chased_recently",
+            () -> new MemoryModuleType<>(Optional.of(Codec.unit(Unit.INSTANCE))));
+
 }

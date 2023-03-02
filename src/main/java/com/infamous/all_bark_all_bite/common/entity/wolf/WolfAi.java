@@ -43,6 +43,7 @@ public class WolfAi {
             MemoryModuleType.AVOID_TARGET,
             MemoryModuleType.BREED_TARGET,
             MemoryModuleType.CANT_REACH_WALK_TARGET_SINCE,
+            ABABMemoryModuleTypes.TAG_COOLING_DOWN.get(),
             ABABMemoryModuleTypes.FOLLOW_TRIGGER_DISTANCE.get(),
             ABABMemoryModuleTypes.FOLLOWERS.get(),
             ABABMemoryModuleTypes.HOWL_LOCATION.get(),

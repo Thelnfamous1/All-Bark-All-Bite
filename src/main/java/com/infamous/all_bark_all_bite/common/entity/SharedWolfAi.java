@@ -87,6 +87,7 @@ public class SharedWolfAi {
     public static final int EAT_COOLDOWN = MiscUtil.seconds(30);
     public static final long DIG_DURATION = 100L;
     public static final int DEFAULT_LISTENER_RANGE = 64;
+    public static final UniformInt TAG_DURATION = TimeUtil.rangeOfSeconds(10, 30);
 
     public static void initMemories(TamableAnimal wolf, RandomSource randomSource) {
         int huntCooldownInTicks = TIME_BETWEEN_HUNTS.sample(randomSource);
