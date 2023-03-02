@@ -135,10 +135,10 @@ public class GenericAi {
         alertables.forEach(alertable -> setAttackTargetIfCloserThanCurrent(alertable, target));
     }
 
-    private static void setAttackTargetIfCloserThanCurrent(Mob p_34640_, LivingEntity target) {
-        Optional<LivingEntity> optional = p_34640_.getBrain().getMemory(MemoryModuleType.ATTACK_TARGET);
-        LivingEntity livingentity = BehaviorUtils.getNearestTarget(p_34640_, optional, target);
-        StartAttacking.setAttackTarget(p_34640_, livingentity);
+    private static void setAttackTargetIfCloserThanCurrent(Mob mob, LivingEntity target) {
+        Optional<LivingEntity> attackTarget = mob.getBrain().getMemory(MemoryModuleType.ATTACK_TARGET);
+        LivingEntity nearestTarget = BehaviorUtils.getNearestTarget(mob, attackTarget, target);
+        StartAttacking.setAttackTarget(mob, nearestTarget);
     }
 
     public static Optional<Player> getTemptingPlayer(PathfinderMob mob) {

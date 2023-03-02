@@ -19,8 +19,8 @@ import com.infamous.all_bark_all_bite.common.util.ai.BrainUtil;
 import com.infamous.all_bark_all_bite.common.util.ai.GenericAi;
 import com.infamous.all_bark_all_bite.common.util.ai.HunterAi;
 import com.mojang.datafixers.util.Pair;
-import net.minecraft.Util;
 import net.minecraft.util.Unit;
+import net.minecraft.util.valueproviders.UniformInt;
 import net.minecraft.world.entity.*;
 import net.minecraft.world.entity.ai.Brain;
 import net.minecraft.world.entity.ai.behavior.*;
@@ -28,7 +28,6 @@ import net.minecraft.world.entity.ai.memory.MemoryModuleType;
 import net.minecraft.world.entity.ai.memory.MemoryStatus;
 import net.minecraft.world.entity.schedule.Activity;
 
-import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -130,14 +129,14 @@ public class SharedWolfBrain {
                 ));
     }
 
-    private static int getPounceCooldown(PathfinderMob mob){
-        return mob.isBaby() ? SharedWolfAi.PLAY_POUNCE_COOLDOWN.sample(mob.getRandom()) : SharedWolfAi.HUNT_POUNCE_COOLDOWN.sample(mob.getRandom());
+    private static UniformInt getPounceCooldown(PathfinderMob mob){
+        return mob.isBaby() ? SharedWolfAi.PLAY_POUNCE_COOLDOWN : SharedWolfAi.HUNT_POUNCE_COOLDOWN;
     }
 
     public static ImmutableList<? extends Pair<Integer, ? extends Behavior<? super TamableAnimal>>> getStalkPackage() {
         return BrainUtil.createPriorityPairs(0,
                 ImmutableList.of(
-                        new StalkPrey(SharedWolfAi.SPEED_MODIFIER_WALKING, SharedWolfBrain::getPounceDistance, SharedWolfBrain::getPounceHeight),
+                        new StalkPrey(SharedWolfAi.SPEED_MODIFIER_WALKING, SharedWolfBrain::getPounceDistance, SharedWolfBrain::getPounceHeight, SharedWolfBrain::getPounceCooldown),
                         new EraseMemoryIf<>(BehaviorUtils::isBreeding, ABABMemoryModuleTypes.STALK_TARGET.get())
                 ));
     }
@@ -196,16 +195,13 @@ public class SharedWolfBrain {
     }
 
     public static Set<Pair<MemoryModuleType<?>, MemoryStatus>> getRestConditions(MemoryModuleType<Unit> timeMemory) {
-        return Util.make(() -> {
-            Set<Pair<MemoryModuleType<?>, MemoryStatus>> restConditions = new HashSet<>();
-            restConditions.add(Pair.of(ABABMemoryModuleTypes.IS_SHELTERED.get(), MemoryStatus.VALUE_PRESENT));
-            restConditions.add(Pair.of(timeMemory, MemoryStatus.VALUE_PRESENT));
-            restConditions.add(Pair.of(ABABMemoryModuleTypes.IS_ORDERED_TO_FOLLOW.get(), MemoryStatus.VALUE_ABSENT));
-            restConditions.add(Pair.of(ABABMemoryModuleTypes.IS_ALERT.get(), MemoryStatus.VALUE_ABSENT));
-            restConditions.add(Pair.of(MemoryModuleType.WALK_TARGET, MemoryStatus.VALUE_ABSENT));
-            restConditions.add(Pair.of(MemoryModuleType.TEMPTING_PLAYER, MemoryStatus.VALUE_ABSENT));
-            return restConditions;
-        });
+        return ImmutableSet.of(
+            Pair.of(ABABMemoryModuleTypes.IS_SHELTERED.get(), MemoryStatus.VALUE_PRESENT),
+            Pair.of(timeMemory, MemoryStatus.VALUE_PRESENT),
+            Pair.of(ABABMemoryModuleTypes.IS_ORDERED_TO_FOLLOW.get(), MemoryStatus.VALUE_ABSENT),
+            Pair.of(ABABMemoryModuleTypes.IS_ALERT.get(), MemoryStatus.VALUE_ABSENT),
+            Pair.of(MemoryModuleType.WALK_TARGET, MemoryStatus.VALUE_ABSENT),
+            Pair.of(MemoryModuleType.TEMPTING_PLAYER, MemoryStatus.VALUE_ABSENT));
     }
 
     public static void fetchItem(LivingEntity livingEntity) {
@@ -233,13 +229,6 @@ public class SharedWolfBrain {
                 && !SharedWolfAi.isAlert(mob)
                 && HunterAi.getPounceTarget(mob).isEmpty()
                 && mob.getPose() != Pose.CROUCHING;
-    }
-
-    public static Set<Pair<MemoryModuleType<?>, MemoryStatus>> getIdleConditions() {
-        return ImmutableSet.of(
-                Pair.of(ABABMemoryModuleTypes.IS_SLEEPING.get(), MemoryStatus.VALUE_ABSENT),
-                Pair.of(ABABMemoryModuleTypes.IS_ORDERED_TO_SIT.get(), MemoryStatus.VALUE_ABSENT)
-        );
     }
 
     public static boolean isActivelyFollowing(LivingEntity wolf){

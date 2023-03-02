@@ -50,8 +50,8 @@ public class WolfBrain {
                 SharedWolfBrain.getStalkPackage(), ABABMemoryModuleTypes.STALK_TARGET.get());
         brainMaker.initActivityWithConditions(Activity.REST,
                 SharedWolfBrain.getRestPackage(createIdleLookBehaviors(), true), SharedWolfBrain.getRestConditions(ABABMemoryModuleTypes.IS_LEVEL_DAY.get()));
-        brainMaker.initActivityWithConditions(Activity.IDLE,
-                getIdlePackage(), SharedWolfBrain.getIdleConditions());
+        brainMaker.initActivity(Activity.IDLE,
+                getIdlePackage());
 
         brainMaker.initCoreActivity(Activity.CORE,
                 getCorePackage());
@@ -153,11 +153,12 @@ public class WolfBrain {
                                         new RunIf<>(livingEntity -> SharedWolfAi.wantsToFindShelter(livingEntity, true), new MoveToNonSkySeeingSpot(SharedWolfAi.SPEED_MODIFIER_WALKING), true),
                                         new HowlForPack<>(Predicate.not(TamableAnimal::isTame), SharedWolfAi.TIME_BETWEEN_HOWLS, SharedWolfAi.ADULT_FOLLOW_RANGE.getMaxValue()),
                                         new JoinOrCreatePackAndFollow<>(SharedWolfAi.ADULT_FOLLOW_RANGE, SharedWolfAi.SPEED_MODIFIER_FOLLOWING_ADULT),
-                                        new BabyFollowAdult<>(SharedWolfAi.ADULT_FOLLOW_RANGE, SharedWolfAi.SPEED_MODIFIER_FOLLOWING_ADULT)
+                                        new BabyFollowAdult<>(SharedWolfAi.ADULT_FOLLOW_RANGE, SharedWolfAi.SPEED_MODIFIER_FOLLOWING_ADULT),
+                                        new PlayTagWithOtherBabies(SharedWolfAi.SPEED_MODIFIER_RETREATING, SharedWolfAi.SPEED_MODIFIER_CHASING)
                                 ),
                                 ABABMemoryModuleTypes.IS_ORDERED_TO_FOLLOW.get()
                         ),
-                        SharedWolfAi.createGoToWantedItem(false),
+                        new RunIf<>(Predicate.not(SharedWolfBrain::isActivelyFollowing), SharedWolfAi.createGoToWantedItem(false), true),
                         new RunIf<>(Predicate.not(SharedWolfBrain::isActivelyFollowing), createIdleMovementBehaviors(), true),
                         beg(),
                         createIdleLookBehaviors()

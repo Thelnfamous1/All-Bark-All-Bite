@@ -76,7 +76,7 @@ public class Dog extends TamableAnimal implements InterestedMob, ShakingMob, Var
         this.setTame(false);
         this.setPathfindingMalus(BlockPathTypes.POWDER_SNOW, -1.0F);
         this.setPathfindingMalus(BlockPathTypes.DANGER_POWDER_SNOW, -1.0F);
-        this.setCanPickUpLoot(this.canPickUpLoot());
+        this.setCanPickUpLoot(true);
         this.getNavigation().setCanFloat(true);
         this.animationController = new SharedWolfAnimationController(this, TamableAnimal.DATA_FLAGS_ID, Entity.DATA_POSE);
     }
@@ -382,7 +382,7 @@ public class Dog extends TamableAnimal implements InterestedMob, ShakingMob, Var
 
     @Override
     public boolean canPickUpLoot() {
-        return super.canPickUpLoot() && !GenericAi.isOnPickupCooldown(this);
+        return !GenericAi.isOnPickupCooldown(this);
     }
 
     @Override

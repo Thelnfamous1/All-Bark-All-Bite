@@ -8,6 +8,7 @@ import com.infamous.all_bark_all_bite.common.util.ai.LongJumpAi;
 import com.infamous.all_bark_all_bite.common.registry.ABABMemoryModuleTypes;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.util.Mth;
+import net.minecraft.util.valueproviders.UniformInt;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.PathfinderMob;
 import net.minecraft.world.entity.Pose;
@@ -19,6 +20,7 @@ import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Optional;
+import java.util.function.Function;
 import java.util.function.ToIntFunction;
 
 public class Pounce extends Behavior<PathfinderMob> {
@@ -26,9 +28,9 @@ public class Pounce extends Behavior<PathfinderMob> {
     private static final double MIN_Y_DELTA = 0.05D;
     private final ToIntFunction<PathfinderMob> pounceHeight;
     private final ToIntFunction<PathfinderMob> pounceDistance;
-    private final ToIntFunction<PathfinderMob> pounceCooldown;
+    private final Function<PathfinderMob, UniformInt> pounceCooldown;
 
-    public Pounce(ToIntFunction<PathfinderMob> pounceDistance, ToIntFunction<PathfinderMob> pounceHeight, ToIntFunction<PathfinderMob> pounceCooldown) {
+    public Pounce(ToIntFunction<PathfinderMob> pounceDistance, ToIntFunction<PathfinderMob> pounceHeight, Function<PathfinderMob, UniformInt> pounceCooldown) {
         super(ImmutableMap.of(
                 ABABMemoryModuleTypes.POUNCE_TARGET.get(), MemoryStatus.VALUE_PRESENT,
                 ABABMemoryModuleTypes.POUNCE_COOLDOWN_TICKS.get(), MemoryStatus.VALUE_ABSENT,
@@ -41,30 +43,30 @@ public class Pounce extends Behavior<PathfinderMob> {
 
     @Override
     protected boolean checkExtraStartConditions(ServerLevel level, PathfinderMob mob) {
-        if (!mob.hasPose(Pose.CROUCHING)) {
-            HunterAi.stopPouncing(mob);
-            return false;
-        } else {
+        boolean canStart = false;
+        boolean crouching = this.isCrouching(mob);
+        if(crouching){
             LivingEntity pounceTarget = this.getPounceTarget(mob).orElse(null);
             if (pounceTarget != null && pounceTarget.isAlive()) {
-                if (pounceTarget.getMotionDirection() != pounceTarget.getDirection()) {
-                    HunterAi.stopPouncing(mob);
-                    return false;
-                } else {
-                    boolean pathClear = AiUtil.isPathClear(mob, pounceTarget, this.pounceDistance.applyAsInt(mob), this.pounceHeight.applyAsInt(mob));
-                    if (!pathClear) {
-                        //mob.getNavigation().createPath(pounceTarget, 0);
-                        HunterAi.stopPouncing(mob);
-                        if(mob.hasPose(Pose.CROUCHING)) mob.setPose(Pose.STANDING);
-                    }
-
-                    return pathClear;
+                if (pounceTarget.getMotionDirection() == pounceTarget.getDirection()) {
+                    canStart = AiUtil.isPathClear(mob, pounceTarget, this.pounceDistance.applyAsInt(mob), this.pounceHeight.applyAsInt(mob));
                 }
-            } else {
-                HunterAi.stopPouncing(mob);
-                return false;
             }
         }
+        if(!canStart){
+            if(crouching) this.setStanding(mob);
+            HunterAi.stopPouncing(mob);
+            HunterAi.setPounceCooldown(mob, this.pounceCooldown.apply(mob).sample(mob.getRandom()) / 2);
+        }
+        return canStart;
+    }
+
+    private void setStanding(PathfinderMob mob) {
+        mob.setPose(Pose.STANDING);
+    }
+
+    private boolean isCrouching(PathfinderMob mob) {
+        return mob.hasPose(Pose.CROUCHING);
     }
 
     @Override
@@ -108,10 +110,10 @@ public class Pounce extends Behavior<PathfinderMob> {
     @Override
     protected void stop(ServerLevel level, PathfinderMob mob, long gameTime) {
         if(mob.hasPose(Pose.LONG_JUMPING)){
-            mob.setPose(Pose.STANDING);
+            this.setStanding(mob);
         }
         HunterAi.stopPouncing(mob);
+        HunterAi.setPounceCooldown(mob, this.pounceCooldown.apply(mob).sample(mob.getRandom()));
         LongJumpAi.clearMidJump(mob);
-        HunterAi.setPounceCooldown(mob, this.pounceCooldown.applyAsInt(mob));
     }
 }

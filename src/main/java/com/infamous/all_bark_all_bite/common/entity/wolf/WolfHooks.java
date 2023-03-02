@@ -14,6 +14,7 @@ import net.minecraft.sounds.SoundEvent;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.world.entity.*;
 import net.minecraft.world.entity.ai.Brain;
+import net.minecraft.world.entity.ai.memory.MemoryModuleType;
 import net.minecraft.world.entity.animal.Animal;
 import net.minecraft.world.entity.animal.Wolf;
 import net.minecraft.world.entity.item.ItemEntity;
@@ -30,6 +31,7 @@ public class WolfHooks {
         wolf.getNavigation().setCanFloat(true);
         if(!loadedFromDisk) {
             WolfAi.initMemories(wolf, wolf.getRandom());
+            wolf.setCanPickUpLoot(true);
         }
     }
 
@@ -44,6 +46,8 @@ public class WolfHooks {
                     ABABMemoryModuleTypes.IS_FOLLOWING.get(),
                     ABABMemoryModuleTypes.IS_ORDERED_TO_FOLLOW.get(),
                     ABABMemoryModuleTypes.IS_ORDERED_TO_SIT.get(),
+                    ABABMemoryModuleTypes.IS_SHELTERED.get(),
+                    MemoryModuleType.TEMPTING_PLAYER,
                     ABABMemoryModuleTypes.TRUST.get());
         }
     }

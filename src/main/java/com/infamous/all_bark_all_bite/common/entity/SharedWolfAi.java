@@ -335,7 +335,8 @@ public class SharedWolfAi {
     }
 
     public static boolean wantsToWakeUp(TamableAnimal wolf){
-        return GenericAi.getAttackTarget(wolf).isPresent()
+        return !wolf.getBrain().isActive(Activity.REST)
+                || GenericAi.getAttackTarget(wolf).isPresent()
                 || wolf.level.isThundering()
                 || wolf.isInWater();
     }

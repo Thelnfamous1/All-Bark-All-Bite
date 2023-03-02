@@ -7,6 +7,7 @@ import com.infamous.all_bark_all_bite.common.util.ai.HunterAi;
 import com.infamous.all_bark_all_bite.common.registry.ABABMemoryModuleTypes;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.util.Mth;
+import net.minecraft.util.valueproviders.UniformInt;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.PathfinderMob;
 import net.minecraft.world.entity.Pose;
@@ -16,6 +17,7 @@ import net.minecraft.world.entity.ai.memory.MemoryModuleType;
 import net.minecraft.world.entity.ai.memory.MemoryStatus;
 
 import java.util.Optional;
+import java.util.function.Function;
 import java.util.function.ToIntFunction;
 
 public class StalkPrey extends Behavior<PathfinderMob> {
@@ -28,8 +30,9 @@ public class StalkPrey extends Behavior<PathfinderMob> {
     private int calculatePathCounter;
     private int crouchAnimationTimer;
     private StalkPrey.State state = StalkPrey.State.DONE;
+    private final Function<PathfinderMob, UniformInt> pounceCooldown;
 
-    public StalkPrey(float speedModifier, ToIntFunction<PathfinderMob> pounceDistance, ToIntFunction<PathfinderMob> pounceHeight) {
+    public StalkPrey(float speedModifier, ToIntFunction<PathfinderMob> pounceDistance, ToIntFunction<PathfinderMob> pounceHeight, Function<PathfinderMob, UniformInt> pounceCooldown) {
         super(ImmutableMap.of(
                 ABABMemoryModuleTypes.STALK_TARGET.get(), MemoryStatus.VALUE_PRESENT,
                 ABABMemoryModuleTypes.POUNCE_COOLDOWN_TICKS.get(), MemoryStatus.VALUE_ABSENT,
@@ -39,6 +42,7 @@ public class StalkPrey extends Behavior<PathfinderMob> {
         this.speedModifier = speedModifier;
         this.pounceDistance = pounceDistance;
         this.pounceHeight = pounceHeight;
+        this.pounceCooldown = pounceCooldown;
     }
 
     @Override
@@ -46,6 +50,7 @@ public class StalkPrey extends Behavior<PathfinderMob> {
         boolean canStalk = this.canStalk(mob);
         if(!canStalk){
             HunterAi.stopStalking(mob);
+            HunterAi.setPounceCooldown(mob, this.pounceCooldown.apply(mob).sample(mob.getRandom()) / 2);
         }
         return canStalk;
     }
@@ -86,8 +91,12 @@ public class StalkPrey extends Behavior<PathfinderMob> {
                     && !AiUtil.isLookingAtMe(mob, stalkTarget, INITIAL_VISION_OFFSET)
                     && HunterAi.getPounceTarget(mob).isEmpty()
                     //&& mob.distanceToSqr(stalkTarget) >= Mth.square(this.pounceDistance)
-                    && !mob.hasPose(Pose.CROUCHING);
+                    && !this.isCrouching(mob);
         }
+    }
+
+    private boolean isCrouching(PathfinderMob mob) {
+        return mob.hasPose(Pose.CROUCHING);
     }
 
     private boolean canPounce(PathfinderMob mob) {
@@ -107,7 +116,7 @@ public class StalkPrey extends Behavior<PathfinderMob> {
         switch (this.state){
             case MOVE_TO_TARGET -> {
                 if (mob.distanceToSqr(stalkTarget) <= Mth.square(this.pounceDistance.applyAsInt(mob))) {
-                    mob.setPose(Pose.CROUCHING);
+                    this.setCrouching(mob);
                     GenericAi.stopWalking(mob);
                     this.crouchAnimationTimer = 0;
                     this.state = State.CROUCH_ANIMATION;
@@ -128,6 +137,10 @@ public class StalkPrey extends Behavior<PathfinderMob> {
         }
     }
 
+    private void setCrouching(PathfinderMob mob) {
+        mob.setPose(Pose.CROUCHING);
+    }
+
     private void setWalkAndLookTarget(PathfinderMob mob, LivingEntity target) {
         AiUtil.setWalkAndLookTargetMemories(mob, target, this.speedModifier, this.pounceDistance.applyAsInt(mob) - 1);
     }
@@ -140,14 +153,19 @@ public class StalkPrey extends Behavior<PathfinderMob> {
                 HunterAi.setPounceTarget(mob, stalkTarget);
                 GenericAi.stopWalking(mob);
                 BehaviorUtils.lookAtEntity(mob, stalkTarget);
-            } else {
-                if (mob.hasPose(Pose.CROUCHING)) mob.setPose(Pose.STANDING);
             }
         } else {
             this.state = State.DONE;
-            if (mob.hasPose(Pose.CROUCHING)) mob.setPose(Pose.STANDING);
         }
         HunterAi.stopStalking(mob);
+        if(HunterAi.getPounceTarget(mob).isEmpty()){
+            if (this.isCrouching(mob)) this.setStanding(mob);
+            HunterAi.setPounceCooldown(mob, this.pounceCooldown.apply(mob).sample(mob.getRandom()) / 2);
+        }
+    }
+
+    private void setStanding(PathfinderMob mob) {
+        mob.setPose(Pose.STANDING);
     }
 
     enum State {
