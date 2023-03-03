@@ -17,8 +17,9 @@ public class EntityAnimationController<T extends LivingEntity> {
 
     public final AnimationState crouchAnimationState = new AnimationState();
 
-    public final AnimationState diggingAnimationState = new AnimationState();
+    public final AnimationState digAnimationState = new AnimationState();
     public AnimationState idleAnimationState = new AnimationState();
+    public final AnimationState idleDigAnimationState = new AnimationState();
     public AnimationState idleSleepAnimationState = new AnimationState();
     public final AnimationState jumpAnimationState = new AnimationState();
 
@@ -30,6 +31,7 @@ public class EntityAnimationController<T extends LivingEntity> {
     private int jumpTicks;
     private int jumpDuration;
     private int attackAnimationRemainingTicks;
+    private int idleDigDelayTicks;
     private int idleSleepDelayTicks;
     private boolean posed;
 
@@ -53,17 +55,30 @@ public class EntityAnimationController<T extends LivingEntity> {
         if (this.entityPose.equals(dataAccessor)) {
             this.posed = false;
             this.handlePose(Pose.CROUCHING, this.crouchAnimationState);
-            this.handlePose(Pose.DIGGING, this.diggingAnimationState);
+            this.handleDiggingPose();
             this.handlePose(Pose.LONG_JUMPING, this.leapAnimationState);
             this.handleSleepingPose();
             if(this.posed) this.stopAllNonePoseAnimations();
         }
     }
 
+    private void handleDiggingPose() {
+        if(this.entity.getPose() == Pose.DIGGING) {
+            if (!this.digAnimationState.isStarted()) {
+                this.idleDigDelayTicks = 10; // 0.5 seconds, same length as dig animation
+            }
+            this.digAnimationState.startIfStopped(this.entity.tickCount);
+            this.posed = true;
+        } else{
+            this.digAnimationState.stop();
+            this.idleDigAnimationState.stop();
+        }
+    }
+
     private void handleSleepingPose() {
         if(this.entity.getPose() == Pose.SLEEPING) {
             if (!this.sleepAnimationState.isStarted()) {
-                this.idleSleepDelayTicks = 4; // 0.2 seconds, same length as sit animation
+                this.idleSleepDelayTicks = 4; // 0.2 seconds, same length as sleep animation
             }
             this.sleepAnimationState.startIfStopped(this.entity.tickCount);
             this.posed = true;
@@ -101,6 +116,9 @@ public class EntityAnimationController<T extends LivingEntity> {
         if (this.attackAnimationRemainingTicks > 0) {
             --this.attackAnimationRemainingTicks;
         }
+        if (this.idleDigDelayTicks > 0) {
+            --this.idleDigDelayTicks;
+        }
         if (this.idleSleepDelayTicks > 0) {
             --this.idleSleepDelayTicks;
         }
@@ -115,6 +133,13 @@ public class EntityAnimationController<T extends LivingEntity> {
         if(!this.entity.isSleeping()){
             if(!this.posed){
                 this.tickNonPoseAnimations();
+            } else{
+                if(this.entity.hasPose(Pose.DIGGING)){
+                    if(this.idleDigDelayTicks == 0){
+                        this.digAnimationState.stop();
+                        this.idleDigAnimationState.startIfStopped(this.entity.tickCount);
+                    }
+                }
             }
         } else{
             if (this.idleSleepDelayTicks == 0) {

@@ -105,7 +105,9 @@ public class DogModel<T extends Dog> extends ColorableHierarchicalModel<T> imple
 		this.animate(dog.animationController.attackAnimationState, DogAnimation.ATTACK, bob);
 		this.animate(dog.animationController.babyAnimationState, DogAnimation.BABY, bob);
 		this.animate(dog.animationController.crouchAnimationState, DogAnimation.CROUCH, bob);
+		this.animate(dog.animationController.digAnimationState, DogAnimation.DIG, bob);
 		this.animate(dog.animationController.idleAnimationState, DogAnimation.IDLE, bob);
+		this.animate(dog.animationController.idleDigAnimationState, DogAnimation.IDLE_DIG, bob);
 		this.animate(dog.animationController.idleSitAnimationState, DogAnimation.IDLE_SIT, bob);
 		this.animate(dog.animationController.idleSleepAnimationState, DogAnimation.IDLE_SLEEP, bob, IDLE_SLEEP_ANIMATION_SPEED);
 		this.animate(dog.animationController.jumpAnimationState, DogAnimation.JUMP, bob);

@@ -64,7 +64,7 @@ public class SharedWolfAnimationController extends EntityAnimationController<Tam
         }
 
         if (this.entity.getPose() == Pose.DIGGING) {
-            this.clientDiggingParticles(this.diggingAnimationState);
+            this.clientDiggingParticles(this.digAnimationState);
         }
     }
 
