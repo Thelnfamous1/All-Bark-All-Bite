@@ -137,7 +137,7 @@ public class DogBrain {
                 new RunIf<>(DogBrain::isNotHoldingBuryOrFetchItem, new Eat(SharedWolfAi::setAteRecently), true),
                 SharedWolfBrain.createLookAtTargetSink(),
                 SharedWolfBrain.createMoveToTargetSink(),
-                SharedWolfBrain.copyDislikedToAvoidTarget(),
+                SharedWolfBrain.copyToAvoidTarget(ABABMemoryModuleTypes.NEAREST_VISIBLE_DISLIKED.get()),
                 new UpdateUnitMemory<>(TamableAnimal::isOrderedToSit, ABABMemoryModuleTypes.IS_ORDERED_TO_SIT.get()),
                 new UpdateUnitMemory<>(SharedWolfAi::hasShelter, ABABMemoryModuleTypes.IS_SHELTERED.get()),
                 new UpdateUnitMemory<>(SharedWolfAi::isInNightTime, ABABMemoryModuleTypes.IS_LEVEL_NIGHT.get()),

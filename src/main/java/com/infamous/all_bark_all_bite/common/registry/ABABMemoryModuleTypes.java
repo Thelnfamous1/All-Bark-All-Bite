@@ -15,6 +15,7 @@ import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.behavior.PositionTracker;
 import net.minecraft.world.entity.ai.memory.MemoryModuleType;
 import net.minecraft.world.entity.animal.Wolf;
+import net.minecraft.world.entity.player.Player;
 import net.minecraftforge.registries.DeferredRegister;
 import net.minecraftforge.registries.ForgeRegistries;
 import net.minecraftforge.registries.RegistryObject;
@@ -151,5 +152,9 @@ public class ABABMemoryModuleTypes {
     public static RegistryObject<MemoryModuleType<Unit>> TAG_COOLING_DOWN = MEMORY_MODULE_TYPES.register(
             "chased_recently",
             () -> new MemoryModuleType<>(Optional.of(Codec.unit(Unit.INSTANCE))));
+
+    public static RegistryObject<MemoryModuleType<Player>>  NEAREST_TARGETABLE_PLAYER_NOT_SNEAKING = MEMORY_MODULE_TYPES.register(
+            "nearest_targetable_player_not_sneaking",
+            () -> new MemoryModuleType<>(Optional.empty()));
 
 }

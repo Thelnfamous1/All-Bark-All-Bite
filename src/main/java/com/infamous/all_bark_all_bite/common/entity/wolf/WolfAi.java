@@ -76,6 +76,7 @@ public class WolfAi {
             MemoryModuleType.NEAREST_LIVING_ENTITIES,
             MemoryModuleType.NEAREST_PLAYERS,
             MemoryModuleType.NEAREST_PLAYER_HOLDING_WANTED_ITEM,
+            ABABMemoryModuleTypes.NEAREST_TARGETABLE_PLAYER_NOT_SNEAKING.get(),
             MemoryModuleType.NEAREST_VISIBLE_ADULT,
             ABABMemoryModuleTypes.NEAREST_VISIBLE_ADULTS.get(),
             MemoryModuleType.NEAREST_VISIBLE_ATTACKABLE_PLAYER,
@@ -134,22 +135,12 @@ public class WolfAi {
         }
     }
 
-    public static boolean isDisliked(Wolf wolf, LivingEntity livingEntity) {
-        return SharedWolfAi.isDisliked(livingEntity, ABABTags.WOLF_DISLIKED)
-                || isDislikedPlayer(wolf, livingEntity);
+    public static boolean isDisliked(LivingEntity livingEntity) {
+        return SharedWolfAi.isDisliked(livingEntity, ABABTags.WOLF_DISLIKED);
     }
 
-    public static boolean isDislikedPlayer(Wolf wolf, LivingEntity livingEntity) {
-        return livingEntity instanceof Player player
-                && !wolf.isTame()
-                && !isAlliedTo(wolf, player)
-                && !player.isDiscrete()
-                && !player.isSpectator()
-                && !player.isCreative();
-    }
-
-    public static boolean isAlliedTo(Wolf wolf, LivingEntity entity) {
-        return wolf.isOwnedBy(entity) || TrustAi.isLikedBy(wolf, entity) || wolf.isAlliedTo(entity);
+    public static boolean isTrusting(Wolf wolf) {
+        return wolf.isTame() || TrustAi.hasLikedPlayer(wolf);
     }
 
     public static void initMemories(Wolf wolf, RandomSource random) {

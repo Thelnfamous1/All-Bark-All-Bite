@@ -1,5 +1,6 @@
 package com.infamous.all_bark_all_bite.config;
 
+import net.minecraft.resources.ResourceLocation;
 import net.minecraftforge.common.ForgeConfigSpec;
 
 import java.util.List;
@@ -121,24 +122,11 @@ public class ABABConfig {
                     .defineInRange("wolf_render_size_scale", 1.0D, 1.0D, 1024.0D);
         });
     }
-
-
-    public static ForgeConfigSpec.BooleanValue addDogsToVillageCatPool;
-    public static ForgeConfigSpec.BooleanValue addKennelToOutpostFeaturesPool;
     public static ForgeConfigSpec.ConfigValue<List<? extends Integer>> houndmasterRaidWaveCounts;
+    public static ForgeConfigSpec.ConfigValue<List<? extends String>> dogTemplatePoolTargets;
+    public static ForgeConfigSpec.ConfigValue<List<? extends String>> kennelTemplatePoolTargets;
 
     private static void setupServerConfig(ForgeConfigSpec.Builder builder) {
-        createConfigCategory(builder, " This category holds configs that uses booleans.", "Boolean Config Options", b -> {
-            addDogsToVillageCatPool = b
-                    .comment("Determines whether or not the dog structures located under \"all_bark_all_bite:village/common/animals\" are manually added to the \"minecraft:village/common/cats\" structure template pool.\n" +
-                            "Setting this to false still allows datapacks to manipulate the structure template pool.")
-                    .define("add_dogs_to_village_cat_pool", true);
-            addKennelToOutpostFeaturesPool = b
-                    .comment("Determines whether or not the kennel structure located under \"all_bark_all_bite:pillager_outpost/feature_kennel\" is manually added to the \"minecraft:pillager_outpost/features\" structure template pool.\n" +
-                            "Setting this to false still allows datapacks to manipulate the structure template pool.")
-                    .define("add_kennel_to_outpost_features_pool", true);
-
-        });
         createConfigCategory(builder, " This category holds configs that uses lists.", "List Config Options", b -> {
             houndmasterRaidWaveCounts = b
                     .comment("""
@@ -146,6 +134,18 @@ public class ABABConfig {
                             This is meant to be a list of seven integers.
                             A list of less than seven will fill remaining spots with zeroes, and values past the seventh will be ignored.""")
                     .defineList("houndmaster_raid_wave_counts", List.of(0, 0, 0, 0, 1, 1, 2), waveCount -> waveCount instanceof Integer);
+            dogTemplatePoolTargets = b
+                    .comment("""
+                            Determines which structure template pools will have the dog structures located under "all_bark_all_bite:village/common/animals" injected into them.
+                            Making this empty prevents the dog structures from being injected into any structure template pools.""")
+                    .defineListAllowEmpty(List.of("dog_template_pool_targets"), () ->
+                            List.of(new ResourceLocation("minecraft:village/common/cats").toString()), waveCount -> waveCount instanceof String);
+            kennelTemplatePoolTargets = b
+                    .comment("""
+                            Determines which structure template pools will have the kennel structure located under "all_bark_all_bite:pillager_outpost/feature_kennel" injected into them.
+                            Making this empty prevents the kennel structure from being injected into any structure template pools.""")
+                    .defineListAllowEmpty(List.of("kennel_template_pool_targets"), () ->
+                            List.of(new ResourceLocation("minecraft:pillager_outpost/features").toString()), waveCount -> waveCount instanceof String);
 
         });
     }

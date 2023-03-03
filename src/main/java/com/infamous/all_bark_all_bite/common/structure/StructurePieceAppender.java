@@ -18,6 +18,7 @@ import net.minecraftforge.fml.common.Mod;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 @Mod.EventBusSubscriber(bus = Mod.EventBusSubscriber.Bus.FORGE, modid = AllBarkAllBite.MODID)
 public class StructurePieceAppender {
@@ -75,32 +76,38 @@ public class StructurePieceAppender {
         Registry<StructureTemplatePool> templatePoolRegistry = event.getServer().registryAccess().registry(Registry.TEMPLATE_POOL_REGISTRY).orElseThrow();
         Registry<StructureProcessorList> processorListRegistry = event.getServer().registryAccess().registry(Registry.PROCESSOR_LIST_REGISTRY).orElseThrow();
 
-        if(ABABConfig.addDogsToVillageCatPool.get()){
-            addDogToCatPool(templatePoolRegistry, processorListRegistry, "black");
-            addDogToCatPool(templatePoolRegistry, processorListRegistry, "blue");
-            addDogToCatPool(templatePoolRegistry, processorListRegistry, "brown");
-            addDogToCatPool(templatePoolRegistry, processorListRegistry, "cream");
-            addDogToCatPool(templatePoolRegistry, processorListRegistry, "gold");
-            addDogToCatPool(templatePoolRegistry, processorListRegistry, "gray");
-            addDogToCatPool(templatePoolRegistry, processorListRegistry, "red");
-            addDogToCatPool(templatePoolRegistry, processorListRegistry, "white");
-            addDogToCatPool(templatePoolRegistry, processorListRegistry, "yellow");
-        }
-        if(ABABConfig.addKennelToOutpostFeaturesPool.get()){
-            addKennelToOutpostPool(templatePoolRegistry, processorListRegistry);
-        }
+        addDogToCatPool(templatePoolRegistry, processorListRegistry, "black");
+        addDogToCatPool(templatePoolRegistry, processorListRegistry, "blue");
+        addDogToCatPool(templatePoolRegistry, processorListRegistry, "brown");
+        addDogToCatPool(templatePoolRegistry, processorListRegistry, "cream");
+        addDogToCatPool(templatePoolRegistry, processorListRegistry, "gold");
+        addDogToCatPool(templatePoolRegistry, processorListRegistry, "gray");
+        addDogToCatPool(templatePoolRegistry, processorListRegistry, "red");
+        addDogToCatPool(templatePoolRegistry, processorListRegistry, "white");
+        addDogToCatPool(templatePoolRegistry, processorListRegistry, "yellow");
+        addKennelToOutpostPool(templatePoolRegistry, processorListRegistry);
     }
 
     private static void addKennelToOutpostPool(Registry<StructureTemplatePool> templatePoolRegistry, Registry<StructureProcessorList> processorListRegistry) {
-        addPieceToPool(templatePoolRegistry, processorListRegistry,
-                "pillager_outpost/feature_kennel",
-                new ResourceLocation("minecraft:pillager_outpost/features"), 1);
+        addStructureToPools(ABABConfig.kennelTemplatePoolTargets.get(), templatePoolRegistry, processorListRegistry,
+                "pillager_outpost/feature_kennel", 1);
+    }
+
+    private static void addStructureToPools(List<? extends String> pools, Registry<StructureTemplatePool> templatePoolRegistry, Registry<StructureProcessorList> processorListRegistry, String path, int weight) {
+        for(String pool : pools){
+            tryMakeRL(pool).ifPresentOrElse(
+                    poolRL -> addPieceToPool(templatePoolRegistry, processorListRegistry, path, poolRL, weight),
+                    () -> AllBarkAllBite.LOGGER.error("Unable to parse structure template pool {}, make sure it uses the \"namespace:path\" format.", pool));
+        }
+    }
+
+    private static Optional<ResourceLocation> tryMakeRL(String string) {
+        return Optional.ofNullable(ResourceLocation.tryParse(string));
     }
 
     private static void addDogToCatPool(Registry<StructureTemplatePool> templatePoolRegistry, Registry<StructureProcessorList> processorListRegistry, String variant) {
-        addPieceToPool(templatePoolRegistry, processorListRegistry,
-                String.format("%s_%s", "village/common/animals/dog", variant),
-                new ResourceLocation("minecraft:village/common/cats"), 1);
+        addStructureToPools(ABABConfig.dogTemplatePoolTargets.get(), templatePoolRegistry, processorListRegistry,
+                String.format("%s_%s", "village/common/animals/dog", variant), 1);
     }
 
     private static void addPieceToPool(Registry<StructureTemplatePool> templatePoolRegistry, Registry<StructureProcessorList> processorListRegistry, String path, ResourceLocation poolRL, int weight) {

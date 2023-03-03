@@ -80,7 +80,8 @@ public class WolfBrain {
                 new Eat(SharedWolfAi::setAteRecently),
                 SharedWolfBrain.createLookAtTargetSink(),
                 SharedWolfBrain.createMoveToTargetSink(),
-                SharedWolfBrain.copyDislikedToAvoidTarget(),
+                SharedWolfBrain.copyToAvoidTarget(ABABMemoryModuleTypes.NEAREST_TARGETABLE_PLAYER_NOT_SNEAKING.get()),
+                SharedWolfBrain.copyToAvoidTarget(ABABMemoryModuleTypes.NEAREST_VISIBLE_DISLIKED.get()),
                 new UpdateUnitMemory<>(TamableAnimal::isOrderedToSit, ABABMemoryModuleTypes.IS_ORDERED_TO_SIT.get()),
                 new UpdateUnitMemory<>(SharedWolfAi::hasShelter, ABABMemoryModuleTypes.IS_SHELTERED.get()),
                 new UpdateUnitMemory<>(SharedWolfAi::isInDayTime, ABABMemoryModuleTypes.IS_LEVEL_DAY.get()),
@@ -133,7 +134,7 @@ public class WolfBrain {
             return true;
         } else {
             LivingEntity avoidTarget = brain.getMemory(MemoryModuleType.AVOID_TARGET).get();
-            if (!WolfAi.isDisliked(wolf, avoidTarget)) {
+            if (!WolfAi.isDisliked(avoidTarget)) {
                 return !brain.isMemoryValue(ABABMemoryModuleTypes.NEAREST_VISIBLE_DISLIKED.get(), avoidTarget);
             } else {
                 return false;
@@ -148,7 +149,7 @@ public class WolfBrain {
                         new RunIf<>(CommandAi::isFollowing, SharedWolfAi.createFollowOwner(SharedWolfAi.SPEED_MODIFIER_WALKING), true),
                         BrainUtil.tryAllBehaviorsInOrderIfAbsent(
                                 ImmutableList.of(
-                                        new RunIf<>(WolfBrain::canBeTempted, new FollowTemptation(SharedWolfAi::getSpeedModifierTempted), true),
+                                        new RunIf<>(WolfAi::isTrusting, new FollowTemptation(SharedWolfAi::getSpeedModifierTempted), true),
                                         SharedWolfBrain.createBreedBehavior(EntityType.WOLF),
                                         new RunIf<>(livingEntity -> SharedWolfAi.wantsToFindShelter(livingEntity, true), new MoveToNonSkySeeingSpot(SharedWolfAi.SPEED_MODIFIER_WALKING), true),
                                         new HowlForPack<>(Predicate.not(TamableAnimal::isTame), SharedWolfAi.TIME_BETWEEN_HOWLS, SharedWolfAi.ADULT_FOLLOW_RANGE.getMaxValue()),
@@ -163,10 +164,6 @@ public class WolfBrain {
                         beg(),
                         createIdleLookBehaviors()
         ));
-    }
-
-    private static boolean canBeTempted(Wolf wolf){
-        return wolf.isTame() || GenericAi.getTemptingPlayer(wolf).map(temptingPlayer -> WolfAi.isAlliedTo(wolf, temptingPlayer)).orElse(false);
     }
 
     private static RunOne<TamableAnimal> createIdleLookBehaviors() {

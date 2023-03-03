@@ -332,4 +332,8 @@ public class AiUtil {
     public static double getFollowRange(LivingEntity mob) {
         return mob.getAttributeValue(Attributes.FOLLOW_RANGE);
     }
+
+    public static boolean isNotCreativeOrSpectator(Player player) {
+        return !player.isCreative() && !player.isSpectator();
+    }
 }

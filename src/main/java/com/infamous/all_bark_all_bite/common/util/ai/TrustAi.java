@@ -38,4 +38,7 @@ public class TrustAi {
         return wolf.getBrain().getMemory(MemoryModuleType.LIKED_PLAYER).filter(uuid -> uuid.equals(player.getUUID())).isPresent();
     }
 
+    public static boolean hasLikedPlayer(Wolf wolf) {
+        return wolf.getBrain().hasMemoryValue(MemoryModuleType.LIKED_PLAYER);
+    }
 }

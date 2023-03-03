@@ -26,7 +26,7 @@ public class ABABWolfRenderer extends MobRenderer<Wolf, ABABWolfModel<Wolf>> {
       this.addLayer(new WolfSleepingLayer(this));
       this.addLayer(new SharedWolfCollarLayer<>(this));
       this.addLayer(new ItemInMouthLayer<>(this, context.getItemInHandRenderer()));
-      if(CompatUtil.isRevampedWolfLoaded()){
+      if(CompatUtil.isRWLoaded()){
          this.addLayer(RWCompatClient.getRWArmorLayer(this, context));
       }
    }

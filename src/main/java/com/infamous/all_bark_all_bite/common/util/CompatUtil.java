@@ -5,13 +5,18 @@ import net.minecraftforge.fml.ModList;
 public class CompatUtil {
     public static final String REVAMPED_WOLF_MODID = "revampedwolf";
     public static final String DOMESTICATION_INNOVATION_MODID = "domesticationinnovation";
+    public static final String ILLAGERS_WEAR_ARMOR_MODID = "illagersweararmor";
 
-    public static boolean isRevampedWolfLoaded() {
+    public static boolean isRWLoaded() {
        return ModList.get().isLoaded(REVAMPED_WOLF_MODID);
     }
 
     public static boolean isDILoaded() {
         return ModList.get().isLoaded(DOMESTICATION_INNOVATION_MODID);
+    }
+
+    public static boolean isIWALoaded() {
+        return ModList.get().isLoaded(ILLAGERS_WEAR_ARMOR_MODID);
     }
 
 }

@@ -315,7 +315,7 @@ public class SharedWolfAi {
         if (!mob.getBrain().isActive(Activity.IDLE)) {
             return false;
         } else {
-            if(mob.getType() == EntityType.WOLF && CompatUtil.isRevampedWolfLoaded()){
+            if(mob.getType() == EntityType.WOLF && CompatUtil.isRWLoaded()){
                 return WolfHooks.canWolfHoldItem(stack, (Animal) mob);
             } else {
                 return mob.canHoldItem(stack);

@@ -243,10 +243,10 @@ public class SharedWolfBrain {
         return new RunIf<>(SharedWolfAi::shouldPanic, new AnimalPanic(SharedWolfAi.SPEED_MODIFIER_PANICKING), true);
     }
 
-    public static CopyMemoryWithExpiry<TamableAnimal, LivingEntity> copyDislikedToAvoidTarget() {
+    public static CopyMemoryWithExpiry<TamableAnimal, LivingEntity> copyToAvoidTarget(MemoryModuleType<? extends LivingEntity> copyMemory) {
         return new CopyMemoryWithExpiry<>(
                 SharedWolfAi::isNearDisliked,
-                ABABMemoryModuleTypes.NEAREST_VISIBLE_DISLIKED.get(),
+                copyMemory,
                 MemoryModuleType.AVOID_TARGET,
                 SharedWolfAi.AVOID_DURATION);
     }
