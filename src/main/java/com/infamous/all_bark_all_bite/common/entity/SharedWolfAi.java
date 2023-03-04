@@ -342,8 +342,8 @@ public class SharedWolfAi {
                 || wolf.isInWater();
     }
 
-    public static boolean isNearDisliked(TamableAnimal wolf){
-        return GenericAi.isNearDisliked(wolf, DESIRED_DISTANCE_FROM_DISLIKED);
+    public static boolean isNearDisliked(TamableAnimal wolf, MemoryModuleType<? extends LivingEntity> dislikedMemory){
+        return GenericAi.isNearTarget(wolf, DESIRED_DISTANCE_FROM_DISLIKED, dislikedMemory);
     }
 
     public static void handleSleeping(TamableAnimal wolf) {
@@ -431,4 +431,5 @@ public class SharedWolfAi {
         }
         return amount;
     }
+
 }

@@ -221,4 +221,10 @@ public class WolfAi {
         return Optional.empty();
     }
 
+    public static boolean isTargetablePlayerNotSneaking(Wolf wolf, Player player) {
+        return !isTrusting(wolf)
+                && AiUtil.isAttackable(wolf, player, true)
+                && AiUtil.isNotCreativeOrSpectator(player)
+                && !player.isDiscrete();
+    }
 }

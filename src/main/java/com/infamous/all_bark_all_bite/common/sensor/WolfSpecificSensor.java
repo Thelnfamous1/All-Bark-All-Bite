@@ -43,7 +43,7 @@ public class WolfSpecificSensor extends Sensor<Wolf> {
         NearestVisibleLivingEntities nvle = brain.getMemory(MemoryModuleType.NEAREST_VISIBLE_LIVING_ENTITIES).orElse(NearestVisibleLivingEntities.empty());
 
         for (LivingEntity livingEntity : nvle.findAll((le) -> true)) {
-            if(nearestPlayerNotSneaking.isEmpty() && livingEntity instanceof Player player && isTargetablePlayerNotSneaking(wolf, player)){
+            if(nearestPlayerNotSneaking.isEmpty() && livingEntity instanceof Player player && WolfAi.isTargetablePlayerNotSneaking(wolf, player)){
                 nearestPlayerNotSneaking = Optional.of(player);
             } else if(nearestDisliked.isEmpty() && WolfAi.isDisliked(livingEntity)){
                 nearestDisliked = Optional.of(livingEntity);
@@ -58,13 +58,6 @@ public class WolfSpecificSensor extends Sensor<Wolf> {
         brain.setMemory(ABABMemoryModuleTypes.NEAREST_VISIBLE_DISLIKED.get(), nearestDisliked);
         brain.setMemory(ABABMemoryModuleTypes.NEAREST_VISIBLE_HUNTABLE.get(), nearestVisibleHuntable);
         brain.setMemory(MemoryModuleType.NEAREST_ATTACKABLE, nearestAttackable);
-    }
-
-    public static boolean isTargetablePlayerNotSneaking(Wolf wolf, Player player) {
-        return !WolfAi.isTrusting(wolf)
-                && AiUtil.isAttackable(wolf, player, true)
-                && AiUtil.isNotCreativeOrSpectator(player)
-                && !player.isDiscrete();
     }
 
     private static boolean isAttackable(Wolf wolf, LivingEntity livingEntity) {

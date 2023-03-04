@@ -86,21 +86,8 @@ public class DogBrain {
         return target.getType().is(ABABTags.DOG_HUNT_TARGETS);
     }
 
-    @SuppressWarnings("OptionalGetWithoutIsPresent")
     private static boolean wantsToStopFleeing(TamableAnimal tamableAnimal) {
-        if(tamableAnimal.isTame()) return true;
-
-        Brain<?> brain = tamableAnimal.getBrain();
-        if (!brain.hasMemoryValue(MemoryModuleType.AVOID_TARGET)) {
-            return true;
-        } else {
-            LivingEntity avoidTarget = brain.getMemory(MemoryModuleType.AVOID_TARGET).get();
-            if (DogAi.isDisliked(avoidTarget)) {
-                return !brain.isMemoryValue(ABABMemoryModuleTypes.NEAREST_VISIBLE_DISLIKED.get(), avoidTarget);
-            } else {
-                return false;
-            }
-        }
+        return tamableAnimal.isTame();
     }
 
     private static void wasHurtBy(Dog dog, LivingEntity attacker) {

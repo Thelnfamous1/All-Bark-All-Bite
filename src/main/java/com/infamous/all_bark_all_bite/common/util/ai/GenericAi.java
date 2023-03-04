@@ -71,12 +71,8 @@ public class GenericAi {
         return isNearTarget(livingEntity, desiredDistanceFromAvoidTarget, MemoryModuleType.AVOID_TARGET);
     }
 
-    public static boolean isNearDisliked(LivingEntity livingEntity, int desiredDistanceFromDisliked) {
-        return isNearTarget(livingEntity, desiredDistanceFromDisliked, ABABMemoryModuleTypes.NEAREST_VISIBLE_DISLIKED.get());
-    }
-
     @SuppressWarnings("OptionalGetWithoutIsPresent")
-    public static boolean isNearTarget(LivingEntity livingEntity, int closeEnough, MemoryModuleType<LivingEntity> targetMemory) {
+    public static boolean isNearTarget(LivingEntity livingEntity, int closeEnough, MemoryModuleType<? extends LivingEntity> targetMemory) {
         Brain<?> brain = livingEntity.getBrain();
         return brain.hasMemoryValue(targetMemory)
                 && brain.getMemory(targetMemory).get().closerThan(livingEntity, closeEnough);

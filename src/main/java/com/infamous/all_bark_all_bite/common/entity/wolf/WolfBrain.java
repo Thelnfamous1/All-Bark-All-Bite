@@ -2,7 +2,6 @@ package com.infamous.all_bark_all_bite.common.entity.wolf;
 
 import com.google.common.collect.ImmutableList;
 import com.infamous.all_bark_all_bite.common.ABABTags;
-import com.infamous.all_bark_all_bite.common.util.ai.*;
 import com.infamous.all_bark_all_bite.common.behavior.misc.*;
 import com.infamous.all_bark_all_bite.common.behavior.pack.HowlForPack;
 import com.infamous.all_bark_all_bite.common.behavior.pack.JoinOrCreatePackAndFollow;
@@ -11,12 +10,16 @@ import com.infamous.all_bark_all_bite.common.behavior.pack.ValidateLeader;
 import com.infamous.all_bark_all_bite.common.behavior.pet.Beg;
 import com.infamous.all_bark_all_bite.common.behavior.sleep.MoveToNonSkySeeingSpot;
 import com.infamous.all_bark_all_bite.common.behavior.sleep.WakeUpTrigger;
-import com.infamous.all_bark_all_bite.config.ABABConfig;
 import com.infamous.all_bark_all_bite.common.entity.SharedWolfAi;
 import com.infamous.all_bark_all_bite.common.entity.SharedWolfBrain;
 import com.infamous.all_bark_all_bite.common.logic.BrainMaker;
 import com.infamous.all_bark_all_bite.common.registry.ABABActivities;
 import com.infamous.all_bark_all_bite.common.registry.ABABMemoryModuleTypes;
+import com.infamous.all_bark_all_bite.common.util.ai.AiUtil;
+import com.infamous.all_bark_all_bite.common.util.ai.BrainUtil;
+import com.infamous.all_bark_all_bite.common.util.ai.CommandAi;
+import com.infamous.all_bark_all_bite.common.util.ai.TrustAi;
+import com.infamous.all_bark_all_bite.config.ABABConfig;
 import com.mojang.datafixers.util.Pair;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
@@ -127,19 +130,8 @@ public class WolfBrain {
         return target.getType().is(ABABTags.WOLF_HUNT_TARGETS);
     }
 
-    @SuppressWarnings("OptionalGetWithoutIsPresent")
     private static boolean wantsToStopFleeing(Wolf wolf) {
-        Brain<?> brain = wolf.getBrain();
-        if (!brain.hasMemoryValue(MemoryModuleType.AVOID_TARGET)) {
-            return true;
-        } else {
-            LivingEntity avoidTarget = brain.getMemory(MemoryModuleType.AVOID_TARGET).get();
-            if (!WolfAi.isDisliked(avoidTarget)) {
-                return !brain.isMemoryValue(ABABMemoryModuleTypes.NEAREST_VISIBLE_DISLIKED.get(), avoidTarget);
-            } else {
-                return false;
-            }
-        }
+        return wolf.isTame();
     }
 
     private static ImmutableList<? extends Pair<Integer, ? extends Behavior<? super Wolf>>> getIdlePackage(){

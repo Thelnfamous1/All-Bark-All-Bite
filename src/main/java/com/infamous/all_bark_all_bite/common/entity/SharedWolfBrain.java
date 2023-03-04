@@ -245,7 +245,7 @@ public class SharedWolfBrain {
 
     public static CopyMemoryWithExpiry<TamableAnimal, LivingEntity> copyToAvoidTarget(MemoryModuleType<? extends LivingEntity> copyMemory) {
         return new CopyMemoryWithExpiry<>(
-                SharedWolfAi::isNearDisliked,
+                wolf -> SharedWolfAi.isNearDisliked(wolf, copyMemory),
                 copyMemory,
                 MemoryModuleType.AVOID_TARGET,
                 SharedWolfAi.AVOID_DURATION);
