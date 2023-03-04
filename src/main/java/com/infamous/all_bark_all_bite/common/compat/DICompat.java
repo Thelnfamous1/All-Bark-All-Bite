@@ -1,4 +1,4 @@
-package com.infamous.all_bark_all_bite.common.util;
+package com.infamous.all_bark_all_bite.common.compat;
 
 import com.github.alexthe666.citadel.server.entity.IComandableMob;
 import com.github.alexthe668.domesticationinnovation.DomesticationMod;

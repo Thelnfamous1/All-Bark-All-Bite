@@ -5,8 +5,8 @@ import com.infamous.all_bark_all_bite.common.behavior.sleep.MoveToNonSkySeeingSp
 import com.infamous.all_bark_all_bite.common.entity.wolf.WolfHooks;
 import com.infamous.all_bark_all_bite.common.registry.ABABGameEvents;
 import com.infamous.all_bark_all_bite.common.registry.ABABMemoryModuleTypes;
-import com.infamous.all_bark_all_bite.common.util.CompatUtil;
-import com.infamous.all_bark_all_bite.common.util.DICompat;
+import com.infamous.all_bark_all_bite.common.compat.CompatUtil;
+import com.infamous.all_bark_all_bite.common.compat.DICompat;
 import com.infamous.all_bark_all_bite.common.util.MiscUtil;
 import com.infamous.all_bark_all_bite.common.util.PetUtil;
 import com.infamous.all_bark_all_bite.common.util.ai.*;

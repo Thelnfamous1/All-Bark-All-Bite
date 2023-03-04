@@ -1,14 +1,15 @@
 package com.infamous.all_bark_all_bite.common.util.ai;
 
 import com.infamous.all_bark_all_bite.common.behavior.pet.FollowOwner;
+import com.infamous.all_bark_all_bite.common.compat.MMCompat;
 import com.infamous.all_bark_all_bite.config.ABABConfig;
 import com.infamous.all_bark_all_bite.common.entity.LookTargetAccess;
 import com.infamous.all_bark_all_bite.common.entity.SharedWolfAi;
 import com.infamous.all_bark_all_bite.common.entity.WalkTargetAccess;
 import com.infamous.all_bark_all_bite.common.registry.ABABActivities;
 import com.infamous.all_bark_all_bite.common.registry.ABABMemoryModuleTypes;
-import com.infamous.all_bark_all_bite.common.util.CompatUtil;
-import com.infamous.all_bark_all_bite.common.util.DICompat;
+import com.infamous.all_bark_all_bite.common.compat.CompatUtil;
+import com.infamous.all_bark_all_bite.common.compat.DICompat;
 import com.infamous.all_bark_all_bite.common.util.ReflectionUtil;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
@@ -164,6 +165,9 @@ public class CommandAi {
     private static void handleStates(PathfinderMob pet, boolean orderedToSit, boolean resetSit) {
         if(pet instanceof TamableAnimal tamableAnimal){
             tamableAnimal.setOrderedToSit(orderedToSit);
+            if(CompatUtil.isMMLoaded()){
+                MMCompat.setRodlingSitting(tamableAnimal, orderedToSit);
+            }
             SharedWolfAi.clearStates(tamableAnimal, resetSit);
         } else{
             if(pet instanceof Fox fox){

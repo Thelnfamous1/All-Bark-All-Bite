@@ -1,4 +1,4 @@
-package com.infamous.all_bark_all_bite.client.util;
+package com.infamous.all_bark_all_bite.client.compat;
 
 import com.infamous.all_bark_all_bite.client.ABABModelLayers;
 import com.infamous.all_bark_all_bite.client.renderer.model.ABABWolfModel;

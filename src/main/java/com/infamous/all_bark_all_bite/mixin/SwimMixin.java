@@ -1,7 +1,7 @@
 package com.infamous.all_bark_all_bite.mixin;
 
-import com.infamous.all_bark_all_bite.common.util.CompatUtil;
-import com.infamous.all_bark_all_bite.common.util.DICompat;
+import com.infamous.all_bark_all_bite.common.compat.CompatUtil;
+import com.infamous.all_bark_all_bite.common.compat.DICompat;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.Mob;
 import net.minecraft.world.entity.ai.behavior.Swim;
