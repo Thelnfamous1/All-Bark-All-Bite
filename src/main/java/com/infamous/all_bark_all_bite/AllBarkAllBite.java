@@ -1,13 +1,9 @@
 package com.infamous.all_bark_all_bite;
 
-import com.infamous.all_bark_all_bite.config.ABABConfig;
 import com.infamous.all_bark_all_bite.common.registry.*;
-import com.infamous.all_bark_all_bite.common.logic.proxy.ClientProxy;
-import com.infamous.all_bark_all_bite.common.logic.proxy.CommonProxy;
-import com.infamous.all_bark_all_bite.common.logic.proxy.ServerProxy;
+import com.infamous.all_bark_all_bite.config.ABABConfig;
 import com.mojang.logging.LogUtils;
 import net.minecraftforge.eventbus.api.IEventBus;
-import net.minecraftforge.fml.DistExecutor;
 import net.minecraftforge.fml.ModLoadingContext;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.config.ModConfig;
@@ -25,7 +21,6 @@ public class AllBarkAllBite
     // Directly reference a slf4j logger
     @SuppressWarnings("unused")
     public static final Logger LOGGER = LogUtils.getLogger();
-    public static final CommonProxy PROXY = DistExecutor.safeRunForDist(() -> ClientProxy::new, () -> ServerProxy::new);
     public static final boolean ENABLE_BRAIN_DEBUG = true; // Developers: Set this to true if necessary, otherwise should always be false when shipped to users
 
     public AllBarkAllBite()

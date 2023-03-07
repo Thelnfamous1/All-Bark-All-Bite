@@ -1,6 +1,7 @@
 package com.infamous.all_bark_all_bite.common.item;
 
 import com.infamous.all_bark_all_bite.AllBarkAllBite;
+import com.infamous.all_bark_all_bite.common.logic.proxy.ClientProxy;
 import com.infamous.all_bark_all_bite.common.util.InstrumentUtil;
 import net.minecraft.ChatFormatting;
 import net.minecraft.Util;
@@ -47,7 +48,7 @@ public class AdjustableInstrumentItem extends InstrumentItem {
     public InteractionResultHolder<ItemStack> use(Level level, Player player, InteractionHand hand) {
         ItemStack itemInHand = player.getItemInHand(hand);
         if(player.isSecondaryUseActive()){
-            AllBarkAllBite.PROXY.openItemGui(player, itemInHand, hand);
+            ClientProxy.openItemGui(player, itemInHand, hand);
             player.awardStat(Stats.ITEM_USED.get(this));
             return InteractionResultHolder.sidedSuccess(itemInHand, level.isClientSide());
         }

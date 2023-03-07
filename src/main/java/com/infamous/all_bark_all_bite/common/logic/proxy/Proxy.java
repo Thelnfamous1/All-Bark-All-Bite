@@ -4,7 +4,7 @@ import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 
-public abstract class CommonProxy {
+public abstract class Proxy {
 
     public abstract void openItemGui(Player player, ItemStack stack, InteractionHand hand);
 }
