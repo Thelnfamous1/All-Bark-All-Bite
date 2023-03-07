@@ -25,6 +25,10 @@ public class OwnerHurtTarget<M extends Mob & OwnableEntity> extends TargetBehavi
         this(mob -> true, (mob, target, owner) -> true);
     }
 
+    public OwnerHurtTarget(TriPredicate<M, LivingEntity, LivingEntity> wantsToAttack) {
+        this(mob -> true, wantsToAttack);
+    }
+
     public OwnerHurtTarget(Predicate<M> canCheck, TriPredicate<M, LivingEntity, LivingEntity> wantsToAttack) {
         super(ImmutableMap.of(),false);
         this.canCheck = canCheck;

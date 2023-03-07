@@ -2,20 +2,21 @@ package com.infamous.all_bark_all_bite.common.entity.illager_hound;
 
 import com.google.common.collect.ImmutableList;
 import com.infamous.all_bark_all_bite.common.ABABTags;
-import com.infamous.all_bark_all_bite.common.util.ai.AiUtil;
-import com.infamous.all_bark_all_bite.common.behavior.misc.HurtByEntityTrigger;
 import com.infamous.all_bark_all_bite.common.behavior.long_jump.LeapAtTarget;
+import com.infamous.all_bark_all_bite.common.behavior.misc.HurtByEntityTrigger;
 import com.infamous.all_bark_all_bite.common.behavior.misc.Sprint;
 import com.infamous.all_bark_all_bite.common.behavior.pet.FollowOwner;
 import com.infamous.all_bark_all_bite.common.behavior.pet.OwnerHurtByTarget;
 import com.infamous.all_bark_all_bite.common.behavior.pet.OwnerHurtTarget;
 import com.infamous.all_bark_all_bite.common.entity.SharedWolfAi;
+import com.infamous.all_bark_all_bite.common.util.ai.AiUtil;
 import com.infamous.all_bark_all_bite.common.util.ai.BrainUtil;
 import com.infamous.all_bark_all_bite.common.util.ai.GenericAi;
 import com.mojang.datafixers.util.Pair;
 import net.minecraft.util.valueproviders.UniformInt;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.OwnableEntity;
 import net.minecraft.world.entity.ai.behavior.*;
 import net.minecraft.world.entity.ai.memory.MemoryModuleType;
 import net.minecraft.world.entity.ai.sensing.Sensor;
@@ -32,14 +33,23 @@ public class IllagerHoundGoalPackages {
                         new HurtByEntityTrigger<>(IllagerHoundGoalPackages::onHurtBy),
                         new LookAtTargetSink(45, 90),
                         new MoveToTargetSink(),
-                        new OwnerHurtByTarget<>(),
-                        new OwnerHurtTarget<>()
+                        new OwnerHurtByTarget<>(IllagerHoundGoalPackages::wantsToAttack),
+                        new OwnerHurtTarget<>(IllagerHoundGoalPackages::wantsToAttack)
                 ));
     }
 
+    private static boolean wantsToAttack(IllagerHound hound, LivingEntity target, LivingEntity owner){
+        if (target instanceof OwnableEntity ownable) {
+            return ownable.getOwner() != owner;
+        }
+        return true;
+    }
+
     private static void onHurtBy(IllagerHound victim, LivingEntity attacker){
-        retaliate(victim, attacker);
-        GenericAi.getNearbyAllies(victim).forEach(nearbyAlly -> retaliate(nearbyAlly, attacker));
+        if(Sensor.isEntityAttackableIgnoringLineOfSight(victim, attacker)){
+            retaliate(victim, attacker);
+            GenericAi.getNearbyAllies(victim).forEach(nearbyAlly -> retaliate(nearbyAlly, attacker));
+        }
     }
 
     private static void retaliate(IllagerHound victim, LivingEntity attacker) {
