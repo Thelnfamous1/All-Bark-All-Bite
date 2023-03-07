@@ -2,6 +2,8 @@ package com.infamous.all_bark_all_bite.common;
 
 import com.google.common.collect.Maps;
 import com.infamous.all_bark_all_bite.AllBarkAllBite;
+import com.infamous.all_bark_all_bite.common.compat.CompatUtil;
+import com.infamous.all_bark_all_bite.common.compat.DICompat;
 import com.infamous.all_bark_all_bite.common.entity.DogSpawner;
 import com.infamous.all_bark_all_bite.common.entity.SharedWolfAi;
 import com.infamous.all_bark_all_bite.common.entity.dog.Dog;
@@ -14,8 +16,6 @@ import com.infamous.all_bark_all_bite.common.item.PetWhistleItem;
 import com.infamous.all_bark_all_bite.common.logic.ABABRaiderTypes;
 import com.infamous.all_bark_all_bite.common.registry.ABABEntityTypes;
 import com.infamous.all_bark_all_bite.common.registry.ABABItems;
-import com.infamous.all_bark_all_bite.common.compat.CompatUtil;
-import com.infamous.all_bark_all_bite.common.compat.DICompat;
 import com.infamous.all_bark_all_bite.common.util.ReflectionUtil;
 import com.infamous.all_bark_all_bite.common.util.ai.AiUtil;
 import net.minecraft.core.BlockPos;
@@ -53,7 +53,6 @@ import net.minecraftforge.eventbus.api.Event;
 import net.minecraftforge.eventbus.api.EventPriority;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
-import org.apache.commons.compress.utils.Lists;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -65,7 +64,7 @@ public class ForgeEventHandler {
     private static final String FOX_IS_DEFENDING = "m_28567_";
 
     static {
-        ArrayList<CustomSpawner> overworldSpawners = Lists.newArrayList();
+        ArrayList<CustomSpawner> overworldSpawners = new ArrayList<>();
         overworldSpawners.add(new DogSpawner());
         CUSTOM_SPAWNERS.put(Level.OVERWORLD, overworldSpawners);
     }

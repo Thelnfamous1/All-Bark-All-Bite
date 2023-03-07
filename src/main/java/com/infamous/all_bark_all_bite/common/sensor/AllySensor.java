@@ -1,17 +1,16 @@
 package com.infamous.all_bark_all_bite.common.sensor;
 
 import com.google.common.collect.ImmutableSet;
-
-import java.util.List;
-import java.util.Set;
-
 import com.infamous.all_bark_all_bite.common.registry.ABABMemoryModuleTypes;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.memory.MemoryModuleType;
 import net.minecraft.world.entity.ai.memory.NearestVisibleLivingEntities;
 import net.minecraft.world.entity.ai.sensing.Sensor;
-import org.apache.commons.compress.utils.Lists;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Set;
 
 public class AllySensor extends Sensor<LivingEntity> {
    @Override
@@ -33,9 +32,9 @@ public class AllySensor extends Sensor<LivingEntity> {
    }
 
    private void setNearestVisibleAllies(LivingEntity self, NearestVisibleLivingEntities nvle) {
-      List<LivingEntity> nearestVisibleAllies = Lists.newArrayList();
-      List<LivingEntity> nearestVisibleAdults = Lists.newArrayList();
-      List<LivingEntity> nearestVisibleBabies = Lists.newArrayList();
+      List<LivingEntity> nearestVisibleAllies = new ArrayList<>();
+      List<LivingEntity> nearestVisibleAdults = new ArrayList<>();
+      List<LivingEntity> nearestVisibleBabies = new ArrayList<>();
       nvle.findAll(le -> le.getType() == self.getType())
               .forEach(le -> {
                  nearestVisibleAllies.add(le);
@@ -48,9 +47,9 @@ public class AllySensor extends Sensor<LivingEntity> {
    }
 
    private void setNearestAllies(LivingEntity self, List<LivingEntity> nle) {
-      List<LivingEntity> nearestAllies = Lists.newArrayList();
-      List<LivingEntity> nearestAdults = Lists.newArrayList();
-      List<LivingEntity> nearestBabies = Lists.newArrayList();
+      List<LivingEntity> nearestAllies = new ArrayList<>();
+      List<LivingEntity> nearestAdults = new ArrayList<>();
+      List<LivingEntity> nearestBabies = new ArrayList<>();
 
       nle.forEach(le -> {
          if(le.getType() == self.getType()){

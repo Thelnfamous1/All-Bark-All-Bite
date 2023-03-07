@@ -10,8 +10,8 @@ import net.minecraft.world.entity.ai.behavior.Behavior;
 import net.minecraft.world.entity.ai.memory.MemoryModuleType;
 import net.minecraft.world.entity.ai.memory.MemoryStatus;
 import net.minecraft.world.entity.schedule.Activity;
-import org.apache.commons.compress.utils.Lists;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -20,7 +20,7 @@ public class BrainMaker<E extends LivingEntity> {
 
     private final Brain<E> brain;
     private final Map<Activity, ImmutableList<? extends Pair<Integer, ? extends Behavior<? super E>>>> coreActivities = Maps.newHashMap();
-    private final List<Activity> activities = Lists.newArrayList();
+    private final List<Activity> activities = new ArrayList<>();
 
     public BrainMaker(Brain<E> brain){
         this.brain = brain;
