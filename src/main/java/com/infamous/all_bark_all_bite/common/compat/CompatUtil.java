@@ -8,6 +8,8 @@ public class CompatUtil {
     public static final String ILLAGERS_WEAR_ARMOR_MODID = "illagersweararmor";
     public static final String MUTANT_MORE_MODID = "mutantmore";
 
+    public static final String FARMERS_DELIGHT_MODID = "farmersdelight";
+
     public static boolean isRWLoaded() {
        return ModList.get().isLoaded(REVAMPED_WOLF_MODID);
     }

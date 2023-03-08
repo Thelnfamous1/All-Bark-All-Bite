@@ -30,4 +30,8 @@ public class DigAi {
         BlockPos blockPos = new BlockPos(randomPos);
         return Optional.of(blockPos).filter(digPosPredicate);
     }
+
+    public static void eraseDigLocation(LivingEntity livingEntity) {
+        livingEntity.getBrain().eraseMemory(ABABMemoryModuleTypes.DIG_LOCATION.get());
+    }
 }

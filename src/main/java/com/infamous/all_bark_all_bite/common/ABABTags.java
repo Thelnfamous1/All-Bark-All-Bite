@@ -40,8 +40,12 @@ public class ABABTags {
         return ItemTags.create(new ResourceLocation(AllBarkAllBite.MODID, path));
     }
 
+    public static TagKey<EntityType<?>> createEntityTypeTag(ResourceLocation location) {
+        return TagKey.create(Registry.ENTITY_TYPE_REGISTRY, location);
+    }
+
     private static TagKey<EntityType<?>> createEntityTypeTag(String path) {
-        return TagKey.create(Registry.ENTITY_TYPE_REGISTRY, new ResourceLocation(AllBarkAllBite.MODID, path));
+        return createEntityTypeTag(new ResourceLocation(AllBarkAllBite.MODID, path));
     }
 
     private static TagKey<GameEvent> createGameEventTag(String path) {

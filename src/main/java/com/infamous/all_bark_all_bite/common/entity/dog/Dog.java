@@ -2,6 +2,8 @@ package com.infamous.all_bark_all_bite.common.entity.dog;
 
 import com.infamous.all_bark_all_bite.AllBarkAllBite;
 import com.infamous.all_bark_all_bite.common.ABABTags;
+import com.infamous.all_bark_all_bite.common.compat.CompatUtil;
+import com.infamous.all_bark_all_bite.common.compat.RWCompat;
 import com.infamous.all_bark_all_bite.common.entity.*;
 import com.infamous.all_bark_all_bite.common.registry.ABABDogVariants;
 import com.infamous.all_bark_all_bite.common.registry.ABABEntityDataSerializers;
@@ -10,13 +12,13 @@ import com.infamous.all_bark_all_bite.common.registry.ABABMemoryModuleTypes;
 import com.infamous.all_bark_all_bite.common.util.DebugUtil;
 import com.infamous.all_bark_all_bite.common.util.MiscUtil;
 import com.infamous.all_bark_all_bite.common.util.ai.AiUtil;
+import com.infamous.all_bark_all_bite.common.util.ai.DigAi;
 import com.infamous.all_bark_all_bite.common.util.ai.GenericAi;
 import com.mojang.serialization.Dynamic;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.protocol.game.DebugPackets;
 import net.minecraft.network.syncher.EntityDataAccessor;
-import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.network.syncher.SynchedEntityData;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundEvent;
@@ -34,51 +36,33 @@ import net.minecraft.world.entity.ai.Brain;
 import net.minecraft.world.entity.ai.attributes.AttributeSupplier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.animal.Animal;
-import net.minecraft.world.entity.animal.horse.AbstractHorse;
+import net.minecraft.world.entity.animal.Wolf;
 import net.minecraft.world.entity.item.ItemEntity;
-import net.minecraft.world.entity.monster.Creeper;
-import net.minecraft.world.entity.monster.Ghast;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.food.FoodProperties;
-import net.minecraft.world.item.DyeColor;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.ServerLevelAccessor;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraft.world.level.pathfinder.BlockPathTypes;
-import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.common.ForgeSpawnEggItem;
 import net.minecraftforge.event.ForgeEventFactory;
 import net.minecraftforge.registries.IForgeRegistry;
-import org.apache.commons.lang3.tuple.MutablePair;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Collection;
 import java.util.Optional;
 
-public class Dog extends TamableAnimal implements InterestedMob, ShakingMob, VariantMob, CollaredMob {
-    @SuppressWarnings("unused")
-    private static final int FLAG_SITTING = 1; // Used by TamableAnimal
-    @SuppressWarnings("unused")
-    private static final int FLAG_TAME = 4; // Used by TamableAnimal
-    private static final int FLAG_INTERESTED = 8;
-    private static final int FLAG_WET = 16;
-    private static final int FLAG_SHAKING = 32;
+public class Dog extends Wolf implements VariantMob{
     private static final EntityDataAccessor<EntityVariant> DATA_VARIANT_ID = SynchedEntityData.defineId(Dog.class, ABABEntityDataSerializers.DOG_VARIANT.get());
-    private static final EntityDataAccessor<Integer> DATA_COLLAR_COLOR = SynchedEntityData.defineId(Dog.class, EntityDataSerializers.INT);
-    private final MutablePair<Float, Float> interestedAngles = new MutablePair<>(0.0F, 0.0F);
-
-    public final SharedWolfAnimationController animationController;
-    private final MutablePair<Float, Float> shakeAnims = new MutablePair<>(0.0F, 0.0F);
 
     public Dog(EntityType<? extends Dog> type, Level level) {
         super(type, level);
-        this.setTame(false);
-        this.setPathfindingMalus(BlockPathTypes.POWDER_SNOW, -1.0F);
-        this.setPathfindingMalus(BlockPathTypes.DANGER_POWDER_SNOW, -1.0F);
         this.setCanPickUpLoot(true);
         this.getNavigation().setCanFloat(true);
-        this.animationController = new SharedWolfAnimationController(this, TamableAnimal.DATA_FLAGS_ID, Entity.DATA_POSE);
+    }
+
+    @Override
+    protected void registerGoals() {
     }
 
     public static AttributeSupplier.Builder createAttributes() {
@@ -93,41 +77,23 @@ public class Dog extends TamableAnimal implements InterestedMob, ShakingMob, Var
     protected void defineSynchedData() {
         super.defineSynchedData();
         this.entityData.define(DATA_VARIANT_ID, ABABDogVariants.BROWN.get());
-        this.entityData.define(DATA_COLLAR_COLOR, DyeColor.RED.getId());
     }
 
     @Override
     public void onSyncedDataUpdated(EntityDataAccessor<?> dataAccessor) {
         super.onSyncedDataUpdated(dataAccessor);
-        if(this.animationController != null){
-            this.animationController.onSyncedDataUpdatedAnimations(dataAccessor);
-        }
-    }
-
-    protected boolean getFlag(int flagId) {
-        return (this.entityData.get(DATA_FLAGS_ID) & flagId) != 0;
-    }
-
-    protected void setFlag(int flagId, boolean flag) {
-        if (flag) {
-            this.entityData.set(DATA_FLAGS_ID, (byte)(this.entityData.get(DATA_FLAGS_ID) | flagId));
-        } else {
-            this.entityData.set(DATA_FLAGS_ID, (byte)(this.entityData.get(DATA_FLAGS_ID) & ~flagId));
-        }
     }
 
     @Override
     public void addAdditionalSaveData(CompoundTag tag) {
         super.addAdditionalSaveData(tag);
         this.addVariantSaveData(tag);
-        this.addCollarColorSaveData(tag);
     }
 
     @Override
     public void readAdditionalSaveData(CompoundTag tag) {
         super.readAdditionalSaveData(tag);
         this.readVariantSaveData(tag);
-        this.readCollarColorSaveData(tag);
     }
 
     @Override
@@ -151,74 +117,34 @@ public class Dog extends TamableAnimal implements InterestedMob, ShakingMob, Var
     }
 
     @Override
-    public float getSoundVolume() {
-        return 0.4F;
-    }
-
-    @Override
     public void aiStep() {
         super.aiStep();
-        this.aiStepShaking();
-        this.animationController.aiStepAnimations();
-    }
-
-    @Override
-    public void tick() {
-        if (this.level.isClientSide()) {
-            this.animationController.tickAnimations();
-        }
-
-        super.tick();
-        if(this.isAlive()){
-            this.tickInterest();
-            this.tickShaking();
-        }
-    }
-
-    @Override
-    public void die(DamageSource source) {
-        super.die(source);
-        this.dieShaking();
-    }
-
-    @Override
-    protected float getStandingEyeHeight(Pose pose, EntityDimensions dimensions) {
-        return dimensions.height * 0.8F;
-    }
-
-    @Override
-    public int getMaxHeadXRot() {
-        return this.isInSittingPose() ? 20 : super.getMaxHeadXRot();
-    }
-
-    @Override
-    public boolean hurt(DamageSource source, float amount) {
-        if (this.isInvulnerableTo(source)) {
-            return false;
-        } else {
-            amount = SharedWolfAi.maybeReduceDamage(amount, source);
-            return super.hurt(source, amount);
-        }
     }
 
     @Override
     public InteractionResult mobInteract(Player player, InteractionHand hand) {
+        if(CompatUtil.isRWLoaded()){
+            Optional<InteractionResult> rwResult = RWCompat.mobInteract(this, player, hand);
+            if(rwResult.isPresent()) return rwResult.get();
+        }
+
         ItemStack stack = player.getItemInHand(hand);
         if (this.level.isClientSide) {
             boolean canInteract = this.isOwnedBy(player)
                     || this.isTame()
                     || this.isFood(stack) && !this.isTame() && !this.isAggressive();
-            return canInteract && !this.hasPose(Pose.DIGGING) ? InteractionResult.SUCCESS : InteractionResult.PASS;
+            return canInteract ? InteractionResult.SUCCESS : InteractionResult.PASS;
         } else {
             Optional<InteractionResult> mobInteract = DogAi.mobInteract(this, player, hand);
             if(mobInteract.isEmpty()){
-                InteractionResult animalInteractResult = super.mobInteract(player, hand);
+                InteractionResult animalInteractResult = ((AnimalAccess)this).animalInteract(player, hand);
                 if(animalInteractResult.consumesAction()){
                     this.setPersistenceRequired();
                 }
                 boolean willNotBreed = !animalInteractResult.consumesAction();
                 if (willNotBreed && this.isOwnedBy(player)) {
                     SharedWolfAi.manualCommand(this, player);
+                    DigAi.eraseDigLocation(this); // prevents bug where dogs that get up from sitting still try to dig after dropping the given item
                     return InteractionResult.CONSUME;
                 }
                 return animalInteractResult;
@@ -235,26 +161,14 @@ public class Dog extends TamableAnimal implements InterestedMob, ShakingMob, Var
     }
 
     @Override
-    public void handleEntityEvent(byte id) {
-        this.animationController.handleEntityEventAnimation(id);
-        this.handleShakingEvent(id);
-        super.handleEntityEvent(id);
-    }
-
-    @Override
     public boolean isFood(ItemStack stack) {
         FoodProperties foodProperties = stack.getFoodProperties(this);
         return stack.is(ABABTags.DOG_FOOD) || foodProperties != null && foodProperties.isMeat();
     }
 
-    @Override
-    public int getMaxSpawnClusterSize() {
-        return 8;
-    }
-
     @Nullable
     @Override
-    public AgeableMob getBreedOffspring(ServerLevel level, AgeableMob partner) {
+    public Dog getBreedOffspring(ServerLevel level, AgeableMob partner) {
         Dog offspring = ABABEntityTypes.DOG.get().create(level);
         if (partner instanceof Dog mate && offspring != null) {
             if (this.random.nextBoolean()) {
@@ -295,31 +209,6 @@ public class Dog extends TamableAnimal implements InterestedMob, ShakingMob, Var
     }
 
     @Override
-    public boolean wantsToAttack(LivingEntity target, LivingEntity owner) {
-        if (!(target instanceof Creeper) && !(target instanceof Ghast)) {
-            if (target instanceof TamableAnimal tamableAnimal) {
-                return !tamableAnimal.isTame() || tamableAnimal.getOwner() != owner;
-            } else {
-                if (target instanceof Player targetPlayer && owner instanceof Player ownerPlayer && !ownerPlayer.canHarmPlayer(targetPlayer)) {
-                    return false;
-                } else return !(target instanceof AbstractHorse horse) || !horse.isTamed();
-            }
-        } else {
-            return false;
-        }
-    }
-
-    @Override
-    public boolean canBeLeashed(Player player) {
-        return !this.isAggressive() && super.canBeLeashed(player);
-    }
-
-    @Override
-    public Vec3 getLeashOffset() {
-        return new Vec3(0.0D, 0.6F * this.getEyeHeight(), this.getBbWidth() * 0.4F);
-    }
-
-    @Override
     public SpawnGroupData finalizeSpawn(ServerLevelAccessor serverLevelAccessor, DifficultyInstance difficultyInstance, MobSpawnType mobSpawnType, @Nullable SpawnGroupData groupData, @Nullable CompoundTag tag) {
         SpawnGroupData spawnGroupData = super.finalizeSpawn(serverLevelAccessor, difficultyInstance, mobSpawnType, groupData, tag);
         Collection<EntityVariant> values = this.getVariantRegistry().getValues();
@@ -343,12 +232,6 @@ public class Dog extends TamableAnimal implements InterestedMob, ShakingMob, Var
         if (!this.level.isClientSide) {
             this.level.broadcastEntityEvent(this, EntityAnimationController.JUMPING_EVENT_ID);
         }
-    }
-
-    @Override
-    public boolean doHurtTarget(Entity target) {
-        this.level.broadcastEntityEvent(this, EntityAnimationController.ATTACKING_EVENT_ID);
-        return super.doHurtTarget(target);
     }
 
     @Override
@@ -441,7 +324,7 @@ public class Dog extends TamableAnimal implements InterestedMob, ShakingMob, Var
     }
 
     @Override
-    public boolean removeWhenFarAway(double p_28174_) {
+    public boolean removeWhenFarAway(double distFromNearestPlayer) {
         return !this.isTame() && this.tickCount > 2400;
     }
 
@@ -460,66 +343,5 @@ public class Dog extends TamableAnimal implements InterestedMob, ShakingMob, Var
     @Override
     public void setVariant(EntityVariant variant) {
         this.entityData.set(DATA_VARIANT_ID, variant);
-    }
-
-    // CollaredMob
-
-    @Override
-    public DyeColor getCollarColor() {
-        return DyeColor.byId(this.entityData.get(DATA_COLLAR_COLOR));
-    }
-
-    @Override
-    public void setCollarColor(DyeColor collarColor) {
-        this.entityData.set(DATA_COLLAR_COLOR, collarColor.getId());
-    }
-
-    // ShakingMob
-
-    @Override
-    public boolean isWet() {
-        return this.getFlag(FLAG_WET);
-    }
-
-    @Override
-    public void setIsWet(boolean isWet) {
-        this.setFlag(FLAG_WET, isWet);
-    }
-
-    @Override
-    public boolean isShaking() {
-        return this.getFlag(FLAG_SHAKING);
-    }
-
-    @Override
-    public void setIsShaking(boolean isShaking) {
-        this.setFlag(FLAG_SHAKING, isShaking);
-    }
-
-    @Override
-    public MutablePair<Float, Float> getShakeAnims() {
-        return this.shakeAnims;
-    }
-
-    @Override
-    public void playShakeSound() {
-        this.playSound(SoundEvents.WOLF_SHAKE, this.getSoundVolume(), (this.random.nextFloat() - this.random.nextFloat()) * 0.2F + 1.0F);
-    }
-
-    // InterestedMob
-
-    @Override
-    public boolean isInterested() {
-        return this.getFlag(FLAG_INTERESTED);
-    }
-
-    @Override
-    public void setIsInterested(boolean isInterested) {
-        this.setFlag(FLAG_INTERESTED, isInterested);
-    }
-
-    @Override
-    public MutablePair<Float, Float> getInterestedAngles() {
-        return this.interestedAngles;
     }
 }

@@ -4,7 +4,10 @@ package com.infamous.all_bark_all_bite.client.renderer.model;// Made with Blockb
 
 
 import com.infamous.all_bark_all_bite.client.renderer.model.animation.DogAnimation;
+import com.infamous.all_bark_all_bite.common.entity.AnimationControllerAccess;
+import com.infamous.all_bark_all_bite.common.entity.SharedWolfAnimationController;
 import com.infamous.all_bark_all_bite.common.entity.dog.Dog;
+import com.infamous.all_bark_all_bite.mixin.WolfAccessor;
 import net.minecraft.client.model.ColorableHierarchicalModel;
 import net.minecraft.client.model.HeadedModel;
 import net.minecraft.client.model.geom.ModelPart;
@@ -102,26 +105,28 @@ public class DogModel<T extends Dog> extends ColorableHierarchicalModel<T> imple
 	public void setupAnim(T dog, float animPos, float lerpAnimSpeed, float bob, float headYRot, float headXRot) {
 		this.root().getAllParts().forEach(ModelPart::resetPose);
 		this.animateHeadLookTarget(headYRot, headXRot);
-		this.animate(dog.animationController.attackAnimationState, DogAnimation.ATTACK, bob);
-		this.animate(dog.animationController.babyAnimationState, DogAnimation.BABY, bob);
-		this.animate(dog.animationController.crouchAnimationState, DogAnimation.CROUCH, bob);
-		this.animate(dog.animationController.digAnimationState, DogAnimation.DIG, bob);
-		this.animate(dog.animationController.idleAnimationState, DogAnimation.IDLE, bob);
-		this.animate(dog.animationController.idleDigAnimationState, DogAnimation.IDLE_DIG, bob);
-		this.animate(dog.animationController.idleSitAnimationState, DogAnimation.IDLE_SIT, bob);
-		this.animate(dog.animationController.idleSleepAnimationState, DogAnimation.IDLE_SLEEP, bob, IDLE_SLEEP_ANIMATION_SPEED);
-		this.animate(dog.animationController.jumpAnimationState, DogAnimation.JUMP, bob);
-		this.animate(dog.animationController.leapAnimationState, DogAnimation.LEAP, bob);
-		this.animate(dog.animationController.sitAnimationState, DogAnimation.SIT, bob);
-		this.animate(dog.animationController.sleepAnimationState, DogAnimation.SLEEP, bob);
-		this.animate(dog.animationController.sprintAnimationState, DogAnimation.SPRINT, bob);
-		this.animate(dog.animationController.walkAnimationState, DogAnimation.WALK, bob);
+		AnimationControllerAccess<SharedWolfAnimationController> aca = AnimationControllerAccess.cast(dog);
+		SharedWolfAnimationController animationController = aca.getAnimationController();
+		this.animate(animationController.attackAnimationState, DogAnimation.ATTACK, bob);
+		this.animate(animationController.babyAnimationState, DogAnimation.BABY, bob);
+		this.animate(animationController.crouchAnimationState, DogAnimation.CROUCH, bob);
+		this.animate(animationController.digAnimationState, DogAnimation.DIG, bob);
+		this.animate(animationController.idleAnimationState, DogAnimation.IDLE, bob);
+		this.animate(animationController.idleDigAnimationState, DogAnimation.IDLE_DIG, bob);
+		this.animate(animationController.idleSitAnimationState, DogAnimation.IDLE_SIT, bob);
+		this.animate(animationController.idleSleepAnimationState, DogAnimation.IDLE_SLEEP, bob, IDLE_SLEEP_ANIMATION_SPEED);
+		this.animate(animationController.jumpAnimationState, DogAnimation.JUMP, bob);
+		this.animate(animationController.leapAnimationState, DogAnimation.LEAP, bob);
+		this.animate(animationController.sitAnimationState, DogAnimation.SIT, bob);
+		this.animate(animationController.sleepAnimationState, DogAnimation.SLEEP, bob);
+		this.animate(animationController.sprintAnimationState, DogAnimation.SPRINT, bob);
+		this.animate(animationController.walkAnimationState, DogAnimation.WALK, bob);
 		this.animateInterestAndShaking(dog, this.partialTicks);
 	}
 
 	private void animateInterestAndShaking(T dog, float partialTicks1) {
 		boolean interested = dog.isInterested();
-		boolean shaking = dog.isShaking();
+		boolean shaking = ((WolfAccessor)dog).getIsShaking();
 		if(interested || shaking){
 			this.head.zRot = (interested ? dog.getHeadRollAngle(partialTicks1) : 0.0F) + (shaking ? dog.getBodyRollAngle(partialTicks1, 0.0F) : 0.0F);
 		}

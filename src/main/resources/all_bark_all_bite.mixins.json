@@ -1,6 +1,7 @@
 {
   "required": true,
   "package": "com.infamous.all_bark_all_bite.mixin",
+  "plugin": "com.infamous.all_bark_all_bite.mixin.ABABMixinConfigPlugin",
   "compatibilityLevel": "JAVA_17",
   "refmap": "all_bark_all_bite.refmap.json",
   "mixins": [

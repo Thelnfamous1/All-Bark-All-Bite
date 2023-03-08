@@ -9,6 +9,7 @@ import com.infamous.all_bark_all_bite.common.behavior.pet.FollowOwner;
 import com.infamous.all_bark_all_bite.common.behavior.pet.OwnerHurtByTarget;
 import com.infamous.all_bark_all_bite.common.behavior.pet.OwnerHurtTarget;
 import com.infamous.all_bark_all_bite.common.entity.SharedWolfAi;
+import com.infamous.all_bark_all_bite.common.util.PetUtil;
 import com.infamous.all_bark_all_bite.common.util.ai.AiUtil;
 import com.infamous.all_bark_all_bite.common.util.ai.BrainUtil;
 import com.infamous.all_bark_all_bite.common.util.ai.GenericAi;
@@ -16,7 +17,6 @@ import com.mojang.datafixers.util.Pair;
 import net.minecraft.util.valueproviders.UniformInt;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
-import net.minecraft.world.entity.OwnableEntity;
 import net.minecraft.world.entity.ai.behavior.*;
 import net.minecraft.world.entity.ai.memory.MemoryModuleType;
 import net.minecraft.world.entity.ai.sensing.Sensor;
@@ -33,16 +33,9 @@ public class IllagerHoundGoalPackages {
                         new HurtByEntityTrigger<>(IllagerHoundGoalPackages::onHurtBy),
                         new LookAtTargetSink(45, 90),
                         new MoveToTargetSink(),
-                        new OwnerHurtByTarget<>(IllagerHoundGoalPackages::wantsToAttack),
-                        new OwnerHurtTarget<>(IllagerHoundGoalPackages::wantsToAttack)
+                        new OwnerHurtByTarget<>(PetUtil::wantsToAttack),
+                        new OwnerHurtTarget<>(PetUtil::wantsToAttack)
                 ));
-    }
-
-    private static boolean wantsToAttack(IllagerHound hound, LivingEntity target, LivingEntity owner){
-        if (target instanceof OwnableEntity ownable) {
-            return ownable.getOwner() != owner;
-        }
-        return true;
     }
 
     private static void onHurtBy(IllagerHound victim, LivingEntity attacker){

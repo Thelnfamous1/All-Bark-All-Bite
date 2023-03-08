@@ -8,7 +8,7 @@ import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.entity.RenderLayerParent;
 import net.minecraft.resources.ResourceLocation;
 
-public class DogCollarLayer extends SharedWolfCollarLayer<Dog, DogModel<Dog>> {
+public class DogCollarLayer extends ABABWolfCollarLayer<Dog, DogModel<Dog>> {
    private static final ResourceLocation DOG_COLLAR_LOCATION = new ResourceLocation(AllBarkAllBite.MODID, "textures/entity/dog/collar/collar.png");
    private static final ResourceLocation DOG_TAG_LOCATION = new ResourceLocation(AllBarkAllBite.MODID, "textures/entity/dog/collar/tag.png");
 

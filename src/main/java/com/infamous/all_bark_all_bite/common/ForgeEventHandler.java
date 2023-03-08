@@ -63,19 +63,19 @@ public class ForgeEventHandler {
     private static final Map<ResourceKey<Level>, List<CustomSpawner>> CUSTOM_SPAWNERS = Maps.newLinkedHashMap();
     private static final String FOX_IS_DEFENDING = "m_28567_";
 
-    static {
-        ArrayList<CustomSpawner> overworldSpawners = new ArrayList<>();
-        overworldSpawners.add(new DogSpawner());
-        CUSTOM_SPAWNERS.put(Level.OVERWORLD, overworldSpawners);
-    }
-
     @SubscribeEvent
     static void onWorldTick(TickEvent.LevelTickEvent event){
         if(event.level instanceof ServerLevel serverLevel && event.phase == TickEvent.Phase.END){
             MinecraftServer server = serverLevel.getServer();
             ResourceKey<Level> dimension = serverLevel.dimension();
-            List<CustomSpawner> customSpawners = CUSTOM_SPAWNERS.get(dimension);
-            if(customSpawners != null) customSpawners.forEach(cs -> cs.tick(serverLevel, server.isSpawningMonsters(), server.isSpawningAnimals()));
+            List<CustomSpawner> customSpawners = CUSTOM_SPAWNERS.computeIfAbsent(dimension, k -> {
+                List<CustomSpawner> spawners = new ArrayList<>();
+                if(k == Level.OVERWORLD){
+                    spawners.add(new DogSpawner());
+                }
+                return spawners;
+            });
+            customSpawners.forEach(cs -> cs.tick(serverLevel, server.isSpawningMonsters(), server.isSpawningAnimals()));
         }
     }
 

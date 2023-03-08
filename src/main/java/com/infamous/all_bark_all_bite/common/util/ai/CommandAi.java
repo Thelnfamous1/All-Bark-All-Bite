@@ -2,6 +2,7 @@ package com.infamous.all_bark_all_bite.common.util.ai;
 
 import com.infamous.all_bark_all_bite.common.behavior.pet.FollowOwner;
 import com.infamous.all_bark_all_bite.common.compat.MMCompat;
+import com.infamous.all_bark_all_bite.common.util.PetUtil;
 import com.infamous.all_bark_all_bite.config.ABABConfig;
 import com.infamous.all_bark_all_bite.common.entity.LookTargetAccess;
 import com.infamous.all_bark_all_bite.common.entity.SharedWolfAi;
@@ -54,7 +55,7 @@ public class CommandAi {
     public static void commandAttack(PathfinderMob pet, LivingEntity target, LivingEntity owner) {
         handleStates(pet, false, true);
         yieldAsPet(pet);
-        if(pet.canAttack(target) && owner.canAttack(target)){
+        if(pet.canAttack(target) && PetUtil.wantsToAttack(pet, target, owner)){
             StartAttacking.setAttackTarget(pet, target);
             pet.setTarget(target);
         }

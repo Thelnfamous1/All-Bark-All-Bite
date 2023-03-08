@@ -4,10 +4,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.infamous.all_bark_all_bite.common.behavior.hunter.*;
 import com.infamous.all_bark_all_bite.common.behavior.long_jump.LeapAtTarget;
-import com.infamous.all_bark_all_bite.common.behavior.misc.HurtByEntityTrigger;
-import com.infamous.all_bark_all_bite.common.behavior.misc.Sprint;
-import com.infamous.all_bark_all_bite.common.behavior.misc.UpdateActivity;
-import com.infamous.all_bark_all_bite.common.behavior.misc.UpdateTarget;
+import com.infamous.all_bark_all_bite.common.behavior.misc.*;
 import com.infamous.all_bark_all_bite.common.behavior.pet.DefendLikedPlayer;
 import com.infamous.all_bark_all_bite.common.behavior.pet.OwnerHurtByTarget;
 import com.infamous.all_bark_all_bite.common.behavior.pet.OwnerHurtTarget;
@@ -26,6 +23,7 @@ import net.minecraft.world.entity.ai.Brain;
 import net.minecraft.world.entity.ai.behavior.*;
 import net.minecraft.world.entity.ai.memory.MemoryModuleType;
 import net.minecraft.world.entity.ai.memory.MemoryStatus;
+import net.minecraft.world.entity.animal.Wolf;
 import net.minecraft.world.entity.schedule.Activity;
 
 import java.util.List;
@@ -97,11 +95,12 @@ public class SharedWolfBrain {
         return HunterAi.getStalkTarget(wolf).isEmpty() && SharedWolfAi.canStartAttacking(wolf);
     }
 
-    public static <E extends TamableAnimal> ImmutableList<? extends Pair<Integer, ? extends Behavior<? super E>>> getUpdatePackage(List<Activity> activities, BiConsumer<E, Pair<Activity, Activity>> onActivityChanged){
+    public static <E extends Wolf> ImmutableList<? extends Pair<Integer, ? extends Behavior<? super E>>> getUpdatePackage(List<Activity> activities, BiConsumer<E, Pair<Activity, Activity>> onActivityChanged){
         return BrainUtil.createPriorityPairs(99,
                 ImmutableList.of(
                         new UpdateActivity<>(activities, onActivityChanged),
-                        new UpdateTarget()
+                        new UpdateTarget(),
+                        new UpdateNeutralMob<>()
                 ));
     }
 
