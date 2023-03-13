@@ -81,7 +81,7 @@ public class CommandAi {
         }
         handleStates(pet, false, true);
         yieldAsPet(pet);
-        stopFollowing(pet);
+        release(pet);
         resetFollowTriggerDistance(pet);
     }
 
@@ -94,16 +94,16 @@ public class CommandAi {
             DICompat.setDICommand(pet, user, DICompat.DI_FOLLOW_COMMAND);
         }
         handleStates(pet, false, true);
-        yieldAsPet(pet);
         resetFollowTriggerDistance(pet);
-        setFollowing(pet);
+        orderToFollow(pet);
+        yieldAsPet(pet, ABABActivities.FOLLOW.get());
 
     }
 
     public static void commandGo(PathfinderMob pet, LivingEntity user, HitResult hitResult) {
         handleStates(pet, false, true);
         yieldAsPet(pet);
-        stopFollowing(pet);
+        release(pet);
         resetFollowTriggerDistance(pet);
         if(hitResult instanceof BlockHitResult blockHitResult){
             navigateToTarget(pet, blockHitResult.getBlockPos(), SharedWolfAi.SPEED_MODIFIER_WALKING);
@@ -117,8 +117,8 @@ public class CommandAi {
             DICompat.setDICommand(pet, user, DICompat.DI_FOLLOW_COMMAND);
         }
         handleStates(pet, false, true);
-        yieldAsPet(pet);
-        setFollowing(pet);
+        orderToFollow(pet);
+        yieldAsPet(pet, ABABActivities.FOLLOW.get());
         setHeeling(pet);
     }
 
@@ -177,15 +177,15 @@ public class CommandAi {
         }
     }
 
-    public static void setFollowing(LivingEntity entity) {
+    public static void orderToFollow(LivingEntity entity) {
         entity.getBrain().setMemory(ABABMemoryModuleTypes.IS_ORDERED_TO_FOLLOW.get(), Unit.INSTANCE);
     }
 
-    public static void stopFollowing(LivingEntity entity) {
+    public static void release(LivingEntity entity) {
         entity.getBrain().eraseMemory(ABABMemoryModuleTypes.IS_ORDERED_TO_FOLLOW.get());
     }
 
-    public static boolean isFollowing(LivingEntity entity){
+    public static boolean isOrderedToFollow(LivingEntity entity){
         return entity.getBrain().hasMemoryValue(ABABMemoryModuleTypes.IS_ORDERED_TO_FOLLOW.get());
     }
 
@@ -197,7 +197,8 @@ public class CommandAi {
         entity.getBrain().setMemory(ABABMemoryModuleTypes.FOLLOW_TRIGGER_DISTANCE.get(), SharedWolfAi.TOO_FAR_FROM_OWNER);
     }
 
+    @SuppressWarnings("OptionalGetWithoutIsPresent")
     public static int getFollowTriggerDistance(LivingEntity entity){
-        return entity.getBrain().getMemory(ABABMemoryModuleTypes.FOLLOW_TRIGGER_DISTANCE.get()).orElse(SharedWolfAi.TOO_FAR_FROM_OWNER);
+        return entity.getBrain().getMemory(ABABMemoryModuleTypes.FOLLOW_TRIGGER_DISTANCE.get()).get();
     }
 }

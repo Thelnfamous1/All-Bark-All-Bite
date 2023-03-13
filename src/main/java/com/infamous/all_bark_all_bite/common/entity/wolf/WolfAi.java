@@ -43,11 +43,11 @@ public class WolfAi {
             MemoryModuleType.AVOID_TARGET,
             MemoryModuleType.BREED_TARGET,
             MemoryModuleType.CANT_REACH_WALK_TARGET_SINCE,
-            ABABMemoryModuleTypes.TAG_COOLING_DOWN.get(),
             ABABMemoryModuleTypes.FOLLOW_TRIGGER_DISTANCE.get(),
             ABABMemoryModuleTypes.FOLLOWERS.get(),
             ABABMemoryModuleTypes.HOWL_LOCATION.get(),
             ABABMemoryModuleTypes.HOWLED_RECENTLY.get(),
+            ABABMemoryModuleTypes.HUNT_TARGET.get(),
             MemoryModuleType.HUNTED_RECENTLY,
             MemoryModuleType.HURT_BY,
             MemoryModuleType.HURT_BY_ENTITY,
@@ -79,17 +79,15 @@ public class WolfAi {
             ABABMemoryModuleTypes.NEAREST_TARGETABLE_PLAYER_NOT_SNEAKING.get(),
             MemoryModuleType.NEAREST_VISIBLE_ADULT,
             ABABMemoryModuleTypes.NEAREST_VISIBLE_ADULTS.get(),
+            ABABMemoryModuleTypes.NEAREST_VISIBLE_ALLIES.get(),
             MemoryModuleType.NEAREST_VISIBLE_ATTACKABLE_PLAYER,
             ABABMemoryModuleTypes.NEAREST_VISIBLE_BABIES.get(),
+            ABABMemoryModuleTypes.NEAREST_VISIBLE_BABY.get(),
             ABABMemoryModuleTypes.NEAREST_VISIBLE_HUNTABLE.get(),
-            ABABMemoryModuleTypes.NEAREST_VISIBLE_ALLIES.get(),
             MemoryModuleType.NEAREST_VISIBLE_LIVING_ENTITIES,
             MemoryModuleType.NEAREST_VISIBLE_PLAYER,
             MemoryModuleType.NEAREST_VISIBLE_WANTED_ITEM,
             MemoryModuleType.PATH,
-            ABABMemoryModuleTypes.POUNCE_COOLDOWN_TICKS.get(),
-            ABABMemoryModuleTypes.POUNCE_TARGET.get(),
-            ABABMemoryModuleTypes.STALK_TARGET.get(),
             MemoryModuleType.TEMPTING_PLAYER,
             MemoryModuleType.TEMPTATION_COOLDOWN_TICKS,
             ABABMemoryModuleTypes.TRUST.get(),
@@ -120,12 +118,12 @@ public class WolfAi {
     private static SoundEvent getSoundForActivity(Wolf wolf, Activity activity) {
         if(activity == Activity.PANIC){
             return SoundEvents.WOLF_HURT;
-        } else if(activity == ABABActivities.STALK.get() || activity == ABABActivities.POUNCE.get()){
+        } else if(activity == ABABActivities.HUNT.get()){
             return null;
         } else if (activity == Activity.FIGHT) {
             return SoundEvents.WOLF_GROWL;
-        } else if (activity == Activity.AVOID) {
-            return GenericAi.isNearAvoidTarget(wolf, SharedWolfAi.DESIRED_DISTANCE_FROM_DISLIKED) ? SoundEvents.WOLF_HURT : null;
+        } else if (activity == Activity.AVOID && GenericAi.isNearAvoidTarget(wolf, SharedWolfAi.DESIRED_DISTANCE_FROM_DISLIKED)) {
+            return SoundEvents.WOLF_HURT;
         } else if (activity == Activity.REST) {
             return SoundEvents.FOX_SLEEP;
         } else if (MiscUtil.oneInChance(wolf.getRandom(), 3)) {

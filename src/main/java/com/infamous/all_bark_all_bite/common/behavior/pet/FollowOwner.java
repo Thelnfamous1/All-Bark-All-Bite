@@ -37,7 +37,7 @@ public class FollowOwner<E extends PathfinderMob> extends Behavior<E> {
     private final Function<E, Optional<LivingEntity>> entityGetter;
     private final float speedModifier;
     private final int closeEnough;
-    private final ToIntFunction<E> tooFarFunction;
+    private final ToIntFunction<E> tooFar;
     private int calculatePathCounter;
     private float oldWaterCost;
     private final boolean canFly;
@@ -46,11 +46,11 @@ public class FollowOwner<E extends PathfinderMob> extends Behavior<E> {
         this(mob -> false, entityGetter, speedModifier, closeEnough, value -> tooFar);
     }
 
-    public FollowOwner(Predicate<E> dontFollowIf, Function<E, Optional<LivingEntity>> entityGetter, float speedModifier, int closeEnough, ToIntFunction<E> tooFarFunction) {
-        this(dontFollowIf, entityGetter, speedModifier, closeEnough, tooFarFunction, false);
+    public FollowOwner(Predicate<E> dontFollowIf, Function<E, Optional<LivingEntity>> entityGetter, float speedModifier, int closeEnough, ToIntFunction<E> tooFar) {
+        this(dontFollowIf, entityGetter, speedModifier, closeEnough, tooFar, false);
     }
 
-    public FollowOwner(Predicate<E> dontFollowIf, Function<E, Optional<LivingEntity>> entityGetter, float speedModifier, int closeEnough, ToIntFunction<E> tooFarFunction, boolean canFly) {
+    public FollowOwner(Predicate<E> dontFollowIf, Function<E, Optional<LivingEntity>> entityGetter, float speedModifier, int closeEnough, ToIntFunction<E> tooFar, boolean canFly) {
         super(ImmutableMap.of(
                 ABABMemoryModuleTypes.IS_FOLLOWING.get(), MemoryStatus.REGISTERED,
                 MemoryModuleType.LOOK_TARGET, MemoryStatus.REGISTERED,
@@ -59,7 +59,7 @@ public class FollowOwner<E extends PathfinderMob> extends Behavior<E> {
         this.entityGetter = entityGetter;
         this.speedModifier = speedModifier;
         this.closeEnough = closeEnough;
-        this.tooFarFunction = tooFarFunction;
+        this.tooFar = tooFar;
         this.canFly = canFly;
     }
 
@@ -73,7 +73,7 @@ public class FollowOwner<E extends PathfinderMob> extends Behavior<E> {
                 return false;
             } else {
                 LivingEntity target = optional.get();
-                return !mob.closerThan(target, this.tooFarFunction.applyAsInt(mob));
+                return !mob.closerThan(target, this.tooFar.applyAsInt(mob));
             }
         }
     }

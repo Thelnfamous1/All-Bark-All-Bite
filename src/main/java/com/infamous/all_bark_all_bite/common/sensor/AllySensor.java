@@ -10,6 +10,7 @@ import net.minecraft.world.entity.ai.sensing.Sensor;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 
 public class AllySensor extends Sensor<LivingEntity> {
@@ -20,6 +21,7 @@ public class AllySensor extends Sensor<LivingEntity> {
               ABABMemoryModuleTypes.NEAREST_ADULTS.get(),
               ABABMemoryModuleTypes.NEAREST_BABIES.get(),
               MemoryModuleType.NEAREST_LIVING_ENTITIES,
+              ABABMemoryModuleTypes.NEAREST_VISIBLE_BABY.get(),
               ABABMemoryModuleTypes.NEAREST_VISIBLE_ALLIES.get(),
               ABABMemoryModuleTypes.NEAREST_VISIBLE_ADULTS.get(),
               ABABMemoryModuleTypes.NEAREST_VISIBLE_BABIES.get(),
@@ -32,6 +34,9 @@ public class AllySensor extends Sensor<LivingEntity> {
    }
 
    private void setNearestVisibleAllies(LivingEntity self, NearestVisibleLivingEntities nvle) {
+      Optional<LivingEntity> nearestVisibleBaby = nvle.findClosest(le -> le.getType() == self.getType() && le.isBaby());
+      self.getBrain().setMemory(ABABMemoryModuleTypes.NEAREST_VISIBLE_BABY.get(), nearestVisibleBaby);
+
       List<LivingEntity> nearestVisibleAllies = new ArrayList<>();
       List<LivingEntity> nearestVisibleAdults = new ArrayList<>();
       List<LivingEntity> nearestVisibleBabies = new ArrayList<>();

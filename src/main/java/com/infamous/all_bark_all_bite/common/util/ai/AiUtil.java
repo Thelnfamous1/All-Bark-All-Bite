@@ -336,4 +336,13 @@ public class AiUtil {
     public static boolean isNotCreativeOrSpectator(Player player) {
         return !player.isCreative() && !player.isSpectator();
     }
+
+    public static void resetPose(LivingEntity entity, Pose currentPose){
+        if(entity.hasPose(currentPose)) entity.setPose(Pose.STANDING);
+    }
+
+    public static boolean isTiredOfTryingToReachTarget(LivingEntity mob, long timeout) {
+        Optional<Long> cantReachWalkTargetSince = mob.getBrain().getMemory(MemoryModuleType.CANT_REACH_WALK_TARGET_SINCE);
+        return cantReachWalkTargetSince.isPresent() && mob.level.getGameTime() - cantReachWalkTargetSince.get() > timeout;
+    }
 }

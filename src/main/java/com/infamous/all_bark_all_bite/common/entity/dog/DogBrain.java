@@ -49,18 +49,18 @@ public class DogBrain {
                 SharedWolfBrain.getPanicPackage(), SharedWolfBrain.getPanicConditions());
         brainMaker.initActivityWithConditions(ABABActivities.SIT.get(),
                 SharedWolfBrain.getSitPackage(createIdleLookBehaviors(), beg()), SharedWolfBrain.getSitConditions());
-        brainMaker.initActivityWithMemoryGate(ABABActivities.POUNCE.get(),
-                SharedWolfBrain.getPouncePackage(), ABABMemoryModuleTypes.POUNCE_TARGET.get());
         brainMaker.initActivityWithMemoryGate(Activity.FIGHT,
                 SharedWolfBrain.getFightPackage(DogBrain::isHuntTarget), MemoryModuleType.ATTACK_TARGET);
         brainMaker.initActivityWithMemoryGate(Activity.AVOID,
-                SharedWolfBrain.getAvoidPackage(DogBrain::wantsToStopFleeing, createIdleMovementBehaviors(), createIdleLookBehaviors()), MemoryModuleType.AVOID_TARGET);
-        brainMaker.initActivityWithMemoryGate(ABABActivities.STALK.get(),
-                SharedWolfBrain.getStalkPackage(), ABABMemoryModuleTypes.STALK_TARGET.get());
+                SharedWolfBrain.getAvoidPackage(createIdleMovementBehaviors(), createIdleLookBehaviors()), MemoryModuleType.AVOID_TARGET);
         brainMaker.initActivityWithMemoryGate(Activity.DIG,
                 getDigPackage(), ABABMemoryModuleTypes.DIG_LOCATION.get());
         brainMaker.initActivityWithMemoryGate(ABABActivities.FETCH.get(),
                 getFetchPackage(), ABABMemoryModuleTypes.FETCHING_ITEM.get());
+        brainMaker.initActivityWithConditions(ABABActivities.FOLLOW.get(),
+                SharedWolfBrain.getFollowPackage(createIdleMovementBehaviors(), beg(), createIdleLookBehaviors()), SharedWolfBrain.getFollowConditions());
+        brainMaker.initActivityWithMemoryGate(ABABActivities.HUNT.get(),
+                SharedWolfBrain.getHuntPackage(), ABABMemoryModuleTypes.HUNT_TARGET.get());
         brainMaker.initActivityWithConditions(Activity.REST,
                 SharedWolfBrain.getRestPackage(createIdleLookBehaviors(), false), SharedWolfBrain.getRestConditions(ABABMemoryModuleTypes.IS_LEVEL_NIGHT.get()));
         brainMaker.initActivity(Activity.IDLE,
@@ -71,7 +71,7 @@ public class DogBrain {
         brainMaker.initCoreActivity(ABABActivities.COUNT_DOWN.get(),
                 SharedWolfBrain.getCountDownPackage());
         brainMaker.initCoreActivity(ABABActivities.TARGET.get(),
-                SharedWolfBrain.getTargetPackage(DogBrain::wasHurtBy, DogBrain::canStartHunting, DogBrain::canStartStalking));
+                SharedWolfBrain.getTargetPackage(DogBrain::wasHurtBy, DogBrain::canStartHunting));
         brainMaker.initCoreActivity(ABABActivities.UPDATE.get(),
                 SharedWolfBrain.getUpdatePackage(brainMaker.getActivities(), DogBrain::onActivityChanged));
 
@@ -86,15 +86,10 @@ public class DogBrain {
         return target.getType().is(ABABTags.DOG_HUNT_TARGETS);
     }
 
-    private static boolean wantsToStopFleeing(TamableAnimal tamableAnimal) {
-        return tamableAnimal.isTame();
-    }
-
     private static void wasHurtBy(Dog dog, LivingEntity attacker) {
         AiUtil.eraseMemories(dog,
                 MemoryModuleType.BREED_TARGET,
-                ABABMemoryModuleTypes.STALK_TARGET.get(),
-                ABABMemoryModuleTypes.POUNCE_TARGET.get(),
+                ABABMemoryModuleTypes.HUNT_TARGET.get(),
                 ABABMemoryModuleTypes.FETCHING_ITEM.get(),
                 ABABMemoryModuleTypes.DIG_LOCATION.get());
 
@@ -102,11 +97,7 @@ public class DogBrain {
     }
 
     private static boolean canStartHunting(Dog dog){
-        return !dog.isTame() && SharedWolfBrain.canStartHunting(dog);
-    }
-
-    private static boolean canStartStalking(Dog dog){
-        return (!dog.isTame() || dog.isBaby()) && SharedWolfBrain.canStartStalking(dog);
+        return !dog.isTame() && SharedWolfAi.canStartAttacking(dog);
     }
 
     private static void onActivityChanged(Dog dog, Pair<Activity, Activity> ignoredActivityChange){
@@ -117,11 +108,9 @@ public class DogBrain {
         return BrainUtil.createPriorityPairs(0, ImmutableList.of(
                 new HurtByTrigger<>(SharedWolfBrain::onHurtBy),
                 new WakeUpTrigger<>(SharedWolfAi::wantsToWakeUp),
-                new AgeChangeTrigger<>(SharedWolfBrain::onAgeChanged),
                 new Swim(SharedWolfAi.JUMP_CHANCE_IN_WATER),
                 SharedWolfBrain.createAnimalPanic(),
                 new RunIf<>(TamableAnimal::isTame, new StartItemActivityWithItemIfSeen<>(DogBrain::canFetchItemEntity, ABABMemoryModuleTypes.FETCHING_ITEM.get(), ABABMemoryModuleTypes.FETCHING_DISABLED.get(), ABABMemoryModuleTypes.DISABLE_WALK_TO_FETCH_ITEM.get())),
-                new RunIf<>(DogBrain::isNotHoldingBuryOrFetchItem, new Eat(SharedWolfAi::setAteRecently), true),
                 SharedWolfBrain.createLookAtTargetSink(),
                 SharedWolfBrain.createMoveToTargetSink(),
                 SharedWolfBrain.copyToAvoidTarget(ABABMemoryModuleTypes.NEAREST_VISIBLE_DISLIKED.get()),
@@ -131,10 +120,6 @@ public class DogBrain {
                 new UpdateUnitMemory<>(DogBrain::isAlert, ABABMemoryModuleTypes.IS_ALERT.get()),
                 new UpdateUnitMemory<>(LivingEntity::isSleeping, ABABMemoryModuleTypes.IS_SLEEPING.get())
         ));
-    }
-
-    private static boolean isNotHoldingBuryOrFetchItem(Dog dog){
-        return !dog.getMainHandItem().is(ABABTags.DOG_BURIES) && !dog.getMainHandItem().is(ABABTags.DOG_FETCHES);
     }
 
     private static boolean isAlert(Dog dog) {
@@ -150,13 +135,13 @@ public class DogBrain {
     private static ImmutableList<? extends Pair<Integer, ? extends Behavior<? super Dog>>> getDigPackage() {
         return BrainUtil.createPriorityPairs(0,
                 ImmutableList.of(
-                        new Sprint<>(DogBrain::canSprintDig),
+                        new Sprint<>(DogBrain::canSprintWhileDigging),
                         new StayCloseToTarget<>(DogBrain::getDigPosition, 0, 1, SharedWolfAi.SPEED_MODIFIER_FETCHING),
                         new DigAtLocation<>(DogBrain::onDigCompleted, SharedWolfAi.DIG_DURATION)
                 ));
     }
 
-    private static boolean canSprintDig(Dog dog){
+    private static boolean canSprintWhileDigging(Dog dog){
         return SharedWolfAi.canMove(dog) && !dog.hasPose(Pose.DIGGING);
     }
 
@@ -238,25 +223,22 @@ public class DogBrain {
         return BrainUtil.createPriorityPairs(0,
                 ImmutableList.of(
                         new Sprint<>(SharedWolfAi::canMove, SharedWolfAi.TOO_FAR_FROM_WALK_TARGET),
-                        new RunIf<>(CommandAi::isFollowing, SharedWolfAi.createFollowOwner(SharedWolfAi.SPEED_MODIFIER_WALKING), true),
-                        BrainUtil.tryAllBehaviorsInOrderIfAbsent(
-                                ImmutableList.of(
-                                        new FollowTemptation(SharedWolfAi::getSpeedModifierTempted),
-                                        SharedWolfBrain.createBreedBehavior(ABABEntityTypes.DOG.get()),
-                                        new RunIf<>(livingEntity -> SharedWolfAi.wantsToFindShelter(livingEntity, false), new MoveToNonSkySeeingSpot(SharedWolfAi.SPEED_MODIFIER_WALKING), true),
-                                        new BabyFollowAdult<>(SharedWolfAi.ADULT_FOLLOW_RANGE, SharedWolfAi.SPEED_MODIFIER_FOLLOWING_ADULT),
-                                        new PlayTagWithOtherBabies(SharedWolfAi.SPEED_MODIFIER_RETREATING, SharedWolfAi.SPEED_MODIFIER_CHASING, SharedWolfAi.TAG_DURATION)
-                                ),
-                                ABABMemoryModuleTypes.IS_ORDERED_TO_FOLLOW.get()
-                        ),
-                        new RunIf<>(Predicate.not(SharedWolfBrain::isActivelyFollowing), SharedWolfAi.createGoToWantedItem(false), true),
-                        new RunIf<>(Predicate.not(SharedWolfBrain::isActivelyFollowing), createIdleMovementBehaviors(), true),
+                        new Eat(SharedWolfAi::setAteRecently),
+                        new FollowTemptation(SharedWolfAi::getSpeedModifierTempted),
+                        SharedWolfBrain.createBreedBehavior(ABABEntityTypes.DOG.get()),
+                        new RunIf<>(livingEntity -> SharedWolfAi.wantsToFindShelter(livingEntity, false), new MoveToNonSkySeeingSpot(SharedWolfAi.SPEED_MODIFIER_WALKING), true),
+                        new BabyFollowAdult<>(SharedWolfAi.ADULT_FOLLOW_RANGE, SharedWolfAi.SPEED_MODIFIER_FOLLOWING_ADULT),
+                        SharedWolfBrain.babySometimesHuntBaby(),
+                        new PlayTagWithOtherBabies(SharedWolfAi.SPEED_MODIFIER_RETREATING, SharedWolfAi.SPEED_MODIFIER_CHASING),
+                        SharedWolfAi.createGoToWantedItem(false),
+                        new PerchAndSearch<>(SharedWolfBrain::canPerch, TamableAnimal::setInSittingPose),
+                        createIdleMovementBehaviors(),
                         beg(),
                         createIdleLookBehaviors()
         ));
     }
 
-    private static RunOne<TamableAnimal> createIdleLookBehaviors() {
+    private static RunOne<Dog> createIdleLookBehaviors() {
         return new RunOne<>(
                 ImmutableList.of(
                         Pair.of(new SetEntityLookTarget(ABABEntityTypes.DOG.get(), SharedWolfAi.MAX_LOOK_DIST), 1),
@@ -266,7 +248,7 @@ public class DogBrain {
                         Pair.of(new DoNothing(30, 60), 1)));
     }
 
-    private static RunOne<TamableAnimal> createIdleMovementBehaviors() {
+    private static RunOne<Dog> createIdleMovementBehaviors() {
         return new RunOne<>(
                 ImmutableList.of(
                         Pair.of(new RandomStroll(SharedWolfAi.SPEED_MODIFIER_WALKING), 3),
@@ -274,7 +256,6 @@ public class DogBrain {
                         Pair.of(InteractWith.of(EntityType.PLAYER, SharedWolfAi.INTERACTION_RANGE, MemoryModuleType.INTERACTION_TARGET, SharedWolfAi.SPEED_MODIFIER_WALKING, SharedWolfAi.CLOSE_ENOUGH_TO_INTERACT), 2),
                         Pair.of(InteractWith.of(EntityType.VILLAGER, SharedWolfAi.INTERACTION_RANGE, MemoryModuleType.INTERACTION_TARGET, SharedWolfAi.SPEED_MODIFIER_WALKING, SharedWolfAi.CLOSE_ENOUGH_TO_INTERACT), 2),
                         Pair.of(new RunIf<>(Predicate.not(GenericAi::seesPlayerHoldingWantedItem), new SetWalkTargetFromLookTarget(SharedWolfAi.SPEED_MODIFIER_WALKING, SharedWolfAi.CLOSE_ENOUGH_TO_LOOK_TARGET)), 2),
-                        Pair.of(new PerchAndSearch<>(SharedWolfBrain::canPerch, TamableAnimal::setInSittingPose), 2),
                         Pair.of(new DoNothing(30, 60), 1)));
     }
 

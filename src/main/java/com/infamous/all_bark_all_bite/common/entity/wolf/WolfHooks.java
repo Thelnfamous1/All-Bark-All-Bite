@@ -42,6 +42,7 @@ public class WolfHooks {
         if(AllBarkAllBite.ENABLE_BRAIN_DEBUG){
             DebugUtil.sendEntityBrain(wolf, level,
                     ABABMemoryModuleTypes.FOLLOW_TRIGGER_DISTANCE.get(),
+                    ABABMemoryModuleTypes.HUNT_TARGET.get(),
                     ABABMemoryModuleTypes.IS_ALERT.get(),
                     ABABMemoryModuleTypes.IS_FOLLOWING.get(),
                     ABABMemoryModuleTypes.IS_ORDERED_TO_FOLLOW.get(),
@@ -102,7 +103,7 @@ public class WolfHooks {
         return SoundEvents.FOX_EAT;
     }
 
-    public static boolean canWolfMate(TamableAnimal wolf, Animal partner) {
+    public static boolean canWolfMate(Wolf wolf, Animal partner) {
         return partner != wolf
                 && partner instanceof Wolf mate
                 && SharedWolfAi.canMove(wolf) && SharedWolfAi.canMove(mate)

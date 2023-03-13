@@ -66,12 +66,17 @@ public abstract class WolfMixin extends TamableAnimal implements AnimalAccess, A
 
     @Inject(method = "canMate", at = @At("HEAD"), cancellable = true)
     private void handleCanMate(Animal partner, CallbackInfoReturnable<Boolean> cir){
-        cir.setReturnValue(WolfHooks.canWolfMate(this, partner));
+        cir.setReturnValue(WolfHooks.canWolfMate((Wolf)(Object)this, partner));
     }
 
     @Inject(method = "getAmbientSound", at = @At("HEAD"), cancellable = true)
     private void handleGetAmbientSound(CallbackInfoReturnable<SoundEvent> cir){
         cir.setReturnValue(WolfHooks.getWolfAmbientSound((Wolf) ((Object) this)));
+    }
+
+    @Inject(method = "handleEntityEvent", at = @At("HEAD"))
+    private void handleHandleEntityEvent(byte id, CallbackInfo ci){
+        this.animationController.handleEntityEventAnimation(id);
     }
 
     @Override

@@ -20,12 +20,12 @@ public class ABABActivities {
 
     public static RegistryObject<Activity> UPDATE = registerActivity("update");
 
-    public static RegistryObject<Activity> STALK = registerActivity("stalk");
+    public static RegistryObject<Activity> HUNT = registerActivity("hunt");
 
-    public static RegistryObject<Activity> POUNCE = registerActivity("pounce");
+    public static RegistryObject<Activity> FOLLOW = registerActivity("follow");
 
-    private static RegistryObject<Activity> registerActivity(String fetchName) {
-        return ACTIVITIES.register(fetchName, () -> new Activity(fetchName));
+    private static RegistryObject<Activity> registerActivity(String name) {
+        return ACTIVITIES.register(name, () -> new Activity(name));
     }
 
 }

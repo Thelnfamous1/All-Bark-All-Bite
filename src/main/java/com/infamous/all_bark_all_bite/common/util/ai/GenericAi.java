@@ -131,7 +131,7 @@ public class GenericAi {
         alertables.forEach(alertable -> setAttackTargetIfCloserThanCurrent(alertable, target));
     }
 
-    private static void setAttackTargetIfCloserThanCurrent(Mob mob, LivingEntity target) {
+    public static void setAttackTargetIfCloserThanCurrent(Mob mob, LivingEntity target) {
         Optional<LivingEntity> attackTarget = mob.getBrain().getMemory(MemoryModuleType.ATTACK_TARGET);
         LivingEntity nearestTarget = BehaviorUtils.getNearestTarget(mob, attackTarget, target);
         StartAttacking.setAttackTarget(mob, nearestTarget);

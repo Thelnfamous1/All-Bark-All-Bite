@@ -108,10 +108,12 @@ public class LeapAtTarget extends Behavior<PathfinderMob> {
 
     @Override
     protected void stop(ServerLevel level, PathfinderMob mob, long gameTime) {
-        this.state = LeapAtTarget.State.DONE;
-        if(mob.hasPose(Pose.CROUCHING) || mob.hasPose(Pose.LONG_JUMPING)){
-            mob.setPose(Pose.STANDING);
+        if(this.state == State.CROUCH_ANIMATION || this.state == State.LEAP){
+            AiUtil.resetPose(mob, Pose.CROUCHING);
+        } else if(this.state == State.MID_LEAP){
+            AiUtil.resetPose(mob, Pose.LONG_JUMPING);
         }
+        this.state = LeapAtTarget.State.DONE;
         LongJumpAi.clearMidJump(mob);
         LongJumpAi.setLongJumpCooldown(mob, this.jumpCooldown.sample(mob.getRandom()));
     }

@@ -9,14 +9,14 @@ import net.minecraft.core.GlobalPos;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
-import net.minecraft.world.entity.TamableAnimal;
+import net.minecraft.world.entity.animal.Wolf;
 import net.minecraft.world.level.gameevent.GameEvent;
 import net.minecraft.world.level.gameevent.GameEventListener;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Optional;
 
-public abstract class SharedWolfVibrationListenerConfig<T extends TamableAnimal> extends EntityVibrationListenerConfig<T> {
+public abstract class SharedWolfVibrationListenerConfig<T extends Wolf> extends EntityVibrationListenerConfig<T> {
 
     @Override
     protected boolean shouldEntityListen(ServerLevel level, GameEventListener gameEventListener, BlockPos blockPos, GameEvent gameEvent, GameEvent.Context context) {

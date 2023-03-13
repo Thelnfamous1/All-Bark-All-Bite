@@ -1,10 +1,9 @@
 package com.infamous.all_bark_all_bite.common.behavior.misc;
 
 import com.google.common.collect.ImmutableMap;
-import com.infamous.all_bark_all_bite.common.util.MiscUtil;
-import com.infamous.all_bark_all_bite.common.util.ai.GenericAi;
 import com.infamous.all_bark_all_bite.common.registry.ABABActivities;
 import com.infamous.all_bark_all_bite.common.util.VectorTracker;
+import com.infamous.all_bark_all_bite.common.util.ai.GenericAi;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.entity.PathfinderMob;
@@ -17,11 +16,11 @@ import java.util.function.BiConsumer;
 import java.util.function.Predicate;
 
 public class PerchAndSearch<E extends PathfinderMob> extends Behavior<E> {
+    private static final float START_CHANCE = 0.02F;
     private final Predicate<E> canPerch;
     private final BiConsumer<E, Boolean> toggleSitting;
     private int lookTime;
     private int looksRemaining;
-    private static final int AVERAGE_WAIT_TIME_BETWEEN_RUNS = 10;
 
     public PerchAndSearch(Predicate<E> canPerch, BiConsumer<E, Boolean> toggleSitting) {
         super(ImmutableMap.of(
@@ -36,7 +35,7 @@ public class PerchAndSearch<E extends PathfinderMob> extends Behavior<E> {
     @Override
     protected boolean checkExtraStartConditions(ServerLevel level, E mob) {
         return mob.getLastHurtByMob() == null
-                && MiscUtil.oneInChance(mob.getRandom(), AVERAGE_WAIT_TIME_BETWEEN_RUNS)
+                && mob.getRandom().nextFloat() <= START_CHANCE
                 && mob.getNavigation().isDone()
                 && this.canPerch.test(mob);
     }

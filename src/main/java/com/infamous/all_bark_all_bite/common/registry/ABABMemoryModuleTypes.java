@@ -82,6 +82,9 @@ public class ABABMemoryModuleTypes {
     public static final RegistryObject<MemoryModuleType<List<LivingEntity>>> NEAREST_VISIBLE_BABIES = MEMORY_MODULE_TYPES.register("nearest_visible_babies",
             () -> new MemoryModuleType<>(Optional.empty()));
 
+    public static final RegistryObject<MemoryModuleType<LivingEntity>> NEAREST_VISIBLE_BABY = MEMORY_MODULE_TYPES.register("nearest_visible_baby",
+            () -> new MemoryModuleType<>(Optional.empty()));
+
     public static final RegistryObject<MemoryModuleType<PositionTracker>> LONG_JUMP_TARGET = MEMORY_MODULE_TYPES.register("long_jump_target",
             () -> new MemoryModuleType<>(Optional.empty()));
 
@@ -113,18 +116,6 @@ public class ABABMemoryModuleTypes {
             "is_level_day",
             () -> new MemoryModuleType<>(Optional.of(Codec.unit(Unit.INSTANCE))));
 
-    public static RegistryObject<MemoryModuleType<LivingEntity>> STALK_TARGET = MEMORY_MODULE_TYPES.register(
-            "stalk_target",
-            () -> new MemoryModuleType<>(Optional.empty()));
-
-    public static RegistryObject<MemoryModuleType<LivingEntity>> POUNCE_TARGET = MEMORY_MODULE_TYPES.register(
-            "pounce_target",
-            () -> new MemoryModuleType<>(Optional.empty()));
-
-    public static RegistryObject<MemoryModuleType<Integer>> POUNCE_COOLDOWN_TICKS = MEMORY_MODULE_TYPES.register(
-            "pounce_cooldown_ticks",
-            () -> new MemoryModuleType<>(Optional.of(Codec.INT)));
-
     public static RegistryObject<MemoryModuleType<Unit>> IS_LEVEL_NIGHT = MEMORY_MODULE_TYPES.register(
             "is_level_night",
             () -> new MemoryModuleType<>(Optional.of(Codec.unit(Unit.INSTANCE))));
@@ -149,12 +140,12 @@ public class ABABMemoryModuleTypes {
             "is_following",
             () -> new MemoryModuleType<>(Optional.empty()));
 
-    public static RegistryObject<MemoryModuleType<Unit>> TAG_COOLING_DOWN = MEMORY_MODULE_TYPES.register(
-            "chased_recently",
-            () -> new MemoryModuleType<>(Optional.of(Codec.unit(Unit.INSTANCE))));
-
     public static RegistryObject<MemoryModuleType<Player>>  NEAREST_TARGETABLE_PLAYER_NOT_SNEAKING = MEMORY_MODULE_TYPES.register(
             "nearest_targetable_player_not_sneaking",
+            () -> new MemoryModuleType<>(Optional.empty()));
+
+    public static RegistryObject<MemoryModuleType<LivingEntity>> HUNT_TARGET = MEMORY_MODULE_TYPES.register(
+            "hunt_target",
             () -> new MemoryModuleType<>(Optional.empty()));
 
 }

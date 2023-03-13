@@ -3,6 +3,7 @@ package com.infamous.all_bark_all_bite.common.util.ai;
 import com.infamous.all_bark_all_bite.common.registry.ABABMemoryModuleTypes;
 import net.minecraft.util.valueproviders.UniformInt;
 import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.ai.behavior.BehaviorUtils;
 import net.minecraft.world.entity.ai.memory.MemoryModuleType;
 
 import java.util.List;
@@ -30,39 +31,26 @@ public class HunterAi {
         return mob.getBrain().getMemory(ABABMemoryModuleTypes.NEAREST_VISIBLE_HUNTABLE.get());
     }
 
-    public static Optional<LivingEntity> getStalkTarget(LivingEntity mob){
-        return mob.getBrain().getMemory(ABABMemoryModuleTypes.STALK_TARGET.get());
+    public static Optional<LivingEntity> getHuntTarget(LivingEntity mob){
+        return mob.getBrain().getMemory(ABABMemoryModuleTypes.HUNT_TARGET.get());
     }
 
-    public static Optional<LivingEntity> getPounceTarget(LivingEntity mob){
-        return mob.getBrain().getMemory(ABABMemoryModuleTypes.POUNCE_TARGET.get());
+    public static void stopHunting(LivingEntity mob) {
+        mob.getBrain().eraseMemory(ABABMemoryModuleTypes.HUNT_TARGET.get());
     }
 
-    public static void setStalkTarget(LivingEntity mob, LivingEntity target) {
-        mob.getBrain().setMemory(ABABMemoryModuleTypes.STALK_TARGET.get(), target);
+    public static void broadcastHuntTarget(List<? extends LivingEntity> alertables, LivingEntity target) {
+        alertables.forEach(alertable -> setHuntTargetIfCloserThanCurrent(alertable, target));
     }
 
-    public static void stopStalking(LivingEntity mob) {
-        mob.getBrain().eraseMemory(ABABMemoryModuleTypes.STALK_TARGET.get());
+    private static void setHuntTargetIfCloserThanCurrent(LivingEntity mob, LivingEntity target) {
+        Optional<LivingEntity> huntTarget = mob.getBrain().getMemory(ABABMemoryModuleTypes.HUNT_TARGET.get());
+        LivingEntity nearestTarget = BehaviorUtils.getNearestTarget(mob, huntTarget, target);
+        setHuntTarget(mob, nearestTarget);
     }
 
-    public static void setPounceTarget(LivingEntity mob, LivingEntity target) {
-        mob.getBrain().setMemory(ABABMemoryModuleTypes.POUNCE_TARGET.get(), target);
+    public static void setHuntTarget(LivingEntity mob, LivingEntity target) {
+        mob.getBrain().setMemory(ABABMemoryModuleTypes.HUNT_TARGET.get(), target);
     }
 
-    public static void stopPouncing(LivingEntity mob) {
-        mob.getBrain().eraseMemory(ABABMemoryModuleTypes.POUNCE_TARGET.get());
-    }
-
-    public static boolean isOnPounceCooldown(LivingEntity wolf){
-        return wolf.getBrain().hasMemoryValue(ABABMemoryModuleTypes.POUNCE_COOLDOWN_TICKS.get());
-    }
-
-    public static void setPounceCooldown(LivingEntity mob, int cooldownTicks) {
-        mob.getBrain().setMemory(ABABMemoryModuleTypes.POUNCE_COOLDOWN_TICKS.get(), cooldownTicks);
-    }
-
-    public static void clearPounceCooldown(LivingEntity wolf) {
-        wolf.getBrain().eraseMemory(ABABMemoryModuleTypes.POUNCE_COOLDOWN_TICKS.get());
-    }
 }

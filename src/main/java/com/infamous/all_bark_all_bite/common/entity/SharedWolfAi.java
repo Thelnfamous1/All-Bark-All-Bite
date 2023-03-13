@@ -28,6 +28,7 @@ import net.minecraft.world.entity.ai.behavior.PositionTracker;
 import net.minecraft.world.entity.ai.memory.MemoryModuleType;
 import net.minecraft.world.entity.ai.sensing.Sensor;
 import net.minecraft.world.entity.animal.Animal;
+import net.minecraft.world.entity.animal.Wolf;
 import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.entity.projectile.AbstractArrow;
@@ -46,8 +47,6 @@ public class SharedWolfAi {
     public static final UniformInt TIME_BETWEEN_HOWLS = TimeUtil.rangeOfSeconds(30, 120);
     public static final UniformInt TIME_BETWEEN_HUNTS = TimeUtil.rangeOfSeconds(30, 120);
     public static final UniformInt LEAP_COOLDOWN = TimeUtil.rangeOfSeconds(4, 6);
-    public static final UniformInt PLAY_POUNCE_COOLDOWN = TimeUtil.rangeOfSeconds(30, 60);
-    public static final UniformInt HUNT_POUNCE_COOLDOWN = TimeUtil.rangeOfSeconds(5, 7);
     public static final float JUMP_CHANCE_IN_WATER = 0.8F;
     public static final float SPEED_MODIFIER_BREEDING = 1.0F;
     public static final float SPEED_MODIFIER_CHASING = 1.0F; // Dog will sprint with 30% extra speed, meaning final speed is effectively ~1.3F
@@ -83,22 +82,21 @@ public class SharedWolfAi {
     public static final int BABY_POUNCE_HEIGHT = 2;
     public static final float LONG_JUMPING_SCALE = 0.7F;
     private static final int HOWL_VOLUME = 4;
-    public static final int EAT_DURATION = MiscUtil.seconds(3);
     public static final int EAT_COOLDOWN = MiscUtil.seconds(30);
     public static final long DIG_DURATION = 100L;
     public static final int DEFAULT_LISTENER_RANGE = 64;
-    public static final UniformInt TAG_DURATION = TimeUtil.rangeOfSeconds(10, 30);
+    private static final int HOWL_EXPIRE_TIME = MiscUtil.seconds(30);
 
-    public static void initMemories(TamableAnimal wolf, RandomSource randomSource) {
+    public static void initMemories(Wolf wolf, RandomSource randomSource) {
         int huntCooldownInTicks = TIME_BETWEEN_HUNTS.sample(randomSource);
         HunterAi.setHuntedRecently(wolf, huntCooldownInTicks);
     }
 
-    public static boolean shouldPanic(TamableAnimal wolf) {
+    public static boolean shouldPanic(Wolf wolf) {
         return wolf.isFreezing() || wolf.isOnFire();
     }
 
-    public static boolean canStartAttacking(TamableAnimal wolf) {
+    public static boolean canStartAttacking(Wolf wolf) {
         return !wolf.isBaby()
                 && canMove(wolf)
                 && !BehaviorUtils.isBreeding(wolf);
@@ -108,7 +106,7 @@ public class SharedWolfAi {
         return SPEED_MODIFIER_TEMPTED;
     }
 
-    public static Optional<? extends LivingEntity> findNearestValidAttackTarget(TamableAnimal wolf) {
+    public static Optional<? extends LivingEntity> findNearestValidAttackTarget(Wolf wolf) {
         Brain<?> brain = wolf.getBrain();
         Optional<LivingEntity> angryAt = BehaviorUtils.getLivingEntityFromUUIDMemory(wolf, MemoryModuleType.ANGRY_AT);
         if (angryAt.isPresent() && Sensor.isEntityAttackableIgnoringLineOfSight(wolf, angryAt.get())) {
@@ -125,7 +123,7 @@ public class SharedWolfAi {
         }
     }
 
-    public static boolean wantsToRetaliate(TamableAnimal wolf, LivingEntity attacker) {
+    public static boolean wantsToRetaliate(Wolf wolf, LivingEntity attacker) {
         LivingEntity owner = wolf.getOwner();
         if(owner == null) return true;
         return wolf.wantsToAttack(attacker, owner);
@@ -139,7 +137,7 @@ public class SharedWolfAi {
         wolf.getBrain().setMemoryWithExpiry(ABABMemoryModuleTypes.HOWLED_RECENTLY.get(), true, howlCooldownInTicks);
     }
 
-    public static boolean canMove(TamableAnimal wolf) {
+    public static boolean canMove(Wolf wolf) {
         return !wolf.isSleeping() && !wolf.isInSittingPose();
     }
 
@@ -155,7 +153,7 @@ public class SharedWolfAi {
         }
     }
 
-    public static void reactToAttack(TamableAnimal wolf, LivingEntity attacker) {
+    public static void reactToAttack(Wolf wolf, LivingEntity attacker) {
         if (wolf.isBaby()) {
             GenericAi.setAvoidTarget(wolf, attacker, RETREAT_DURATION.sample(wolf.level.random));
             if (Sensor.isEntityAttackableIgnoringLineOfSight(wolf, attacker)) {
@@ -175,7 +173,7 @@ public class SharedWolfAi {
         }
     }
 
-    public static boolean canSleep(TamableAnimal wolf, boolean nocturnal) {
+    public static boolean canSleep(Wolf wolf, boolean nocturnal) {
         return nocturnal ? wolf.level.isDay() : wolf.level.isNight()
                 && hasShelter(wolf)
                 && !isAlert(wolf)
@@ -186,10 +184,10 @@ public class SharedWolfAi {
         return wolf.getBrain().hasMemoryValue(ABABMemoryModuleTypes.IS_ALERT.get());
     }
 
-    public static void followHowl(TamableAnimal wolf, BlockPos blockPos) {
+    public static void followHowl(Wolf wolf, BlockPos blockPos) {
         GlobalPos howlPos = GlobalPos.of(wolf.getLevel().dimension(), blockPos);
         wolf.getBrain().setMemory(MemoryModuleType.LOOK_TARGET, new BlockPosTracker(blockPos));
-        wolf.getBrain().setMemory(ABABMemoryModuleTypes.HOWL_LOCATION.get(), howlPos);
+        wolf.getBrain().setMemoryWithExpiry(ABABMemoryModuleTypes.HOWL_LOCATION.get(), howlPos, HOWL_EXPIRE_TIME);
         wolf.getBrain().eraseMemory(MemoryModuleType.WALK_TARGET);
     }
 
@@ -220,7 +218,7 @@ public class SharedWolfAi {
     }
 
     @SuppressWarnings("BooleanMethodIsAlwaysInverted")
-    public static boolean alertable(TamableAnimal wolf, TagKey<EntityType<?>> huntTargets, TagKey<EntityType<?>> alwaysHostiles, TagKey<EntityType<?>> disliked) {
+    public static boolean alertable(Wolf wolf, TagKey<EntityType<?>> huntTargets, TagKey<EntityType<?>> alwaysHostiles, TagKey<EntityType<?>> disliked) {
         List<LivingEntity> nle = GenericAi.getNearestLivingEntities(wolf);
         for(LivingEntity entity : nle){
             if(entity.closerThan(wolf, ABABConfig.alertableMaxXZDistance.get(), ABABConfig.alertableMaxYDistance.get())
@@ -232,12 +230,12 @@ public class SharedWolfAi {
         return false;
     }
 
-    private static boolean canBeAlertedBy(TamableAnimal wolf, LivingEntity target, TagKey<EntityType<?>> huntTargets, TagKey<EntityType<?>> alwaysHostiles, TagKey<EntityType<?>> disliked){
+    private static boolean canBeAlertedBy(Wolf wolf, LivingEntity target, TagKey<EntityType<?>> huntTargets, TagKey<EntityType<?>> alwaysHostiles, TagKey<EntityType<?>> disliked){
         if (AiUtil.isSameTypeAndFriendly(wolf, target)) {
             return false;
         } else {
-            if(CompatUtil.isDILoaded()){
-                if(DICompat.isTamed(target)) return false;
+            if(CompatUtil.isDILoaded() && DICompat.isTamed(target)){
+                return false;
             } else {
                 Optional<Boolean> tame = PetUtil.isTame(target);
                 if (tame.isPresent()) {
@@ -254,21 +252,21 @@ public class SharedWolfAi {
         }
     }
 
-    public static boolean hasShelter(TamableAnimal wolf) {
+    public static boolean hasShelter(Wolf wolf) {
         BlockPos topOfBodyPos = new BlockPos(wolf.getX(), wolf.getBoundingBox().maxY, wolf.getZ());
         return MoveToNonSkySeeingSpot.hasBlocksAbove(wolf.level, wolf, topOfBodyPos);
     }
 
-    public static boolean canDefendOwner(TamableAnimal tamableAnimal){
+    public static boolean canDefendOwner(Wolf tamableAnimal){
         return tamableAnimal.isTame() && !tamableAnimal.isOrderedToSit();
     }
 
-    public static boolean wantsToAttack(TamableAnimal tamableAnimal, LivingEntity target, LivingEntity owner){
+    public static boolean wantsToAttack(Wolf tamableAnimal, LivingEntity target, LivingEntity owner){
         return tamableAnimal.wantsToAttack(target, owner);
     }
 
     public static void setAteRecently(Animal animal){
-        animal.getBrain().setMemoryWithExpiry(MemoryModuleType.ATE_RECENTLY, true, EAT_COOLDOWN - EAT_DURATION);
+        animal.getBrain().setMemoryWithExpiry(MemoryModuleType.ATE_RECENTLY, true, EAT_COOLDOWN);
     }
 
     public static void stopHoldingItemInMouth(LivingEntity livingEntity) {
@@ -335,18 +333,18 @@ public class SharedWolfAi {
         return livingEntity.level.isNight();
     }
 
-    public static boolean wantsToWakeUp(TamableAnimal wolf){
+    public static boolean wantsToWakeUp(Wolf wolf){
         return !wolf.getBrain().isActive(Activity.REST)
                 || GenericAi.getAttackTarget(wolf).isPresent()
                 || wolf.level.isThundering()
                 || wolf.isInWater();
     }
 
-    public static boolean isNearDisliked(TamableAnimal wolf, MemoryModuleType<? extends LivingEntity> dislikedMemory){
+    public static boolean isNearDisliked(Wolf wolf, MemoryModuleType<? extends LivingEntity> dislikedMemory){
         return GenericAi.isNearTarget(wolf, DESIRED_DISTANCE_FROM_DISLIKED, dislikedMemory);
     }
 
-    public static void handleSleeping(TamableAnimal wolf) {
+    public static void handleSleeping(Wolf wolf) {
         if (wolf.isSleeping()) {
             if(wolf.isInSittingPose()){
                 wolf.setInSittingPose(false);
@@ -357,34 +355,35 @@ public class SharedWolfAi {
         }
     }
 
-    public static FollowOwner<TamableAnimal> createFollowOwner(float speedModifier) {
+    public static FollowOwner<Wolf> createFollowOwner(float speedModifier) {
         return new FollowOwner<>(SharedWolfAi::dontFollowIf, AiUtil::getOwner, speedModifier, CLOSE_ENOUGH_TO_OWNER, SharedWolfAi::getFollowOwnerTriggerDistance);
     }
 
-    private static int getFollowOwnerTriggerDistance(TamableAnimal tamableAnimal){
+    private static int getFollowOwnerTriggerDistance(Wolf tamableAnimal){
         return isFetching(tamableAnimal) ?
                 CLOSE_ENOUGH_TO_OWNER : CommandAi.getFollowTriggerDistance(tamableAnimal);
     }
 
-    private static boolean isFetching(TamableAnimal tamableAnimal) {
+    private static boolean isFetching(Wolf tamableAnimal) {
         return tamableAnimal.getBrain().hasMemoryValue(ABABMemoryModuleTypes.FETCHING_ITEM.get());
     }
 
-    private static boolean dontFollowIf(TamableAnimal dog){
-        return dog.isOrderedToSit();
+    private static boolean dontFollowIf(Wolf wolf){
+        return wolf.isOrderedToSit();
     }
 
-    public static void tame(TamableAnimal wolf, Player player) {
+    public static void tame(Wolf wolf, Player player) {
         wolf.tame(player);
         wolf.setOrderedToSit(true);
         CommandAi.yieldAsPet(wolf);
+        CommandAi.resetFollowTriggerDistance(wolf);
     }
 
-    public static void manualCommand(TamableAnimal wolf, Player player) {
+    public static void manualCommand(Wolf wolf, Player player) {
         boolean orderedToSit = wolf.isOrderedToSit();
-        boolean isFollowingOwner = CommandAi.isFollowing(wolf);
+        boolean isFollowingOwner = CommandAi.isOrderedToFollow(wolf);
         if(orderedToSit && isFollowingOwner){
-            CommandAi.stopFollowing(wolf);
+            CommandAi.release(wolf);
             isFollowingOwner = false;
         }
         CommandAi.resetFollowTriggerDistance(wolf);
@@ -393,31 +392,31 @@ public class SharedWolfAi {
                 DICompat.setDICommand(wolf, player, DICompat.DI_STAY_COMMAND);
             }
             wolf.setOrderedToSit(true);
-            CommandAi.stopFollowing(wolf);
+            CommandAi.release(wolf);
         } else if(orderedToSit){ // If sitting, set following
             if(CompatUtil.isDILoaded()){
                 DICompat.setDICommand(wolf, player, DICompat.DI_FOLLOW_COMMAND);
             }
             wolf.setOrderedToSit(false);
-            CommandAi.setFollowing(wolf);
+            CommandAi.orderToFollow(wolf);
         } else { // If following/heeling, set wandering
             if(CompatUtil.isDILoaded()){
                 DICompat.setDICommand(wolf, player, DICompat.DI_WANDER_COMMAND);
             }
-            CommandAi.stopFollowing(wolf);
+            CommandAi.release(wolf);
         }
         clearStates(wolf, false);
         CommandAi.yieldAsPet(wolf);
         stopHoldingItemInMouth(wolf);
     }
 
-    public static boolean wantsToAttack(TamableAnimal tamable, LivingEntity target){
-        if(!tamable.isTame()){
+    public static boolean wantsToAttack(Wolf wolf, LivingEntity target){
+        if(!wolf.isTame()){
             return true;
         } else{
-            LivingEntity owner = tamable.getOwner();
+            LivingEntity owner = wolf.getOwner();
             if(owner != null){
-                return tamable.wantsToAttack(target, owner);
+                return wolf.wantsToAttack(target, owner);
             }
         }
         return true;

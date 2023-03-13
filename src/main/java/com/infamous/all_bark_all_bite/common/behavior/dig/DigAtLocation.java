@@ -89,8 +89,6 @@ public class DigAtLocation<E extends LivingEntity> extends Behavior<E> {
    @Override
    protected void stop(ServerLevel level, E mob, long gameTime) {
       this.digUpAtTime = 0L;
-      if (mob.hasPose(Pose.DIGGING)) {
-         mob.setPose(Pose.STANDING);
-      }
+      AiUtil.resetPose(mob, Pose.DIGGING);
    }
 }
