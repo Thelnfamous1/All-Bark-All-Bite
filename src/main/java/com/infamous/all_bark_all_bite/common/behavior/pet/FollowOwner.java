@@ -103,7 +103,9 @@ public class FollowOwner<E extends PathfinderMob> extends Behavior<E> {
 
     @Override
     public boolean canStillUse(ServerLevel level, E mob, long gameTime) {
-        if (this.dontFollowIf(mob)) {
+        if(mob.getNavigation().isDone()){
+            return false;
+        } else if (this.dontFollowIf(mob)) {
             return false;
         } else {
             Optional<LivingEntity> entityOptional = this.getOwner(mob);
