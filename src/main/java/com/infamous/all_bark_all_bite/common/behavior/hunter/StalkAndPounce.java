@@ -131,18 +131,18 @@ public class StalkAndPounce<E extends PathfinderMob> extends Behavior<E> {
     }
 
     private boolean canPounce(E mob){
-        boolean canStart = false;
+        boolean canPounce = false;
         if(mob.hasPose(Pose.CROUCHING)){
             LivingEntity stalkTarget = this.getStalkTarget(mob).orElse(null);
             if (this.isValidStalkTarget(mob, stalkTarget)) {
-                canStart = AiUtil.isPathClear(mob, stalkTarget, this.pounceDistance, this.pounceHeight);
+                canPounce = AiUtil.isPathClear(mob, stalkTarget, this.pounceDistance, this.pounceHeight);
             }
         }
-        if(!canStart){
+        if(!canPounce){
             AiUtil.resetPose(mob, Pose.CROUCHING);
-            this.clearTarget(mob);
+            //this.clearTarget(mob);
         }
-        return canStart;
+        return canPounce;
     }
 
     private boolean isMidPounce(E mob){
@@ -150,13 +150,12 @@ public class StalkAndPounce<E extends PathfinderMob> extends Behavior<E> {
         return (Mth.square(yD) >= MIN_Y_DELTA || !mob.isOnGround());
     }
 
-    @SuppressWarnings("OptionalGetWithoutIsPresent")
     @Override
     protected void tick(ServerLevel level, E mob, long gameTime) {
-        LivingEntity stalkTarget = this.getStalkTarget(mob).get();
-        BehaviorUtils.lookAtEntity(mob, stalkTarget);
+        this.getStalkTarget(mob).ifPresent(st -> BehaviorUtils.lookAtEntity(mob, st));
         switch (this.state){
             case STALK -> {
+                LivingEntity stalkTarget = this.getStalkTarget(mob).get();
                 if (mob.distanceToSqr(stalkTarget) <= Mth.square(this.pounceDistance)) {
                     mob.setPose(Pose.CROUCHING);
                     GenericAi.stopWalking(mob);
@@ -175,6 +174,7 @@ public class StalkAndPounce<E extends PathfinderMob> extends Behavior<E> {
                 }
             }
             case POUNCE -> {
+                LivingEntity stalkTarget = this.getStalkTarget(mob).get();
                 GenericAi.stopWalking(mob);
                 BehaviorUtils.lookAtEntity(mob, stalkTarget);
                 mob.setPose(Pose.LONG_JUMPING);
