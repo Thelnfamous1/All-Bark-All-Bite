@@ -8,7 +8,6 @@ import net.minecraft.world.entity.Mob;
 import net.minecraft.world.entity.PathfinderMob;
 import net.minecraft.world.entity.ai.Brain;
 import net.minecraft.world.entity.ai.behavior.BehaviorUtils;
-import net.minecraft.world.entity.ai.behavior.StartAttacking;
 import net.minecraft.world.entity.ai.memory.MemoryModuleType;
 import net.minecraft.world.entity.ai.memory.NearestVisibleLivingEntities;
 import net.minecraft.world.entity.ai.memory.WalkTarget;
@@ -16,6 +15,8 @@ import net.minecraft.world.entity.ai.util.LandRandomPos;
 import net.minecraft.world.entity.animal.Fox;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.phys.Vec3;
+import net.minecraftforge.common.ForgeHooks;
+import net.minecraftforge.event.entity.living.LivingChangeTargetEvent;
 
 import java.util.List;
 import java.util.Optional;
@@ -134,7 +135,16 @@ public class GenericAi {
     public static void setAttackTargetIfCloserThanCurrent(Mob mob, LivingEntity target) {
         Optional<LivingEntity> attackTarget = mob.getBrain().getMemory(MemoryModuleType.ATTACK_TARGET);
         LivingEntity nearestTarget = BehaviorUtils.getNearestTarget(mob, attackTarget, target);
-        StartAttacking.setAttackTarget(mob, nearestTarget);
+        setAttackTarget(mob, nearestTarget);
+    }
+
+    public static void setAttackTarget(Mob mob, LivingEntity target){
+        LivingChangeTargetEvent changeTargetEvent = ForgeHooks.onLivingChangeTarget(mob, target, LivingChangeTargetEvent.LivingTargetType.BEHAVIOR_TARGET);
+        if (!changeTargetEvent.isCanceled()){
+            mob.getBrain().setMemory(MemoryModuleType.ATTACK_TARGET, target);
+            mob.getBrain().eraseMemory(MemoryModuleType.CANT_REACH_WALK_TARGET_SINCE);
+            ForgeHooks.onLivingSetAttackTarget(mob, changeTargetEvent.getNewTarget(), LivingChangeTargetEvent.LivingTargetType.BEHAVIOR_TARGET); // TODO: Remove in 1.20
+        }
     }
 
     public static Optional<Player> getTemptingPlayer(PathfinderMob mob) {

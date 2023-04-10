@@ -26,7 +26,7 @@ import java.util.Optional;
 
 public class IllagerHoundGoalPackages {
 
-    static ImmutableList<? extends Pair<Integer, ? extends Behavior<? super IllagerHound>>> getCorePackage() {
+    static ImmutableList<? extends Pair<Integer, ? extends BehaviorControl<? super IllagerHound>>> getCorePackage() {
         return BrainUtil.createPriorityPairs(0,
                 ImmutableList.of(
                         new Swim(SharedWolfAi.JUMP_CHANCE_IN_WATER),
@@ -47,41 +47,41 @@ public class IllagerHoundGoalPackages {
 
     private static void retaliate(IllagerHound victim, LivingEntity attacker) {
         if (victim.canAttack(attacker) && !BehaviorUtils.isOtherTargetMuchFurtherAwayThanCurrentAttackTarget(victim, attacker, SharedWolfAi.TOO_FAR_TO_SWITCH_TARGETS)) {
-            StartAttacking.setAttackTarget(victim, attacker);
+            GenericAi.setAttackTarget(victim, attacker);
         }
     }
 
-    static ImmutableList<? extends Pair<Integer, ? extends Behavior<? super IllagerHound>>> getFightPackage() {
+    static ImmutableList<? extends Pair<Integer, ? extends BehaviorControl<? super IllagerHound>>> getFightPackage() {
         return BrainUtil.createPriorityPairs(0,
                 ImmutableList.of(
                         new Sprint<>(),
-                        new SetWalkTargetFromAttackTargetIfTargetOutOfReach(SharedWolfAi.SPEED_MODIFIER_CHASING),
+                        SetWalkTargetFromAttackTargetIfTargetOutOfReach.create(SharedWolfAi.SPEED_MODIFIER_CHASING),
                         new LeapAtTarget(SharedWolfAi.LEAP_YD, SharedWolfAi.TOO_CLOSE_TO_LEAP, SharedWolfAi.TOO_FAR_TO_LEAP, SharedWolfAi.LEAP_COOLDOWN),
-                        new MeleeAttack(SharedWolfAi.ATTACK_COOLDOWN_TICKS),
-                        new StopAttackingIfTargetInvalid<>()
+                        MeleeAttack.create(SharedWolfAi.ATTACK_COOLDOWN_TICKS),
+                        StopAttackingIfTargetInvalid.create()
                 ));
     }
 
-    static ImmutableList<? extends Pair<Integer, ? extends Behavior<? super IllagerHound>>> getIdlePackage() {
+    static ImmutableList<? extends Pair<Integer, ? extends BehaviorControl<? super IllagerHound>>> getIdlePackage() {
         return BrainUtil.createPriorityPairs(0,
                 ImmutableList.of(
                         new Sprint<>(SharedWolfAi.TOO_FAR_FROM_WALK_TARGET),
                         new FollowOwner<>(AiUtil::getOwner, SharedWolfAi.SPEED_MODIFIER_WALKING, SharedWolfAi.CLOSE_ENOUGH_TO_OWNER, SharedWolfAi.TOO_FAR_FROM_OWNER),
-                        new StartAttacking<>(IllagerHoundGoalPackages::findNearestValidAttackTarget),
+                        StartAttacking.create(IllagerHoundGoalPackages::findNearestValidAttackTarget),
                         createIdleLookBehavior(),
                         createIdleMovementBehaviors()
                 ));
     }
 
-    private static RunSometimes<IllagerHound> createIdleLookBehavior() {
-        return new RunSometimes<>(new SetEntityLookTarget(SharedWolfAi.MAX_LOOK_DIST), UniformInt.of(30, 60));
+    private static BehaviorControl<LivingEntity> createIdleLookBehavior() {
+        return SetEntityLookTargetSometimes.create(SharedWolfAi.MAX_LOOK_DIST, UniformInt.of(30, 60));
     }
 
     private static RunOne<IllagerHound> createIdleMovementBehaviors() {
         return new RunOne<>(
                 ImmutableList.of(
-                        Pair.of(new RandomStroll(SharedWolfAi.SPEED_MODIFIER_WALKING), 2),
-                        Pair.of(new SetWalkTargetFromLookTarget(SharedWolfAi.SPEED_MODIFIER_WALKING, 3), 2),
+                        Pair.of(RandomStroll.stroll(SharedWolfAi.SPEED_MODIFIER_WALKING), 2),
+                        Pair.of(SetWalkTargetFromLookTarget.create(SharedWolfAi.SPEED_MODIFIER_WALKING, 3), 2),
                         Pair.of(new DoNothing(30, 60), 1)
                 )
         );

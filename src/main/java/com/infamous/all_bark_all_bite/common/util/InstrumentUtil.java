@@ -2,7 +2,8 @@ package com.infamous.all_bark_all_bite.common.util;
 
 import net.minecraft.Util;
 import net.minecraft.core.Holder;
-import net.minecraft.core.Registry;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.core.registries.Registries;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
@@ -16,8 +17,8 @@ import java.util.Optional;
 public class InstrumentUtil {
     public static final String INSTRUMENT_TAG = "instrument";
 
-    public static Optional<Holder<Instrument>> getInstrumentHolder(ResourceLocation location) {
-        return Registry.INSTRUMENT.getHolder(ResourceKey.create(Registry.INSTRUMENT_REGISTRY, location));
+    public static Optional<? extends Holder<Instrument>> getInstrumentHolder(ResourceLocation location) {
+        return BuiltInRegistries.INSTRUMENT.getHolder(ResourceKey.create(Registries.INSTRUMENT, location));
     }
 
     public static void setSoundVariantId(ItemStack stack, Holder<Instrument> instrument) {

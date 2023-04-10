@@ -1,13 +1,13 @@
 package com.infamous.all_bark_all_bite.common.behavior.pet;
 
 import com.google.common.collect.ImmutableMap;
-import com.infamous.all_bark_all_bite.common.util.ai.AiUtil;
 import com.infamous.all_bark_all_bite.common.behavior.TargetBehavior;
+import com.infamous.all_bark_all_bite.common.util.ai.AiUtil;
+import com.infamous.all_bark_all_bite.common.util.ai.GenericAi;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.Mob;
 import net.minecraft.world.entity.OwnableEntity;
-import net.minecraft.world.entity.ai.behavior.StartAttacking;
 import net.minecraft.world.entity.ai.targeting.TargetingConditions;
 import net.minecraftforge.common.util.TriPredicate;
 
@@ -56,7 +56,7 @@ public class OwnerHurtByTarget<M extends Mob & OwnableEntity> extends TargetBeha
 
     @Override
     protected void start(ServerLevel level, M tamable, long gameTime) {
-        StartAttacking.setAttackTarget(tamable, this.ownerLastHurtBy);
+        GenericAi.setAttackTarget(tamable, this.ownerLastHurtBy);
         this.timestamp = this.owner.getLastHurtByMobTimestamp();
         super.start(level, tamable, gameTime);
     }

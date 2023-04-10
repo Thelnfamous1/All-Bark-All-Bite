@@ -1,17 +1,17 @@
 package com.infamous.all_bark_all_bite.common.util.ai;
 
 import com.infamous.all_bark_all_bite.common.behavior.pet.FollowOwner;
+import com.infamous.all_bark_all_bite.common.compat.CompatUtil;
+import com.infamous.all_bark_all_bite.common.compat.DICompat;
 import com.infamous.all_bark_all_bite.common.compat.MMCompat;
-import com.infamous.all_bark_all_bite.common.util.PetUtil;
-import com.infamous.all_bark_all_bite.config.ABABConfig;
 import com.infamous.all_bark_all_bite.common.entity.LookTargetAccess;
 import com.infamous.all_bark_all_bite.common.entity.SharedWolfAi;
 import com.infamous.all_bark_all_bite.common.entity.WalkTargetAccess;
 import com.infamous.all_bark_all_bite.common.registry.ABABActivities;
 import com.infamous.all_bark_all_bite.common.registry.ABABMemoryModuleTypes;
-import com.infamous.all_bark_all_bite.common.compat.CompatUtil;
-import com.infamous.all_bark_all_bite.common.compat.DICompat;
+import com.infamous.all_bark_all_bite.common.util.PetUtil;
 import com.infamous.all_bark_all_bite.common.util.ReflectionUtil;
+import com.infamous.all_bark_all_bite.config.ABABConfig;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.util.Unit;
@@ -22,7 +22,6 @@ import net.minecraft.world.entity.TamableAnimal;
 import net.minecraft.world.entity.ai.behavior.BlockPosTracker;
 import net.minecraft.world.entity.ai.behavior.EntityTracker;
 import net.minecraft.world.entity.ai.behavior.PositionTracker;
-import net.minecraft.world.entity.ai.behavior.StartAttacking;
 import net.minecraft.world.entity.ai.memory.MemoryModuleType;
 import net.minecraft.world.entity.ai.memory.MemoryStatus;
 import net.minecraft.world.entity.ai.memory.WalkTarget;
@@ -56,7 +55,7 @@ public class CommandAi {
         handleStates(pet, false, true);
         yieldAsPet(pet);
         if(pet.canAttack(target) && PetUtil.wantsToAttack(pet, target, owner)){
-            StartAttacking.setAttackTarget(pet, target);
+            GenericAi.setAttackTarget(pet, target);
             pet.setTarget(target);
         }
     }

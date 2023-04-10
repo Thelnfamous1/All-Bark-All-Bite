@@ -25,8 +25,8 @@ import org.jetbrains.annotations.Nullable;
 
 public class WolfHooks {
     public static void onWolfJoinLevel(Wolf wolf, boolean loadedFromDisk) {
-        wolf.goalSelector.removeAllGoals();
-        wolf.targetSelector.removeAllGoals();
+        wolf.goalSelector.removeAllGoals(g -> true);
+        wolf.targetSelector.removeAllGoals(g -> true);
         WolfBrain.makeBrain(BrainUtil.getTypedBrain(wolf));
         wolf.getNavigation().setCanFloat(true);
         if(!loadedFromDisk) {

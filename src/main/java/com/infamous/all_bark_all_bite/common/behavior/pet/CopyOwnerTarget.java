@@ -4,10 +4,10 @@ import com.google.common.collect.ImmutableMap;
 import com.infamous.all_bark_all_bite.common.behavior.TargetBehavior;
 import com.infamous.all_bark_all_bite.common.entity.OwnableMob;
 import com.infamous.all_bark_all_bite.common.util.ai.AiUtil;
+import com.infamous.all_bark_all_bite.common.util.ai.GenericAi;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.Mob;
-import net.minecraft.world.entity.ai.behavior.StartAttacking;
 import net.minecraft.world.entity.ai.targeting.TargetingConditions;
 
 import java.util.Optional;
@@ -34,7 +34,7 @@ public class CopyOwnerTarget<T extends Mob & OwnableMob> extends TargetBehavior<
     protected void start(ServerLevel level, T mob, long gameTime) {
         AiUtil.getOwner(mob)
                 .flatMap(AiUtil::getTarget)
-                .ifPresent(target -> StartAttacking.setAttackTarget(mob, target));
+                .ifPresent(target -> GenericAi.setAttackTarget(mob, target));
         super.start(level, mob, gameTime);
     }
 }

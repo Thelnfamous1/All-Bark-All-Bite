@@ -13,7 +13,6 @@ public class PetUtil {
 
     public static Optional<UUID> getOwnerUUID(Entity entity){
         if(entity instanceof OwnableEntity ownable) return Optional.ofNullable(ownable.getOwnerUUID());
-        else if(entity instanceof AbstractHorse horse) return Optional.ofNullable(horse.getOwnerUUID());
         return Optional.empty();
     }
 

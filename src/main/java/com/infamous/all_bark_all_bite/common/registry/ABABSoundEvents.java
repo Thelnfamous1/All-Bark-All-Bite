@@ -27,10 +27,10 @@ public class ABABSoundEvents {
 
 
     private static RegistryObject<SoundEvent> registerWhistle(String name) {
-        return registerSoundEvent(String.format("%s_whistle", name));
+        return registerVariableRangeSoundEvent(String.format("%s_whistle", name));
     }
 
-    private static RegistryObject<SoundEvent> registerSoundEvent(String path) {
-        return SOUND_EVENTS.register(path, () -> new SoundEvent(new ResourceLocation(AllBarkAllBite.MODID, path)));
+    private static RegistryObject<SoundEvent> registerVariableRangeSoundEvent(String path) {
+        return SOUND_EVENTS.register(path, () -> SoundEvent.createVariableRangeEvent(new ResourceLocation(AllBarkAllBite.MODID, path)));
     }
 }

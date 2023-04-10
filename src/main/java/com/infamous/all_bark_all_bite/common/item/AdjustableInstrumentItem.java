@@ -7,8 +7,7 @@ import com.infamous.all_bark_all_bite.common.util.InstrumentUtil;
 import net.minecraft.ChatFormatting;
 import net.minecraft.Util;
 import net.minecraft.core.Holder;
-import net.minecraft.core.NonNullList;
-import net.minecraft.core.Registry;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
@@ -18,7 +17,10 @@ import net.minecraft.tags.TagKey;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResultHolder;
 import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.item.*;
+import net.minecraft.world.item.Instrument;
+import net.minecraft.world.item.InstrumentItem;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.level.Level;
 import org.jetbrains.annotations.Nullable;
 
@@ -56,7 +58,7 @@ public class AdjustableInstrumentItem extends InstrumentItem {
         return super.use(level, player, hand);
     }
 
-    public Optional<Holder<Instrument>> getInstrument(ItemStack itemStack) {
+    public Optional<? extends Holder<Instrument>> getInstrument(ItemStack itemStack) {
         CompoundTag tag = itemStack.getTag();
         if (tag != null) {
             ResourceLocation location = ResourceLocation.tryParse(tag.getString(InstrumentUtil.INSTRUMENT_TAG));
@@ -70,9 +72,10 @@ public class AdjustableInstrumentItem extends InstrumentItem {
     }
 
     public Iterable<Holder<Instrument>> getInstruments() {
-        return Registry.INSTRUMENT.getTagOrEmpty(this.instruments);
+        return BuiltInRegistries.INSTRUMENT.getTagOrEmpty(this.instruments);
     }
 
+    /*
     @Override
     public void fillItemCategory(CreativeModeTab tab, NonNullList<ItemStack> itemStacks) {
         if (this.allowedIn(tab)) {
@@ -82,4 +85,5 @@ public class AdjustableInstrumentItem extends InstrumentItem {
             }
         }
     }
+     */
 }

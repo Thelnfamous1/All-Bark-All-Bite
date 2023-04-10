@@ -2,7 +2,6 @@ package com.infamous.all_bark_all_bite.common.entity.dog;
 
 import com.google.common.collect.ImmutableList;
 import com.infamous.all_bark_all_bite.common.ABABTags;
-import com.infamous.all_bark_all_bite.common.util.ai.*;
 import com.infamous.all_bark_all_bite.common.behavior.dig.DigAtLocation;
 import com.infamous.all_bark_all_bite.common.behavior.item.GiveItemToTarget;
 import com.infamous.all_bark_all_bite.common.behavior.item.StartItemActivityWithItemIfSeen;
@@ -18,9 +17,12 @@ import com.infamous.all_bark_all_bite.common.logic.BrainMaker;
 import com.infamous.all_bark_all_bite.common.registry.ABABActivities;
 import com.infamous.all_bark_all_bite.common.registry.ABABEntityTypes;
 import com.infamous.all_bark_all_bite.common.registry.ABABMemoryModuleTypes;
+import com.infamous.all_bark_all_bite.common.util.ai.AiUtil;
+import com.infamous.all_bark_all_bite.common.util.ai.BrainUtil;
+import com.infamous.all_bark_all_bite.common.util.ai.DigAi;
+import com.infamous.all_bark_all_bite.common.util.ai.GenericAi;
 import com.infamous.all_bark_all_bite.data.ABABBuiltInLootTables;
 import com.mojang.datafixers.util.Pair;
-import net.minecraft.Util;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.GlobalPos;
 import net.minecraft.server.level.ServerLevel;
@@ -127,16 +129,18 @@ public class DogBrain {
     }
 
     private static boolean canFetchItemEntity(Dog dog, ItemEntity itemEntity){
-        return Util.mapNullable(itemEntity.getThrower(), uuid -> uuid.equals(dog.getOwnerUUID())) != null
+        Entity itemEntityOwner = itemEntity.getOwner();
+        return itemEntityOwner != null
+                && itemEntityOwner == dog.getOwner()
                 && itemEntity.getItem().is(ABABTags.DOG_FETCHES)
                 && itemEntity.closerThan(dog, SharedWolfAi.MAX_FETCH_DISTANCE);
     }
 
-    private static ImmutableList<? extends Pair<Integer, ? extends Behavior<? super Dog>>> getDigPackage() {
+    private static ImmutableList<? extends Pair<Integer, ? extends BehaviorControl<? super Dog>>> getDigPackage() {
         return BrainUtil.createPriorityPairs(0,
                 ImmutableList.of(
                         new Sprint<>(DogBrain::canSprintWhileDigging),
-                        new StayCloseToTarget<>(DogBrain::getDigPosition, 0, 1, SharedWolfAi.SPEED_MODIFIER_FETCHING),
+                        StayCloseToTarget.create(DogBrain::getDigPosition, le -> true, 0, 1, SharedWolfAi.SPEED_MODIFIER_FETCHING),
                         new DigAtLocation<>(DogBrain::onDigCompleted, SharedWolfAi.DIG_DURATION)
                 ));
     }
@@ -190,7 +194,7 @@ public class DogBrain {
         }
     }
 
-    private static ImmutableList<? extends Pair<Integer, ? extends Behavior<? super Dog>>> getFetchPackage() {
+    private static ImmutableList<? extends Pair<Integer, ? extends BehaviorControl<? super Dog>>> getFetchPackage() {
         return BrainUtil.createPriorityPairs(0,
                 ImmutableList.of(
                         new Sprint<>(SharedWolfAi::canMove),
@@ -199,7 +203,7 @@ public class DogBrain {
                         new RunIf<>(DogBrain::canReturnItemToOwner, SharedWolfAi.createFollowOwner(SharedWolfAi.SPEED_MODIFIER_FETCHING), true),
                         new StopItemActivityIfItemTooFarAway<>(DogBrain::isNotHoldingItem, SharedWolfAi.MAX_FETCH_DISTANCE, ABABMemoryModuleTypes.FETCHING_ITEM.get()),
                         new StopItemActivityIfTiredOfTryingToReachItem<>(DogBrain::isNotHoldingItem, SharedWolfAi.MAX_TIME_TO_REACH_ITEM, SharedWolfAi.DISABLE_FETCH_TIME, ABABMemoryModuleTypes.FETCHING_ITEM.get(), ABABMemoryModuleTypes.TIME_TRYING_TO_REACH_FETCH_ITEM.get(), ABABMemoryModuleTypes.DISABLE_WALK_TO_FETCH_ITEM.get()),
-                        new EraseMemoryIf<>(DogBrain::wantsToStopFetching, ABABMemoryModuleTypes.FETCHING_ITEM.get())));
+                        EraseMemoryIf.create(DogBrain::wantsToStopFetching, ABABMemoryModuleTypes.FETCHING_ITEM.get())));
     }
 
     static void onItemThrown(Dog dog){
@@ -219,7 +223,7 @@ public class DogBrain {
         return !dog.isTame() || (isNotHoldingItem(dog) && GenericAi.isOnPickupCooldown(dog));
     }
 
-    private static ImmutableList<? extends Pair<Integer, ? extends Behavior<? super Dog>>> getIdlePackage(){
+    private static ImmutableList<? extends Pair<Integer, ? extends BehaviorControl<? super Dog>>> getIdlePackage(){
         return BrainUtil.createPriorityPairs(0,
                 ImmutableList.of(
                         new Sprint<>(SharedWolfAi::canMove, SharedWolfAi.TOO_FAR_FROM_WALK_TARGET),
@@ -227,7 +231,7 @@ public class DogBrain {
                         new FollowTemptation(SharedWolfAi::getSpeedModifierTempted),
                         SharedWolfBrain.createBreedBehavior(ABABEntityTypes.DOG.get()),
                         new RunIf<>(livingEntity -> SharedWolfAi.wantsToFindShelter(livingEntity, false), new MoveToNonSkySeeingSpot(SharedWolfAi.SPEED_MODIFIER_WALKING), true),
-                        new BabyFollowAdult<>(SharedWolfAi.ADULT_FOLLOW_RANGE, SharedWolfAi.SPEED_MODIFIER_FOLLOWING_ADULT),
+                        BabyFollowAdult.create(SharedWolfAi.ADULT_FOLLOW_RANGE, SharedWolfAi.SPEED_MODIFIER_FOLLOWING_ADULT),
                         SharedWolfBrain.babySometimesHuntBaby(),
                         new PlayTagWithOtherBabies(SharedWolfAi.SPEED_MODIFIER_RETREATING, SharedWolfAi.SPEED_MODIFIER_CHASING),
                         SharedWolfAi.createGoToWantedItem(false),
@@ -241,21 +245,21 @@ public class DogBrain {
     private static RunOne<Dog> createIdleLookBehaviors() {
         return new RunOne<>(
                 ImmutableList.of(
-                        Pair.of(new SetEntityLookTarget(ABABEntityTypes.DOG.get(), SharedWolfAi.MAX_LOOK_DIST), 1),
-                        Pair.of(new SetEntityLookTarget(EntityType.PLAYER, SharedWolfAi.MAX_LOOK_DIST), 1),
-                        Pair.of(new SetEntityLookTarget(EntityType.VILLAGER, SharedWolfAi.MAX_LOOK_DIST), 1),
-                        Pair.of(new SetEntityLookTarget(SharedWolfAi.MAX_LOOK_DIST), 1),
+                        Pair.of(SetEntityLookTarget.create(ABABEntityTypes.DOG.get(), SharedWolfAi.MAX_LOOK_DIST), 1),
+                        Pair.of(SetEntityLookTarget.create(EntityType.PLAYER, SharedWolfAi.MAX_LOOK_DIST), 1),
+                        Pair.of(SetEntityLookTarget.create(EntityType.VILLAGER, SharedWolfAi.MAX_LOOK_DIST), 1),
+                        Pair.of(SetEntityLookTarget.create(SharedWolfAi.MAX_LOOK_DIST), 1),
                         Pair.of(new DoNothing(30, 60), 1)));
     }
 
     private static RunOne<Dog> createIdleMovementBehaviors() {
         return new RunOne<>(
                 ImmutableList.of(
-                        Pair.of(new RandomStroll(SharedWolfAi.SPEED_MODIFIER_WALKING), 3),
+                        Pair.of(RandomStroll.stroll(SharedWolfAi.SPEED_MODIFIER_WALKING), 3),
                         Pair.of(InteractWith.of(ABABEntityTypes.DOG.get(), SharedWolfAi.INTERACTION_RANGE, MemoryModuleType.INTERACTION_TARGET, SharedWolfAi.SPEED_MODIFIER_WALKING, SharedWolfAi.CLOSE_ENOUGH_TO_INTERACT), 2),
                         Pair.of(InteractWith.of(EntityType.PLAYER, SharedWolfAi.INTERACTION_RANGE, MemoryModuleType.INTERACTION_TARGET, SharedWolfAi.SPEED_MODIFIER_WALKING, SharedWolfAi.CLOSE_ENOUGH_TO_INTERACT), 2),
                         Pair.of(InteractWith.of(EntityType.VILLAGER, SharedWolfAi.INTERACTION_RANGE, MemoryModuleType.INTERACTION_TARGET, SharedWolfAi.SPEED_MODIFIER_WALKING, SharedWolfAi.CLOSE_ENOUGH_TO_INTERACT), 2),
-                        Pair.of(new RunIf<>(Predicate.not(GenericAi::seesPlayerHoldingWantedItem), new SetWalkTargetFromLookTarget(SharedWolfAi.SPEED_MODIFIER_WALKING, SharedWolfAi.CLOSE_ENOUGH_TO_LOOK_TARGET)), 2),
+                        Pair.of(new RunIf<>(Predicate.not(GenericAi::seesPlayerHoldingWantedItem), SetWalkTargetFromLookTarget.create(SharedWolfAi.SPEED_MODIFIER_WALKING, SharedWolfAi.CLOSE_ENOUGH_TO_LOOK_TARGET)), 2),
                         Pair.of(new DoNothing(30, 60), 1)));
     }
 

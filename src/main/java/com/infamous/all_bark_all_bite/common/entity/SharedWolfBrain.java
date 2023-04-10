@@ -45,32 +45,32 @@ public class SharedWolfBrain {
         return new AnimalMakeLove(type, SharedWolfAi.SPEED_MODIFIER_BREEDING);
     }
 
-    public static <E extends Wolf> ImmutableList<? extends Pair<Integer, ? extends Behavior<? super E>>> getFightPackage(BiPredicate<E, LivingEntity> huntTargetPredicate) {
+    public static <E extends Wolf> ImmutableList<? extends Pair<Integer, ? extends BehaviorControl<? super E>>> getFightPackage(BiPredicate<E, LivingEntity> huntTargetPredicate) {
         return BrainUtil.createPriorityPairs(0,
                 ImmutableList.of(
                         new Sprint<>(SharedWolfBrain::canSprintWhileAttacking),
                         new LeapAtTarget(SharedWolfAi.LEAP_YD, SharedWolfAi.TOO_CLOSE_TO_LEAP, SharedWolfAi.TOO_FAR_TO_LEAP, SharedWolfAi.LEAP_COOLDOWN),
-                        new SetWalkTargetFromAttackTargetIfTargetOutOfReach(SharedWolfAi.SPEED_MODIFIER_CHASING),
-                        new MeleeAttack(SharedWolfAi.ATTACK_COOLDOWN_TICKS),
+                        SetWalkTargetFromAttackTargetIfTargetOutOfReach.create(SharedWolfAi.SPEED_MODIFIER_CHASING),
+                        MeleeAttack.create(SharedWolfAi.ATTACK_COOLDOWN_TICKS),
                         new RememberIfHuntTargetWasKilled<>(huntTargetPredicate, SharedWolfAi.TIME_BETWEEN_HUNTS),
-                        new EraseMemoryIf<>(BehaviorUtils::isBreeding, MemoryModuleType.ATTACK_TARGET)));
+                        EraseMemoryIf.create(BehaviorUtils::isBreeding, MemoryModuleType.ATTACK_TARGET)));
     }
 
     private static boolean canSprintWhileAttacking(Wolf wolf){
         return SharedWolfAi.canMove(wolf) && GenericAi.getAttackTarget(wolf).map(at -> !wolf.isWithinMeleeAttackRange(at)).orElse(false);
     }
 
-    public static <E extends Wolf> ImmutableList<? extends Pair<Integer, ? extends Behavior<? super E>>> getTargetPackage(BiConsumer<E, LivingEntity> onHurtByEntity, Predicate<E> canStartHunting){
+    public static <E extends Wolf> ImmutableList<? extends Pair<Integer, ? extends BehaviorControl<? super E>>> getTargetPackage(BiConsumer<E, LivingEntity> onHurtByEntity, Predicate<E> canStartHunting){
         return BrainUtil.createPriorityPairs(0,
                 ImmutableList.of(
                         new OwnerHurtByTarget<>(SharedWolfAi::canDefendOwner, SharedWolfAi::wantsToAttack),
                         new RunIf<>(Predicate.not(TamableAnimal::isTame), new DefendLikedPlayer<>()),
                         new OwnerHurtTarget<>(SharedWolfAi::canDefendOwner, SharedWolfAi::wantsToAttack),
                         new HurtByEntityTrigger<>(onHurtByEntity),
-                        new StartAttacking<>(SharedWolfAi::canStartAttacking, SharedWolfAi::findNearestValidAttackTarget),
+                        StartAttacking.create(SharedWolfAi::canStartAttacking, SharedWolfAi::findNearestValidAttackTarget),
                         new StartHuntingPrey<>(canStartHunting, SharedWolfAi.TIME_BETWEEN_HUNTS),
-                        new StopAttackingIfTargetInvalid<>(),
-                        new StopBeingAngryIfTargetDead<>()
+                        StopAttackingIfTargetInvalid.create(),
+                        StopBeingAngryIfTargetDead.create()
                 ));
     }
 
@@ -80,7 +80,7 @@ public class SharedWolfBrain {
         tamableAnimal.setOrderedToSit(false);
     }
 
-    public static <E extends Wolf> ImmutableList<? extends Pair<Integer, ? extends Behavior<? super E>>> getUpdatePackage(List<Activity> activities, BiConsumer<E, Pair<Activity, Activity>> onActivityChanged){
+    public static <E extends Wolf> ImmutableList<? extends Pair<Integer, ? extends BehaviorControl<? super E>>> getUpdatePackage(List<Activity> activities, BiConsumer<E, Pair<Activity, Activity>> onActivityChanged){
         return BrainUtil.createPriorityPairs(99,
                 ImmutableList.of(
                         new UpdateActivity<>(activities, onActivityChanged),
@@ -89,14 +89,14 @@ public class SharedWolfBrain {
                 ));
     }
 
-    public static ImmutableList<? extends Pair<Integer, ? extends Behavior<? super Wolf>>> getPanicPackage(){
+    public static ImmutableList<? extends Pair<Integer, ? extends BehaviorControl<? super Wolf>>> getPanicPackage(){
         return BrainUtil.createPriorityPairs(0,
                 ImmutableList.of(
                         new Sprint<>(SharedWolfAi::canMove)
                 ));
     }
 
-    public static <E extends Wolf> ImmutableList<? extends Pair<Integer, ? extends Behavior<? super E>>> getSitPackage(RunOne<E> idleLookBehaviors, Behavior<E> beg){
+    public static <E extends Wolf> ImmutableList<? extends Pair<Integer, ? extends BehaviorControl<? super E>>> getSitPackage(RunOne<E> idleLookBehaviors, Behavior<E> beg){
         return BrainUtil.createPriorityPairs(0,
                 ImmutableList.of(
                         new SitWhenOrderedTo(),
@@ -105,7 +105,7 @@ public class SharedWolfBrain {
                 ));
     }
 
-    public static ImmutableList<? extends Pair<Integer, ? extends Behavior<? super Wolf>>> getHuntPackage() {
+    public static ImmutableList<? extends Pair<Integer, ? extends BehaviorControl<? super Wolf>>> getHuntPackage() {
         return BrainUtil.createPriorityPairs(0,
                 ImmutableList.of(
                         new RunIf<>(Predicate.not(LivingEntity::isBaby), new StalkAndPounce<>(SharedWolfAi.SPEED_MODIFIER_WALKING,
@@ -132,26 +132,26 @@ public class SharedWolfBrain {
         }
     }
 
-    public static <E extends Wolf> ImmutableList<? extends Pair<Integer, ? extends Behavior<? super E>>> getAvoidPackage(RunOne<E> idleMovementBehaviors, RunOne<E> idleLookBehaviors) {
+    public static <E extends Wolf> ImmutableList<? extends Pair<Integer, ? extends BehaviorControl<? super E>>> getAvoidPackage(RunOne<E> idleMovementBehaviors, RunOne<E> idleLookBehaviors) {
         return BrainUtil.createPriorityPairs(0,
                 ImmutableList.of(
                         new Sprint<>(SharedWolfAi::canMove),
                         SetWalkTargetAwayFrom.entity(MemoryModuleType.AVOID_TARGET, SharedWolfAi.SPEED_MODIFIER_RETREATING, SharedWolfAi.DESIRED_DISTANCE_FROM_ENTITY_WHEN_AVOIDING, true),
                         idleMovementBehaviors,
                         idleLookBehaviors,
-                        new EraseMemoryIf<>(SharedWolfBrain::wantsToStopFleeing, MemoryModuleType.AVOID_TARGET)));
+                        EraseMemoryIf.create(SharedWolfBrain::wantsToStopFleeing, MemoryModuleType.AVOID_TARGET)));
     }
 
     private static boolean wantsToStopFleeing(Wolf wolf){
         return !wolf.isBaby() && wolf.isTame();
     }
 
-    public static ImmutableList<? extends Pair<Integer, ? extends Behavior<? super Wolf>>> getMeetPackage() {
+    public static ImmutableList<? extends Pair<Integer, ? extends BehaviorControl<? super Wolf>>> getMeetPackage() {
         return BrainUtil.createPriorityPairs(0,
                 ImmutableList.of(
                         new Sprint<>(SharedWolfAi::canMove),
-                        new StayCloseToTarget<>(SharedWolfAi::getHowlPosition, SharedWolfAi.ADULT_FOLLOW_RANGE.getMinValue() - 1, SharedWolfAi.ADULT_FOLLOW_RANGE.getMaxValue(), SharedWolfAi.SPEED_MODIFIER_WALKING),
-                        new EraseMemoryIf<>(SharedWolfBrain::wantsToStopFollowingHowl, ABABMemoryModuleTypes.HOWL_LOCATION.get()))
+                        StayCloseToTarget.create(SharedWolfAi::getHowlPosition, le -> true, SharedWolfAi.ADULT_FOLLOW_RANGE.getMinValue() - 1, SharedWolfAi.ADULT_FOLLOW_RANGE.getMaxValue(), SharedWolfAi.SPEED_MODIFIER_WALKING),
+                        EraseMemoryIf.create(SharedWolfBrain::wantsToStopFollowingHowl, ABABMemoryModuleTypes.HOWL_LOCATION.get()))
         );
     }
 
@@ -196,7 +196,7 @@ public class SharedWolfBrain {
         brain.setMemory(ABABMemoryModuleTypes.FETCHING_ITEM.get(), true);
     }
 
-    public static ImmutableList<? extends Pair<Integer, ? extends Behavior<? super Wolf>>> getCountDownPackage(){
+    public static ImmutableList<? extends Pair<Integer, ? extends BehaviorControl<? super Wolf>>> getCountDownPackage(){
         return BrainUtil.createPriorityPairs(0,
                 ImmutableList.of(
                         new CountDownCooldownTicks(MemoryModuleType.ITEM_PICKUP_COOLDOWN_TICKS),
@@ -224,8 +224,8 @@ public class SharedWolfBrain {
         return new RunIf<>(SharedWolfAi::shouldPanic, new AnimalPanic(SharedWolfAi.SPEED_MODIFIER_PANICKING), true);
     }
 
-    public static CopyMemoryWithExpiry<Wolf, LivingEntity> copyToAvoidTarget(MemoryModuleType<? extends LivingEntity> copyMemory) {
-        return new CopyMemoryWithExpiry<>(
+    public static BehaviorControl<Wolf> copyToAvoidTarget(MemoryModuleType<? extends LivingEntity> copyMemory) {
+        return CopyMemoryWithExpiry.create(
                 wolf -> SharedWolfAi.isNearDisliked(wolf, copyMemory),
                 copyMemory,
                 MemoryModuleType.AVOID_TARGET,
@@ -236,7 +236,7 @@ public class SharedWolfBrain {
         return new RunIf<>(Predicate.not(LivingEntity::isSleeping), new LookAtTargetSink(45, 90), true);
     }
 
-    public static <E extends Wolf> ImmutableList<? extends Pair<Integer, ? extends Behavior<? super E>>> getFollowPackage(RunOne<E> idleMovementBehaviors, Behavior<E> beg, RunOne<E> idleLookBehaviors) {
+    public static <E extends Wolf> ImmutableList<? extends Pair<Integer, ? extends BehaviorControl<? super E>>> getFollowPackage(RunOne<E> idleMovementBehaviors, Behavior<E> beg, RunOne<E> idleLookBehaviors) {
         return BrainUtil.createPriorityPairs(0,
                 ImmutableList.of(
                         new Sprint<>(SharedWolfAi::canMove, SharedWolfAi.TOO_FAR_FROM_WALK_TARGET),

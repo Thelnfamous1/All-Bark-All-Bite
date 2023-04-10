@@ -213,7 +213,7 @@ public class AiUtil {
     }
 
     public static Optional<LivingEntity> getOwner(OwnableEntity ownableEntity) {
-        return Optional.ofNullable(ownableEntity.getOwner()).filter(LivingEntity.class::isInstance).map(LivingEntity.class::cast);
+        return Optional.ofNullable(ownableEntity.getOwner());
     }
 
     public static Optional<LivingEntity> getTarget(LivingEntity livingEntity){
@@ -315,7 +315,7 @@ public class AiUtil {
             double xStep = ratio == 0.0D ? xDiff * (double)((float)horizontalStep / horizontalDistance) : zStep / ratio;
 
             for(int verticalStep = 1; verticalStep < verticalDistance + 1; ++verticalStep) {
-                if (!entity.level.getBlockState(new BlockPos(entity.getX() + xStep, entity.getY() + (double)verticalStep, entity.getZ() + zStep)).getMaterial().isReplaceable()) {
+                if (!entity.level.getBlockState(BlockPos.containing(entity.getX() + xStep, entity.getY() + (double)verticalStep, entity.getZ() + zStep)).getMaterial().isReplaceable()) {
                     return false;
                 }
             }

@@ -21,10 +21,7 @@ import net.minecraft.util.valueproviders.UniformInt;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.*;
 import net.minecraft.world.entity.ai.Brain;
-import net.minecraft.world.entity.ai.behavior.BehaviorUtils;
-import net.minecraft.world.entity.ai.behavior.BlockPosTracker;
-import net.minecraft.world.entity.ai.behavior.GoToWantedItem;
-import net.minecraft.world.entity.ai.behavior.PositionTracker;
+import net.minecraft.world.entity.ai.behavior.*;
 import net.minecraft.world.entity.ai.memory.MemoryModuleType;
 import net.minecraft.world.entity.ai.sensing.Sensor;
 import net.minecraft.world.entity.animal.Animal;
@@ -253,7 +250,7 @@ public class SharedWolfAi {
     }
 
     public static boolean hasShelter(Wolf wolf) {
-        BlockPos topOfBodyPos = new BlockPos(wolf.getX(), wolf.getBoundingBox().maxY, wolf.getZ());
+        BlockPos topOfBodyPos = BlockPos.containing(wolf.getX(), wolf.getBoundingBox().maxY, wolf.getZ());
         return MoveToNonSkySeeingSpot.hasBlocksAbove(wolf.level, wolf, topOfBodyPos);
     }
 
@@ -305,8 +302,8 @@ public class SharedWolfAi {
         return livingEntity.getMainHandItem().isEmpty();
     }
 
-    public static <E extends TamableAnimal> GoToWantedItem<E> createGoToWantedItem(boolean overrideWalkTarget) {
-        return new GoToWantedItem<>(SharedWolfAi::isNotHoldingItem, SharedWolfAi.SPEED_MODIFIER_FETCHING, overrideWalkTarget, MAX_FETCH_DISTANCE);
+    public static <E extends TamableAnimal> BehaviorControl<E> createGoToWantedItem(boolean overrideWalkTarget) {
+        return GoToWantedItem.create(SharedWolfAi::isNotHoldingItem, SharedWolfAi.SPEED_MODIFIER_FETCHING, overrideWalkTarget, MAX_FETCH_DISTANCE);
     }
 
     public static boolean isAbleToPickUp(Mob mob, ItemStack stack) {

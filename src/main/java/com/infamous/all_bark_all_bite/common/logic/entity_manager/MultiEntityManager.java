@@ -4,8 +4,8 @@ import com.google.common.collect.Streams;
 import com.infamous.all_bark_all_bite.common.util.MiscUtil;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
+import net.minecraft.core.UUIDUtil;
 import net.minecraft.server.level.ServerLevel;
-import net.minecraft.util.ExtraCodecs;
 import net.minecraft.util.Mth;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.entity.Entity;
@@ -25,7 +25,7 @@ public class MultiEntityManager implements TickableEntityManager {
    public static Codec<MultiEntityManager> codec() {
       return RecordCodecBuilder
               .create((instance) -> instance.group(
-                      ExtraCodecs.UUID.listOf()
+                              UUIDUtil.CODEC.listOf()
                               .fieldOf("uuids")
                               .orElse(Collections.emptyList())
                               .forGetter(MultiEntityManager::createEntityUuids))

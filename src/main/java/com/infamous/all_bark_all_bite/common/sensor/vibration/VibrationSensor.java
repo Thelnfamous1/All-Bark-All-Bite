@@ -13,6 +13,7 @@ import net.minecraft.world.entity.ai.sensing.Sensor;
 import net.minecraft.world.level.gameevent.DynamicGameEventListener;
 import net.minecraft.world.level.gameevent.EntityPositionSource;
 import net.minecraft.world.level.gameevent.PositionSource;
+import net.minecraft.world.level.gameevent.vibrations.VibrationSelector;
 import net.minecraftforge.event.entity.EntityEvent;
 import net.minecraftforge.event.entity.EntityJoinLevelEvent;
 import net.minecraftforge.event.entity.EntityLeaveLevelEvent;
@@ -73,7 +74,7 @@ public class VibrationSensor<E extends LivingEntity, VLC extends EntityVibration
     protected EntityVibrationListener<E, VLC> createDefaultListener(E mob) {
         PositionSource positionSource = new EntityPositionSource(mob, mob.getEyeHeight());
         VLC listenerConfig = this.listenerConfigFactory.create();
-        return new EntityVibrationListener<>(positionSource, this.getDefaultListenerRange(), listenerConfig, null, 0.0F, 0);
+        return new EntityVibrationListener<>(positionSource, this.getDefaultListenerRange(), listenerConfig, null, new VibrationSelector(), 0);
     }
 
     protected int getDefaultListenerRange() {

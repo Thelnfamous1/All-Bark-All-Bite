@@ -34,7 +34,7 @@ public class ABABLootTableProvider extends LootTableProvider {
     }
 
     @Override
-    protected List<Pair<Supplier<Consumer<BiConsumer<ResourceLocation, LootTable.Builder>>>, LootContextParamSet>> getTables() {
+    public List<LootTableProvider.SubProviderEntry> getTables() {
         return this.subProviders;
     }
 

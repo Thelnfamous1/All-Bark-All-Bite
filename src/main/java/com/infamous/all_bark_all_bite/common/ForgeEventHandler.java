@@ -31,7 +31,6 @@ import net.minecraft.world.entity.ai.memory.MemoryStatus;
 import net.minecraft.world.entity.animal.Fox;
 import net.minecraft.world.entity.animal.Rabbit;
 import net.minecraft.world.entity.animal.Wolf;
-import net.minecraft.world.entity.animal.horse.AbstractHorse;
 import net.minecraft.world.entity.animal.horse.Llama;
 import net.minecraft.world.entity.monster.AbstractSkeleton;
 import net.minecraft.world.entity.player.Player;
@@ -93,9 +92,7 @@ public class ForgeEventHandler {
         }
 
         // add Brain-like pathfinding behaviors for non-Brain-using pets so the "Come" and "Go" whistle commands work for them
-        if(entity instanceof PathfinderMob pathfinderMob
-                && !pathfinderMob.getBrain().checkMemory(MemoryModuleType.WALK_TARGET, MemoryStatus.REGISTERED)
-                && (entity instanceof OwnableEntity || entity instanceof AbstractHorse)){
+        if(entity instanceof PathfinderMob pathfinderMob && !pathfinderMob.getBrain().checkMemory(MemoryModuleType.WALK_TARGET, MemoryStatus.REGISTERED) && entity instanceof OwnableEntity){
             pathfinderMob.goalSelector.addGoal(0, new MoveToTargetSinkGoal(pathfinderMob));
             pathfinderMob.goalSelector.addGoal(0, new LookAtTargetSinkGoal(pathfinderMob));
         }
@@ -112,7 +109,7 @@ public class ForgeEventHandler {
             rabbit.goalSelector.addGoal(4, new AvoidEntityGoal<>(rabbit, Dog.class, 10.0F, 2.2D, 2.2D){
                 @Override
                 public boolean canUse() {
-                    return rabbit.getRabbitType() != 99 && super.canUse();
+                    return rabbit.getVariant() != Rabbit.Variant.EVIL && super.canUse();
                 }
             });
         }

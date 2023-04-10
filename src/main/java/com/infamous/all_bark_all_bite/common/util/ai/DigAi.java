@@ -27,7 +27,7 @@ public class DigAi {
     public static Optional<BlockPos> generateDigLocation(PathfinderMob pathfinderMob, int maxXZ, int maxY, Predicate<BlockPos> digPosPredicate){
         Vec3 randomPos = GenericAi.getRandomNearbyPos(pathfinderMob, maxXZ, maxY);
 
-        BlockPos blockPos = new BlockPos(randomPos);
+        BlockPos blockPos = BlockPos.containing(randomPos);
         return Optional.of(blockPos).filter(digPosPredicate);
     }
 

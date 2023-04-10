@@ -89,7 +89,7 @@ public class PetWhistleItem extends AdjustableInstrumentItem{
     }
 
     public static void onItemUseStart(LivingEntity user, ItemStack useItem, ServerLevel serverLevel) {
-        Optional<Holder<Instrument>> instrumentHolder = ABABItems.WHISTLE.get().getInstrument(useItem);
+        Optional<? extends Holder<Instrument>> instrumentHolder = ABABItems.WHISTLE.get().getInstrument(useItem);
         if(instrumentHolder.isPresent()){
             Instrument instrument = instrumentHolder.get().value();
             MultiEntityManager petManager = PetManagement.getPetManager(user.getLevel().dimension(), user.getUUID());

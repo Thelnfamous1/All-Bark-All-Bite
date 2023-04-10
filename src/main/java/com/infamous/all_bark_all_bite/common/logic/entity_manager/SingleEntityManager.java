@@ -3,8 +3,8 @@ package com.infamous.all_bark_all_bite.common.logic.entity_manager;
 import com.infamous.all_bark_all_bite.common.util.MiscUtil;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
+import net.minecraft.core.UUIDUtil;
 import net.minecraft.server.level.ServerLevel;
-import net.minecraft.util.ExtraCodecs;
 import net.minecraft.util.Mth;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.entity.Entity;
@@ -26,7 +26,7 @@ public class SingleEntityManager implements TickableEntityManager {
     public static Codec<SingleEntityManager> codec() {
         return RecordCodecBuilder
                 .create((instance) -> instance.group(
-                                ExtraCodecs.UUID
+                                UUIDUtil.CODEC
                                         .optionalFieldOf("uuid")
                                         .forGetter(SingleEntityManager::getEntityUUID))
                         .apply(instance, uuid -> new SingleEntityManager(uuid.orElse(null))));

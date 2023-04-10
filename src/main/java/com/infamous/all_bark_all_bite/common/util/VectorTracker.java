@@ -10,7 +10,7 @@ public class VectorTracker implements PositionTracker {
     private final Vec3 position;
 
     public VectorTracker(Vec3 position) {
-        this.blockPos = new BlockPos(position).immutable();
+        this.blockPos = BlockPos.containing(position).immutable();
         this.position = position;
     }
 

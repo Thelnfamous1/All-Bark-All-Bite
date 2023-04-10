@@ -70,7 +70,7 @@ public class WolfBrain {
         return new RunIf<>(TamableAnimal::isTame, new Beg<>(Wolf::isFood, Wolf::setIsInterested, SharedWolfAi.MAX_LOOK_DIST), true);
     }
 
-    private static ImmutableList<? extends Pair<Integer, ? extends Behavior<? super Wolf>>> getCorePackage(){
+    private static ImmutableList<? extends Pair<Integer, ? extends BehaviorControl<? super Wolf>>> getCorePackage(){
         return BrainUtil.createPriorityPairs(0, ImmutableList.of(
                 new HurtByTrigger<>(SharedWolfBrain::onHurtBy),
                 new WakeUpTrigger<>(SharedWolfAi::wantsToWakeUp),
@@ -116,7 +116,7 @@ public class WolfBrain {
         return target.getType().is(ABABTags.WOLF_HUNT_TARGETS);
     }
 
-    private static ImmutableList<? extends Pair<Integer, ? extends Behavior<? super Wolf>>> getIdlePackage(){
+    private static ImmutableList<? extends Pair<Integer, ? extends BehaviorControl<? super Wolf>>> getIdlePackage(){
         return BrainUtil.createPriorityPairs(0,
                 ImmutableList.of(
                         new Sprint<>(SharedWolfAi::canMove, SharedWolfAi.TOO_FAR_FROM_WALK_TARGET),
@@ -126,7 +126,7 @@ public class WolfBrain {
                         new RunIf<>(livingEntity -> SharedWolfAi.wantsToFindShelter(livingEntity, true), new MoveToNonSkySeeingSpot(SharedWolfAi.SPEED_MODIFIER_WALKING), true),
                         new HowlForPack<>(Predicate.not(TamableAnimal::isTame), SharedWolfAi.TIME_BETWEEN_HOWLS, SharedWolfAi.ADULT_FOLLOW_RANGE.getMaxValue()),
                         new JoinOrCreatePackAndFollow<>(SharedWolfAi.ADULT_FOLLOW_RANGE, SharedWolfAi.SPEED_MODIFIER_FOLLOWING_ADULT),
-                        new BabyFollowAdult<>(SharedWolfAi.ADULT_FOLLOW_RANGE, SharedWolfAi.SPEED_MODIFIER_FOLLOWING_ADULT),
+                        BabyFollowAdult.create(SharedWolfAi.ADULT_FOLLOW_RANGE, SharedWolfAi.SPEED_MODIFIER_FOLLOWING_ADULT),
                         SharedWolfBrain.babySometimesHuntBaby(),
                         new PlayTagWithOtherBabies(SharedWolfAi.SPEED_MODIFIER_RETREATING, SharedWolfAi.SPEED_MODIFIER_CHASING),
                         SharedWolfAi.createGoToWantedItem(false),
@@ -140,17 +140,17 @@ public class WolfBrain {
     private static RunOne<Wolf> createIdleLookBehaviors() {
         return new RunOne<>(
                 ImmutableList.of(
-                        Pair.of(new SetEntityLookTarget(EntityType.WOLF, SharedWolfAi.MAX_LOOK_DIST), 1),
-                        Pair.of(new SetEntityLookTarget(SharedWolfAi.MAX_LOOK_DIST), 1),
+                        Pair.of(SetEntityLookTarget.create(EntityType.WOLF, SharedWolfAi.MAX_LOOK_DIST), 1),
+                        Pair.of(SetEntityLookTarget.create(SharedWolfAi.MAX_LOOK_DIST), 1),
                         Pair.of(new DoNothing(30, 60), 1)));
     }
 
     private static RunOne<Wolf> createIdleMovementBehaviors() {
         return new RunOne<>(
                 ImmutableList.of(
-                        Pair.of(new RandomStroll(SharedWolfAi.SPEED_MODIFIER_WALKING), 3),
+                        Pair.of(RandomStroll.stroll(SharedWolfAi.SPEED_MODIFIER_WALKING), 3),
                         Pair.of(InteractWith.of(EntityType.WOLF, SharedWolfAi.INTERACTION_RANGE, MemoryModuleType.INTERACTION_TARGET, SharedWolfAi.SPEED_MODIFIER_WALKING, SharedWolfAi.CLOSE_ENOUGH_TO_INTERACT), 2),
-                        Pair.of(new SetWalkTargetFromLookTarget(SharedWolfAi.SPEED_MODIFIER_WALKING, SharedWolfAi.CLOSE_ENOUGH_TO_LOOK_TARGET), 2),
+                        Pair.of(SetWalkTargetFromLookTarget.create(SharedWolfAi.SPEED_MODIFIER_WALKING, SharedWolfAi.CLOSE_ENOUGH_TO_LOOK_TARGET), 2),
                         Pair.of(new DoNothing(30, 60), 1)));
     }
 }

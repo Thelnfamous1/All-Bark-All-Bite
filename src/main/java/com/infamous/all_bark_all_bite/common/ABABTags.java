@@ -2,7 +2,7 @@ package com.infamous.all_bark_all_bite.common;
 
 import com.infamous.all_bark_all_bite.AllBarkAllBite;
 import com.infamous.all_bark_all_bite.common.registry.ABABEntityTypes;
-import net.minecraft.core.Registry;
+import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.tags.BlockTags;
 import net.minecraft.tags.ItemTags;
@@ -41,7 +41,7 @@ public class ABABTags {
     }
 
     public static TagKey<EntityType<?>> createEntityTypeTag(ResourceLocation location) {
-        return TagKey.create(Registry.ENTITY_TYPE_REGISTRY, location);
+        return TagKey.create(Registries.ENTITY_TYPE, location);
     }
 
     private static TagKey<EntityType<?>> createEntityTypeTag(String path) {
@@ -49,14 +49,14 @@ public class ABABTags {
     }
 
     private static TagKey<GameEvent> createGameEventTag(String path) {
-        return TagKey.create(Registry.GAME_EVENT_REGISTRY, new ResourceLocation(AllBarkAllBite.MODID, path));
+        return TagKey.create(Registries.GAME_EVENT, new ResourceLocation(AllBarkAllBite.MODID, path));
     }
 
     private static TagKey<Instrument> createInstrumentTag(String path) {
-        return TagKey.create(Registry.INSTRUMENT_REGISTRY, new ResourceLocation(AllBarkAllBite.MODID, path));
+        return TagKey.create(Registries.INSTRUMENT, new ResourceLocation(AllBarkAllBite.MODID, path));
     }
 
     private static TagKey<Structure> createStructureTag(String path) {
-        return TagKey.create(Registry.STRUCTURE_REGISTRY, new ResourceLocation(AllBarkAllBite.MODID, path));
+        return TagKey.create(Registries.STRUCTURE, new ResourceLocation(AllBarkAllBite.MODID, path));
     }
 }

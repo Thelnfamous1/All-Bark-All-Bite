@@ -3,6 +3,7 @@ package com.infamous.all_bark_all_bite.data;
 import com.infamous.all_bark_all_bite.AllBarkAllBite;
 import com.infamous.all_bark_all_bite.common.ABABTags;
 import com.infamous.all_bark_all_bite.common.registry.ABABInstruments;
+import net.minecraft.core.HolderLookup;
 import net.minecraft.data.DataGenerator;
 import net.minecraft.data.tags.InstrumentTagsProvider;
 import net.minecraftforge.common.data.ExistingFileHelper;
@@ -18,7 +19,7 @@ public class ABABInstrumentTagsProvider extends InstrumentTagsProvider {
     }
 
     @Override
-    protected void addTags() {
+    protected void addTags(HolderLookup.Provider provider) {
         this.tag(ABABTags.WHISTLES)
                 .add(ABABInstruments.ATTACK_WHISTLE.get())
                 .add(ABABInstruments.COME_WHISTLE.get())

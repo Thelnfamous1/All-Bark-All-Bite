@@ -28,9 +28,9 @@ public class VillagerGoalPackagesMixin {
     }
 
     @Inject(at = @At("RETURN"), method = "getFullLookBehavior")
-    private static void handleGetFullLookBehavior(CallbackInfoReturnable<Pair<Integer, Behavior<LivingEntity>>> cir){
+    private static void handleGetFullLookBehavior(CallbackInfoReturnable<Pair<Integer, BehaviorControl<LivingEntity>>> cir){
         if(cir.getReturnValue().getSecond() instanceof RunOne<?> runOne){
-            BrainUtil.getGateBehaviors(runOne).add(new SetEntityLookTarget(ABABEntityTypes.DOG.get(), 8.0F), 8);
+            BrainUtil.getGateBehaviors(runOne).add(SetEntityLookTarget.create(ABABEntityTypes.DOG.get(), 8.0F), 8);
         }
     }
 }

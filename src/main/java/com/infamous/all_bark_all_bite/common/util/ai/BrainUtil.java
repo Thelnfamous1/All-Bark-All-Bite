@@ -8,6 +8,7 @@ import com.mojang.datafixers.util.Pair;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.Brain;
 import net.minecraft.world.entity.ai.behavior.Behavior;
+import net.minecraft.world.entity.ai.behavior.BehaviorControl;
 import net.minecraft.world.entity.ai.behavior.GateBehavior;
 import net.minecraft.world.entity.ai.behavior.ShufflingList;
 import net.minecraft.world.entity.ai.memory.MemoryModuleType;
@@ -36,22 +37,22 @@ public class BrainUtil {
         return ReflectionUtil.getField(BRAIN_AVAILABLE_BEHAVIORS_BY_PRIORITY, Brain.class, brain);
     }
 
-    public static <E extends LivingEntity> ShufflingList<Behavior<? super E>> getGateBehaviors(GateBehavior<E> gateBehavior){
+    public static <E extends LivingEntity> ShufflingList<BehaviorControl<? super E>> getGateBehaviors(GateBehavior<E> gateBehavior){
         return ReflectionUtil.getField(GATE_BEHAVIOR_BEHAVIORS, GateBehavior.class, gateBehavior);
     }
 
-    public static <E extends LivingEntity> ImmutableList<? extends Pair<Integer, ? extends Behavior<? super E>>> createPriorityPairs(int priorityStart, ImmutableList<? extends Behavior<? super E>> behaviors) {
+    public static <E extends LivingEntity> ImmutableList<? extends Pair<Integer, ? extends BehaviorControl<? super E>>> createPriorityPairs(int priorityStart, ImmutableList<? extends BehaviorControl<? super E>> behaviors) {
         int i = priorityStart;
-        ImmutableList.Builder<Pair<Integer, ? extends Behavior<? super E>>> builder = ImmutableList.builder();
+        ImmutableList.Builder<Pair<Integer, ? extends BehaviorControl<? super E>>> builder = ImmutableList.builder();
 
-        for(Behavior<? super E> behavior : behaviors) {
+        for(BehaviorControl<? super E> behavior : behaviors) {
             builder.add(Pair.of(i++, behavior));
         }
 
         return builder.build();
     }
 
-    public static <E extends LivingEntity> GateBehavior<E> tryAllBehaviorsInOrderIfAbsent(List<Behavior<? super E>> behaviors, MemoryModuleType<?>... entryTypes){
+    public static <E extends LivingEntity> GateBehavior<E> tryAllBehaviorsInOrderIfAbsent(List<BehaviorControl<? super E>> behaviors, MemoryModuleType<?>... entryTypes){
         ImmutableMap.Builder<MemoryModuleType<?>, MemoryStatus> entryConditions = ImmutableMap.builder();
         for(MemoryModuleType<?> type : entryTypes){
             entryConditions.put(type, MemoryStatus.VALUE_ABSENT);
@@ -65,9 +66,9 @@ public class BrainUtil {
                 basicWeightedBehaviors(behaviors));
     }
 
-    private static <E extends LivingEntity> ImmutableList<Pair<Behavior<? super E>, Integer>> basicWeightedBehaviors(List<Behavior<? super E>> behaviors){
-        ImmutableList.Builder<Pair<Behavior<? super E>, Integer>> weightedBehaviors = ImmutableList.builder();
-        for(Behavior<? super E> behavior : behaviors){
+    private static <E extends LivingEntity> ImmutableList<Pair<? extends BehaviorControl<? super E>, Integer>> basicWeightedBehaviors(List<BehaviorControl<? super E>> behaviors){
+        ImmutableList.Builder<Pair<? extends BehaviorControl<? super E>, Integer>> weightedBehaviors = ImmutableList.builder();
+        for(BehaviorControl<? super E> behavior : behaviors){
             weightedBehaviors.add(Pair.of(behavior, 1));
         }
         return weightedBehaviors.build();
