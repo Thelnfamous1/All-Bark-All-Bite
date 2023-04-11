@@ -12,6 +12,7 @@
     "PathfinderMobMixin",
     "StructureTemplatePoolAccessor",
     "SwimMixin",
+    "VibrationListenerAccessor",
     "VillagerGoalPackagesMixin",
     "WolfAccessor",
     "WolfMixin"

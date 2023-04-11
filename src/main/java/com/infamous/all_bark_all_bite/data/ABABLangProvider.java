@@ -15,7 +15,7 @@ import net.minecraftforge.registries.RegistryObject;
 
 public class ABABLangProvider extends LanguageProvider {
     public ABABLangProvider(DataGenerator gen) {
-        super(gen, AllBarkAllBite.MODID, "en_us");
+        super(gen.getPackOutput(), AllBarkAllBite.MODID, "en_us");
     }
 
     public static ABABLangProvider create(DataGenerator gen){

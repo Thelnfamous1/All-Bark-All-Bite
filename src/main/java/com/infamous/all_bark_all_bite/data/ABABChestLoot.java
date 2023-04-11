@@ -2,6 +2,7 @@ package com.infamous.all_bark_all_bite.data;
 
 import com.infamous.all_bark_all_bite.common.ABABTags;
 import com.infamous.all_bark_all_bite.common.registry.ABABItems;
+import net.minecraft.data.loot.LootTableSubProvider;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.block.Blocks;
@@ -14,10 +15,10 @@ import net.minecraft.world.level.storage.loot.functions.SetItemCountFunction;
 import net.minecraft.world.level.storage.loot.providers.number.UniformGenerator;
 
 import java.util.function.BiConsumer;
-import java.util.function.Consumer;
 
-public class ABABChestLoot implements Consumer<BiConsumer<ResourceLocation, LootTable.Builder>> {
-   public void accept(BiConsumer<ResourceLocation, LootTable.Builder> biConsumer) {
+public class ABABChestLoot implements LootTableSubProvider {
+   @Override
+   public void generate(BiConsumer<ResourceLocation, LootTable.Builder> biConsumer) {
       biConsumer.accept(
               ABABBuiltInLootTables.KENNEL_HOUNDMASTER,
               LootTable.lootTable()

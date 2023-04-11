@@ -25,6 +25,7 @@ import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.TamableAnimal;
 import net.minecraft.world.entity.ai.Brain;
 import net.minecraft.world.entity.ai.behavior.*;
+import net.minecraft.world.entity.ai.behavior.declarative.BehaviorBuilder;
 import net.minecraft.world.entity.ai.memory.MemoryModuleType;
 import net.minecraft.world.entity.animal.Wolf;
 import net.minecraft.world.entity.schedule.Activity;
@@ -66,8 +67,8 @@ public class WolfBrain {
         return brainMaker.makeBrain(Activity.IDLE);
     }
 
-    private static RunIf<Wolf> beg() {
-        return new RunIf<>(TamableAnimal::isTame, new Beg<>(Wolf::isFood, Wolf::setIsInterested, SharedWolfAi.MAX_LOOK_DIST), true);
+    private static RunBehaviorIf<Wolf> beg() {
+        return new RunBehaviorIf<>(TamableAnimal::isTame, new Beg<>(Wolf::isFood, Wolf::setIsInterested, SharedWolfAi.MAX_LOOK_DIST));
     }
 
     private static ImmutableList<? extends Pair<Integer, ? extends BehaviorControl<? super Wolf>>> getCorePackage(){
@@ -121,9 +122,9 @@ public class WolfBrain {
                 ImmutableList.of(
                         new Sprint<>(SharedWolfAi::canMove, SharedWolfAi.TOO_FAR_FROM_WALK_TARGET),
                         new Eat(SharedWolfAi::setAteRecently),
-                        new RunIf<>(WolfAi::isTrusting, new FollowTemptation(SharedWolfAi::getSpeedModifierTempted), true),
+                        new RunBehaviorIf<>(WolfAi::isTrusting, new FollowTemptation(SharedWolfAi::getSpeedModifierTempted)),
                         SharedWolfBrain.createBreedBehavior(EntityType.WOLF),
-                        new RunIf<>(livingEntity -> SharedWolfAi.wantsToFindShelter(livingEntity, true), new MoveToNonSkySeeingSpot(SharedWolfAi.SPEED_MODIFIER_WALKING), true),
+                        BehaviorBuilder.triggerIf(livingEntity -> SharedWolfAi.wantsToFindShelter(livingEntity, true), MoveToNonSkySeeingSpot.create(SharedWolfAi.SPEED_MODIFIER_WALKING)),
                         new HowlForPack<>(Predicate.not(TamableAnimal::isTame), SharedWolfAi.TIME_BETWEEN_HOWLS, SharedWolfAi.ADULT_FOLLOW_RANGE.getMaxValue()),
                         new JoinOrCreatePackAndFollow<>(SharedWolfAi.ADULT_FOLLOW_RANGE, SharedWolfAi.SPEED_MODIFIER_FOLLOWING_ADULT),
                         BabyFollowAdult.create(SharedWolfAi.ADULT_FOLLOW_RANGE, SharedWolfAi.SPEED_MODIFIER_FOLLOWING_ADULT),

@@ -11,9 +11,11 @@ import net.minecraftforge.common.data.BlockTagsProvider;
 import net.minecraftforge.common.data.ExistingFileHelper;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.concurrent.CompletableFuture;
+
 public class ABABBlockTagProvider extends BlockTagsProvider {
-    public ABABBlockTagProvider(DataGenerator generator, @Nullable ExistingFileHelper existingFileHelper) {
-        super(generator, AllBarkAllBite.MODID, existingFileHelper);
+    public ABABBlockTagProvider(DataGenerator generator, CompletableFuture<HolderLookup.Provider> lookupProvider, @Nullable ExistingFileHelper existingFileHelper) {
+        super(generator.getPackOutput(), lookupProvider, AllBarkAllBite.MODID, existingFileHelper);
     }
 
     @Override

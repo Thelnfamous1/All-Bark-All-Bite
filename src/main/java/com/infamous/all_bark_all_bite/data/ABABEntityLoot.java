@@ -3,8 +3,9 @@ package com.infamous.all_bark_all_bite.data;
 import com.infamous.all_bark_all_bite.common.ABABTags;
 import com.infamous.all_bark_all_bite.common.registry.ABABEntityTypes;
 import com.infamous.all_bark_all_bite.common.registry.ABABItems;
-import net.minecraft.data.loot.EntityLoot;
+import net.minecraft.data.loot.EntityLootSubProvider;
 import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.flag.FeatureFlags;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.storage.loot.LootPool;
 import net.minecraft.world.level.storage.loot.LootTable;
@@ -17,12 +18,14 @@ import net.minecraft.world.level.storage.loot.providers.number.ConstantValue;
 import net.minecraft.world.level.storage.loot.providers.number.UniformGenerator;
 import net.minecraftforge.registries.RegistryObject;
 
-import java.util.stream.Collectors;
+public class ABABEntityLoot extends EntityLootSubProvider {
 
-public class ABABEntityLoot extends EntityLoot {
+    protected ABABEntityLoot() {
+        super(FeatureFlags.REGISTRY.allFlags());
+    }
 
     @Override
-    protected void addTables() {
+    public void generate() {
         this.add(ABABEntityTypes.DOG.get(), LootTable.lootTable());
         this.add(ABABEntityTypes.ILLAGER_HOUND.get(), LootTable.lootTable());
         this.add(ABABEntityTypes.HOUNDMASTER.get(), LootTable.lootTable()
@@ -37,7 +40,7 @@ public class ABABEntityLoot extends EntityLoot {
     }
 
     @Override
-    protected Iterable<EntityType<?>> getKnownEntities() {
-        return ABABEntityTypes.ENTITY_TYPES.getEntries().stream().map(RegistryObject::get).collect(Collectors.toList());
+    protected java.util.stream.Stream<EntityType<?>> getKnownEntityTypes() {
+        return ABABEntityTypes.ENTITY_TYPES.getEntries().stream().map(RegistryObject::get);
     }
 }

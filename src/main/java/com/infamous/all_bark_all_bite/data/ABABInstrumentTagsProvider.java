@@ -9,24 +9,26 @@ import net.minecraft.data.tags.InstrumentTagsProvider;
 import net.minecraftforge.common.data.ExistingFileHelper;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.concurrent.CompletableFuture;
+
 public class ABABInstrumentTagsProvider extends InstrumentTagsProvider {
-    public ABABInstrumentTagsProvider(DataGenerator generator, @Nullable ExistingFileHelper existingFileHelper) {
-        super(generator, AllBarkAllBite.MODID, existingFileHelper);
+    public ABABInstrumentTagsProvider(DataGenerator generator, CompletableFuture<HolderLookup.Provider> lookupProvider, @Nullable ExistingFileHelper existingFileHelper) {
+        super(generator.getPackOutput(), lookupProvider, AllBarkAllBite.MODID, existingFileHelper);
     }
 
-    public static ABABInstrumentTagsProvider create(DataGenerator generator, @Nullable ExistingFileHelper existingFileHelper){
-        return new ABABInstrumentTagsProvider(generator, existingFileHelper);
+    public static ABABInstrumentTagsProvider create(DataGenerator generator, CompletableFuture<HolderLookup.Provider> lookupProvider, @Nullable ExistingFileHelper existingFileHelper){
+        return new ABABInstrumentTagsProvider(generator, lookupProvider, existingFileHelper);
     }
 
     @Override
     protected void addTags(HolderLookup.Provider provider) {
         this.tag(ABABTags.WHISTLES)
-                .add(ABABInstruments.ATTACK_WHISTLE.get())
-                .add(ABABInstruments.COME_WHISTLE.get())
-                .add(ABABInstruments.FOLLOW_WHISTLE.get())
-                .add(ABABInstruments.FREE_WHISTLE.get())
-                .add(ABABInstruments.GO_WHISTLE.get())
-                .add(ABABInstruments.HEEL_WHISTLE.get())
-                .add(ABABInstruments.SIT_WHISTLE.get());
+                .add(ABABInstruments.ATTACK_WHISTLE.getKey())
+                .add(ABABInstruments.COME_WHISTLE.getKey())
+                .add(ABABInstruments.FOLLOW_WHISTLE.getKey())
+                .add(ABABInstruments.FREE_WHISTLE.getKey())
+                .add(ABABInstruments.GO_WHISTLE.getKey())
+                .add(ABABInstruments.HEEL_WHISTLE.getKey())
+                .add(ABABInstruments.SIT_WHISTLE.getKey());
     }
 }

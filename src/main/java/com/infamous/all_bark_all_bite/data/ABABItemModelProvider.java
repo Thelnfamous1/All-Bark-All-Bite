@@ -10,7 +10,7 @@ import net.minecraftforge.registries.RegistryObject;
 
 public class ABABItemModelProvider extends ItemModelProvider {
     public ABABItemModelProvider(DataGenerator generator, ExistingFileHelper existingFileHelper) {
-        super(generator, AllBarkAllBite.MODID, existingFileHelper);
+        super(generator.getPackOutput(), AllBarkAllBite.MODID, existingFileHelper);
     }
 
     public static ABABItemModelProvider create(DataGenerator generator, ExistingFileHelper existingFileHelper){

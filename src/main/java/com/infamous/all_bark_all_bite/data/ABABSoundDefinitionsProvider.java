@@ -15,7 +15,7 @@ public class ABABSoundDefinitionsProvider extends SoundDefinitionsProvider {
     private static final double SEMITONE_MULTIPLIER = 1.06D;
 
     public ABABSoundDefinitionsProvider(DataGenerator generator, ExistingFileHelper helper) {
-        super(generator, AllBarkAllBite.MODID, helper);
+        super(generator.getPackOutput(), AllBarkAllBite.MODID, helper);
     }
 
     public static ABABSoundDefinitionsProvider create(DataGenerator generator, ExistingFileHelper existingFileHelper) {

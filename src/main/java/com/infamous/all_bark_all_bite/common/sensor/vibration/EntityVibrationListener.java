@@ -1,5 +1,6 @@
 package com.infamous.all_bark_all_bite.common.sensor.vibration;
 
+import com.infamous.all_bark_all_bite.mixin.VibrationListenerAccessor;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import net.minecraft.util.ExtraCodecs;
@@ -23,11 +24,11 @@ public class EntityVibrationListener<E extends LivingEntity, VLC extends EntityV
                         PositionSource.CODEC.fieldOf("source").forGetter((evl) -> evl.listenerSource),
                         ExtraCodecs.NON_NEGATIVE_INT.fieldOf("range").forGetter((evl) -> evl.listenerRange),
                         VibrationInfo.CODEC.optionalFieldOf("event").forGetter((evl) -> Optional.ofNullable(evl.currentVibration)),
-                        VibrationSelector.CODEC.fieldOf("selector").forGetter((evl) -> evl.selectionStrategy),
+                        VibrationSelector.CODEC.fieldOf("selector").forGetter((evl) -> ((VibrationListenerAccessor)evl).getSelectionStrategy()),
                         ExtraCodecs.NON_NEGATIVE_INT.fieldOf("event_delay").orElse(0).forGetter((evl) -> evl.travelTimeInTicks))
                         .apply(builder,
                                 (source, range, event, selector, eventDelay) ->
-                                        new EntityVibrationListenerConfig(source, range, listenerConfigFactory.create(), event.orElse(null), selector, eventDelay)));
+                                        new EntityVibrationListener<>(source, range, listenerConfigFactory.create(), event.orElse(null), selector, eventDelay)));
     }
 
     @SuppressWarnings("unchecked")

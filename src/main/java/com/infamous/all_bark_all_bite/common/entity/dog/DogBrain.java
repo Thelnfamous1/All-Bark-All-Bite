@@ -30,6 +30,7 @@ import net.minecraft.sounds.SoundEvents;
 import net.minecraft.world.entity.*;
 import net.minecraft.world.entity.ai.Brain;
 import net.minecraft.world.entity.ai.behavior.*;
+import net.minecraft.world.entity.ai.behavior.declarative.BehaviorBuilder;
 import net.minecraft.world.entity.ai.memory.MemoryModuleType;
 import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.entity.schedule.Activity;
@@ -106,13 +107,13 @@ public class DogBrain {
         DogAi.getSoundForCurrentActivity(dog).ifPresent(se -> AiUtil.playSoundEvent(dog, se));
     }
 
-    private static ImmutableList<? extends Pair<Integer, ? extends Behavior<? super Dog>>> getCorePackage(){
+    private static ImmutableList<? extends Pair<Integer, ? extends BehaviorControl<? super Dog>>> getCorePackage(){
         return BrainUtil.createPriorityPairs(0, ImmutableList.of(
                 new HurtByTrigger<>(SharedWolfBrain::onHurtBy),
                 new WakeUpTrigger<>(SharedWolfAi::wantsToWakeUp),
                 new Swim(SharedWolfAi.JUMP_CHANCE_IN_WATER),
                 SharedWolfBrain.createAnimalPanic(),
-                new RunIf<>(TamableAnimal::isTame, new StartItemActivityWithItemIfSeen<>(DogBrain::canFetchItemEntity, ABABMemoryModuleTypes.FETCHING_ITEM.get(), ABABMemoryModuleTypes.FETCHING_DISABLED.get(), ABABMemoryModuleTypes.DISABLE_WALK_TO_FETCH_ITEM.get())),
+                BehaviorBuilder.triggerIf(TamableAnimal::isTame, StartItemActivityWithItemIfSeen.create(DogBrain::canFetchItemEntity, ABABMemoryModuleTypes.FETCHING_ITEM.get(), ABABMemoryModuleTypes.FETCHING_DISABLED.get(), ABABMemoryModuleTypes.DISABLE_WALK_TO_FETCH_ITEM.get())),
                 SharedWolfBrain.createLookAtTargetSink(),
                 SharedWolfBrain.createMoveToTargetSink(),
                 SharedWolfBrain.copyToAvoidTarget(ABABMemoryModuleTypes.NEAREST_VISIBLE_DISLIKED.get()),
@@ -200,7 +201,7 @@ public class DogBrain {
                         new Sprint<>(SharedWolfAi::canMove),
                         SharedWolfAi.createGoToWantedItem(true),
                         new GiveItemToTarget<>(LivingEntity::getMainHandItem, AiUtil::getOwner, SharedWolfAi.CLOSE_ENOUGH_TO_OWNER, DogBrain::onItemThrown),
-                        new RunIf<>(DogBrain::canReturnItemToOwner, SharedWolfAi.createFollowOwner(SharedWolfAi.SPEED_MODIFIER_FETCHING), true),
+                        new RunBehaviorIf<>(DogBrain::canReturnItemToOwner, SharedWolfAi.createFollowOwner(SharedWolfAi.SPEED_MODIFIER_FETCHING)),
                         new StopItemActivityIfItemTooFarAway<>(DogBrain::isNotHoldingItem, SharedWolfAi.MAX_FETCH_DISTANCE, ABABMemoryModuleTypes.FETCHING_ITEM.get()),
                         new StopItemActivityIfTiredOfTryingToReachItem<>(DogBrain::isNotHoldingItem, SharedWolfAi.MAX_TIME_TO_REACH_ITEM, SharedWolfAi.DISABLE_FETCH_TIME, ABABMemoryModuleTypes.FETCHING_ITEM.get(), ABABMemoryModuleTypes.TIME_TRYING_TO_REACH_FETCH_ITEM.get(), ABABMemoryModuleTypes.DISABLE_WALK_TO_FETCH_ITEM.get()),
                         EraseMemoryIf.create(DogBrain::wantsToStopFetching, ABABMemoryModuleTypes.FETCHING_ITEM.get())));
@@ -230,7 +231,7 @@ public class DogBrain {
                         new Eat(SharedWolfAi::setAteRecently),
                         new FollowTemptation(SharedWolfAi::getSpeedModifierTempted),
                         SharedWolfBrain.createBreedBehavior(ABABEntityTypes.DOG.get()),
-                        new RunIf<>(livingEntity -> SharedWolfAi.wantsToFindShelter(livingEntity, false), new MoveToNonSkySeeingSpot(SharedWolfAi.SPEED_MODIFIER_WALKING), true),
+                        BehaviorBuilder.triggerIf(livingEntity -> SharedWolfAi.wantsToFindShelter(livingEntity, false), MoveToNonSkySeeingSpot.create(SharedWolfAi.SPEED_MODIFIER_WALKING)),
                         BabyFollowAdult.create(SharedWolfAi.ADULT_FOLLOW_RANGE, SharedWolfAi.SPEED_MODIFIER_FOLLOWING_ADULT),
                         SharedWolfBrain.babySometimesHuntBaby(),
                         new PlayTagWithOtherBabies(SharedWolfAi.SPEED_MODIFIER_RETREATING, SharedWolfAi.SPEED_MODIFIER_CHASING),
@@ -259,7 +260,7 @@ public class DogBrain {
                         Pair.of(InteractWith.of(ABABEntityTypes.DOG.get(), SharedWolfAi.INTERACTION_RANGE, MemoryModuleType.INTERACTION_TARGET, SharedWolfAi.SPEED_MODIFIER_WALKING, SharedWolfAi.CLOSE_ENOUGH_TO_INTERACT), 2),
                         Pair.of(InteractWith.of(EntityType.PLAYER, SharedWolfAi.INTERACTION_RANGE, MemoryModuleType.INTERACTION_TARGET, SharedWolfAi.SPEED_MODIFIER_WALKING, SharedWolfAi.CLOSE_ENOUGH_TO_INTERACT), 2),
                         Pair.of(InteractWith.of(EntityType.VILLAGER, SharedWolfAi.INTERACTION_RANGE, MemoryModuleType.INTERACTION_TARGET, SharedWolfAi.SPEED_MODIFIER_WALKING, SharedWolfAi.CLOSE_ENOUGH_TO_INTERACT), 2),
-                        Pair.of(new RunIf<>(Predicate.not(GenericAi::seesPlayerHoldingWantedItem), SetWalkTargetFromLookTarget.create(SharedWolfAi.SPEED_MODIFIER_WALKING, SharedWolfAi.CLOSE_ENOUGH_TO_LOOK_TARGET)), 2),
+                        Pair.of(BehaviorBuilder.triggerIf(Predicate.not(GenericAi::seesPlayerHoldingWantedItem), SetWalkTargetFromLookTarget.create(SharedWolfAi.SPEED_MODIFIER_WALKING, SharedWolfAi.CLOSE_ENOUGH_TO_LOOK_TARGET)), 2),
                         Pair.of(new DoNothing(30, 60), 1)));
     }
 
