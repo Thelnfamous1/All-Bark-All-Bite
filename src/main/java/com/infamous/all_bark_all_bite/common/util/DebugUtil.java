@@ -15,11 +15,11 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.util.StringUtil;
 import net.minecraft.world.Container;
 import net.minecraft.world.Nameable;
-import net.minecraft.world.damagesource.EntityDamageSource;
+import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.Brain;
-import net.minecraft.world.entity.ai.behavior.Behavior;
+import net.minecraft.world.entity.ai.behavior.BehaviorControl;
 import net.minecraft.world.entity.ai.behavior.BlockPosTracker;
 import net.minecraft.world.entity.ai.behavior.EntityTracker;
 import net.minecraft.world.entity.ai.gossip.GossipType;
@@ -140,7 +140,7 @@ public class DebugUtil {
 
     private static void writeBehaviors(FriendlyByteBuf byteBuf, Brain<?> brain) {
         Set<String> runningBehaviors = brain.getRunningBehaviors().stream()
-                .map(Behavior::toString)
+                .map(BehaviorControl::debugString)
                 .collect(Collectors.toSet());
         byteBuf.writeCollection(runningBehaviors, FriendlyByteBuf::writeUtf);
     }
@@ -269,8 +269,8 @@ public class DebugUtil {
             return getShortDescription(level, ((GlobalPos)value).pos());
         } else if (value instanceof BlockPosTracker) {
             return getShortDescription(level, ((BlockPosTracker)value).currentBlockPosition());
-        } else if (value instanceof EntityDamageSource) {
-            Entity entity = ((EntityDamageSource)value).getEntity();
+        } else if (value instanceof DamageSource) {
+            Entity entity = ((DamageSource)value).getEntity();
             return entity == null ? value.toString() : getShortDescription(level, entity);
         } else if (!(value instanceof Collection<?> collection)) {
             return value.toString();

@@ -148,9 +148,9 @@ dependencies {
     implementation fg.deobf("curse.maven:domesticationinnovation-591149:${domesticationinnovation_version}")
     implementation fg.deobf("curse.maven:citadel-331936:${citadel_version}")
     implementation fg.deobf("curse.maven:illagersweararmor-407488:${illagersweararmor_version}")
-    implementation fg.deobf("curse.maven:mutantmore-831753:${mutantmore_version}")
-    implementation fg.deobf("curse.maven:geckolib-388172:${geckolib_version}")
-    implementation fg.deobf("curse.maven:farmersdelight-398521:${farmersdelight_version}")
+    compileOnly fg.deobf("curse.maven:mutantmore-831753:${mutantmore_version}")
+    compileOnly fg.deobf("curse.maven:geckolib-388172:${geckolib_version}")
+    //runtimeOnly fg.deobf("curse.maven:farmersdelight-398521:${farmersdelight_version}")
 
     // Real mod deobf dependency examples - these get remapped to your current mappings
     // compileOnly fg.deobf("mezz.jei:jei-${mc_version}:${jei_version}:api") // Adds JEI API as a compile dependency

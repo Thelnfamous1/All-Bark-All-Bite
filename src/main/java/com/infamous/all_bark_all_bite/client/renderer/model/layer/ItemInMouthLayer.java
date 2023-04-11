@@ -3,7 +3,7 @@ package com.infamous.all_bark_all_bite.client.renderer.model.layer;
 import com.infamous.all_bark_all_bite.client.renderer.model.animation.DogAnimation;
 import com.infamous.all_bark_all_bite.client.renderer.model.animation.WolfAnimation;
 import com.mojang.blaze3d.vertex.PoseStack;
-import com.mojang.math.Vector3f;
+import com.mojang.math.Axis;
 import net.minecraft.client.animation.KeyframeAnimations;
 import net.minecraft.client.model.AgeableListModel;
 import net.minecraft.client.model.EntityModel;
@@ -11,11 +11,12 @@ import net.minecraft.client.model.HeadedModel;
 import net.minecraft.client.model.geom.ModelPart;
 import net.minecraft.client.renderer.ItemInHandRenderer;
 import net.minecraft.client.renderer.MultiBufferSource;
-import net.minecraft.client.renderer.block.model.ItemTransforms;
 import net.minecraft.client.renderer.entity.RenderLayerParent;
 import net.minecraft.client.renderer.entity.layers.RenderLayer;
 import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.item.ItemDisplayContext;
 import net.minecraft.world.item.ItemStack;
+import org.joml.Vector3f;
 
 public class ItemInMouthLayer<T extends LivingEntity, M extends EntityModel<T> & HeadedModel> extends RenderLayer<T, M> {
    /**
@@ -69,8 +70,8 @@ public class ItemInMouthLayer<T extends LivingEntity, M extends EntityModel<T> &
       Vector3f mouthOffset = this.getMouthOffset();
       poseStack.translate(mouthOffset.x() / 16.0F, mouthOffset.y() / 16.0F, mouthOffset.z() / 16.0F);
 
-      poseStack.mulPose(Vector3f.XP.rotationDegrees(90.0F)); // rotates the item backwards by 90 degrees to make it horizontal
-      this.itemInHandRenderer.renderItem(entity, mainHandStack, ItemTransforms.TransformType.GROUND, false, poseStack, bufferSource, packedLight);
+      poseStack.mulPose(Axis.XP.rotationDegrees(90.0F)); // rotates the item backwards by 90 degrees to make it horizontal
+      this.itemInHandRenderer.renderItem(entity, mainHandStack, ItemDisplayContext.GROUND, false, poseStack, bufferSource, packedLight);
       poseStack.popPose();
    }
 

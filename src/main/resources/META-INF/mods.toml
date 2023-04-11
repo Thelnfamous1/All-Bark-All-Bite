@@ -82,15 +82,3 @@ A mod that overhauls the canine aspects of Minecraft.
     versionRange="[2.1.1,)"
     ordering="AFTER"
     side="BOTH"
-[[dependencies.all_bark_all_bite]]
-    modId="mutantmore"
-    mandatory=false
-    versionRange="[1.0,)"
-    ordering="AFTER"
-    side="BOTH"
-[[dependencies.all_bark_all_bite]]
-    modId="geckolib"
-    mandatory=false
-    versionRange="[3.1.40,)"
-    ordering="AFTER"
-    side="BOTH"

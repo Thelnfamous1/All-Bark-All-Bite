@@ -15,7 +15,7 @@ import net.minecraft.world.level.CustomSpawner;
 import net.minecraft.world.level.GameRules;
 import net.minecraft.world.level.NaturalSpawner;
 import net.minecraft.world.phys.AABB;
-import net.minecraftforge.common.ForgeHooks;
+import net.minecraftforge.event.ForgeEventFactory;
 
 import java.util.List;
 
@@ -79,8 +79,7 @@ public class DogSpawner implements CustomSpawner {
          return 0;
       } else {
          dog.moveTo(blockPos, 0.0F, 0.0F); // Fix MC-147659: Some witch huts spawn the incorrect cat
-         if(ForgeHooks.canEntitySpawn(dog, level, blockPos.getX(), blockPos.getY(), blockPos.getZ(), null, MobSpawnType.NATURAL) == -1) return 0;
-         dog.finalizeSpawn(level, level.getCurrentDifficultyAt(blockPos), MobSpawnType.NATURAL, null, null);
+         ForgeEventFactory.onFinalizeSpawn(dog, level, level.getCurrentDifficultyAt(blockPos), MobSpawnType.NATURAL, null, null);
          level.addFreshEntityWithPassengers(dog);
          return 1;
       }

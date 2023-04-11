@@ -78,14 +78,20 @@ public class WhistleScreen extends Screen {
     @Override
     protected void init() {
         //super.init();
-        this.minecraft.keyboardHandler.setSendRepeatsToGui(true);
+        //this.minecraft.keyboardHandler.setSendRepeatsToGui(true);
         this.leftPos = (this.width - this.imageWidth) / 2;
         this.topPos = (this.height - this.imageHeight) / 2;
-        this.unbindButton = this.addRenderableWidget(new Button(this.leftPos + UNBIND_BUTTON_X, this.topPos + UNBIND_BUTTON_Y, UNBIND_BUTTON_WIDTH, UNBIND_BUTTON_HEIGHT,
+        /*
+        new Button(this.leftPos + UNBIND_BUTTON_X, this.topPos + UNBIND_BUTTON_Y, UNBIND_BUTTON_WIDTH, UNBIND_BUTTON_HEIGHT,
                 UNBIND_BUTTON_LABEL, (button) -> {
             this.unbindWhistle();
             this.updateUnbindButton();
-        }));
+        })
+         */
+        this.unbindButton = this.addRenderableWidget(Button.builder(UNBIND_BUTTON_LABEL, (button) -> {
+            this.unbindWhistle();
+            this.updateUnbindButton();
+        }).bounds(this.leftPos + UNBIND_BUTTON_X, this.topPos + UNBIND_BUTTON_Y, UNBIND_BUTTON_WIDTH, UNBIND_BUTTON_HEIGHT).build());
         this.updateUnbindButton();
     }
 
@@ -108,7 +114,7 @@ public class WhistleScreen extends Screen {
 
     @Override
     public void removed() {
-        this.minecraft.keyboardHandler.setSendRepeatsToGui(false);
+        //this.minecraft.keyboardHandler.setSendRepeatsToGui(false);
     }
 
     @Override
@@ -126,9 +132,9 @@ public class WhistleScreen extends Screen {
         RenderSystem.setShaderTexture(0, BG_LOCATION);
         int i = this.leftPos;
         int j = this.topPos;
-        this.blit(poseStack, i, j, 0, 0, this.imageWidth, this.imageHeight);
+        blit(poseStack, i, j, 0, 0, this.imageWidth, this.imageHeight);
         int k = (int)(41.0F * this.scrollOffs);
-        this.blit(poseStack, i + 119, j + SCROLLER_HEIGHT + k, this.imageWidth + (this.isScrollBarActive() ? 0 : SCROLLER_WIDTH), 0, SCROLLER_WIDTH, SCROLLER_HEIGHT);
+        blit(poseStack, i + 119, j + SCROLLER_HEIGHT + k, this.imageWidth + (this.isScrollBarActive() ? 0 : SCROLLER_WIDTH), 0, SCROLLER_WIDTH, SCROLLER_HEIGHT);
         int instrumentsLeftPos = this.leftPos + INSTRUMENTS_X;
         int instrumentsTopPos = this.topPos + INSTRUMENTS_Y;
         int stopIndex = this.startIndex + this.getMaxDisplayButtons();
@@ -174,7 +180,7 @@ public class WhistleScreen extends Screen {
                 buttonY += INSTRUMENTS_IMAGE_SIZE_HEIGHT * 2;
             }
 
-            this.blit(poseStack, x, y - 1, 0, buttonY, INSTRUMENTS_IMAGE_SIZE_WIDTH, INSTRUMENTS_IMAGE_SIZE_HEIGHT);
+            blit(poseStack, x, y - 1, 0, buttonY, INSTRUMENTS_IMAGE_SIZE_WIDTH, INSTRUMENTS_IMAGE_SIZE_HEIGHT);
         }
 
     }

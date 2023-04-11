@@ -46,9 +46,10 @@ public class ABABWolfRenderer extends MobRenderer<Wolf, ABABWolfModel<Wolf>> {
 
    @Override
    public ResourceLocation getTextureLocation(Wolf wolf) {
-      if(wolf.isSleeping()){
-         return WOLF_LOCATION;
-      } else if (wolf.isTame()) {
+      if(CompatUtil.isRWLoaded()){
+         return RWCompatClient.getTextureLocation(wolf);
+      }
+      if (wolf.isTame()) {
          return WOLF_TAME_LOCATION;
       } else {
          return wolf.isAngry() ? WOLF_ANGRY_LOCATION : WOLF_LOCATION;
