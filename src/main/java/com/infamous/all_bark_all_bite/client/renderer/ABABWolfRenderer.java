@@ -1,6 +1,7 @@
 package com.infamous.all_bark_all_bite.client.renderer;
 
 import com.infamous.all_bark_all_bite.client.ABABModelLayers;
+import com.infamous.all_bark_all_bite.client.compat.SMCompatClient;
 import com.infamous.all_bark_all_bite.client.renderer.model.ABABWolfModel;
 import com.infamous.all_bark_all_bite.client.renderer.model.layer.ABABWolfCollarLayer;
 import com.infamous.all_bark_all_bite.client.renderer.model.layer.ItemInMouthLayer;
@@ -48,6 +49,10 @@ public class ABABWolfRenderer extends MobRenderer<Wolf, ABABWolfModel<Wolf>> {
    public ResourceLocation getTextureLocation(Wolf wolf) {
       if(CompatUtil.isRWLoaded()){
          return RWCompatClient.getTextureLocation(wolf);
+      }
+      if(CompatUtil.isSMLoaded()){
+         ResourceLocation blackWolfTexture = SMCompatClient.getTextureLocation(wolf);
+         if(blackWolfTexture != null) return blackWolfTexture;
       }
       if (wolf.isTame()) {
          return WOLF_TAME_LOCATION;
