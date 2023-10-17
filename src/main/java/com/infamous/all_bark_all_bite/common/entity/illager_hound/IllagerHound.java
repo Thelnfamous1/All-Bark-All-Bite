@@ -132,8 +132,8 @@ public class IllagerHound extends Monster implements OwnableMob {
     @Override
     protected void jumpFromGround() {
         super.jumpFromGround();
-        if (!this.level.isClientSide) {
-            this.level.broadcastEntityEvent(this, EntityAnimationController.JUMPING_EVENT_ID);
+        if (!this.level().isClientSide) {
+            this.level().broadcastEntityEvent(this, EntityAnimationController.JUMPING_EVENT_ID);
         }
     }
 
@@ -149,7 +149,7 @@ public class IllagerHound extends Monster implements OwnableMob {
 
     @Override
     public boolean doHurtTarget(Entity target) {
-        this.level.broadcastEntityEvent(this, EntityAnimationController.ATTACKING_EVENT_ID);
+        this.level().broadcastEntityEvent(this, EntityAnimationController.ATTACKING_EVENT_ID);
         return super.doHurtTarget(target);
     }
 
@@ -161,12 +161,12 @@ public class IllagerHound extends Monster implements OwnableMob {
 
     @Override
     protected void customServerAiStep() {
-        this.level.getProfiler().push("houndBrain");
-        this.getBrain().tick((ServerLevel)this.level, this);
-        this.level.getProfiler().pop();
-        this.level.getProfiler().push("houndActivityUpdate");
+        this.level().getProfiler().push("houndBrain");
+        this.getBrain().tick((ServerLevel)this.level(), this);
+        this.level().getProfiler().pop();
+        this.level().getProfiler().push("houndActivityUpdate");
         IllagerHoundAi.updateActivity(this);
-        this.level.getProfiler().pop();
+        this.level().getProfiler().pop();
         super.customServerAiStep();
     }
 
@@ -174,14 +174,14 @@ public class IllagerHound extends Monster implements OwnableMob {
     protected void sendDebugPackets() {
         super.sendDebugPackets();
         DebugPackets.sendEntityBrain(this);
-        if(AllBarkAllBite.ENABLE_BRAIN_DEBUG && this.level instanceof ServerLevel serverLevel){
+        if(AllBarkAllBite.ENABLE_BRAIN_DEBUG && this.level() instanceof ServerLevel serverLevel){
             DebugUtil.sendEntityBrain(this, serverLevel, MemoryModuleType.DUMMY);
         }
     }
 
     @Override
     protected SoundEvent getAmbientSound() {
-        if (this.level.isClientSide) {
+        if (this.level().isClientSide) {
             return null;
         } else {
             return this.brain.hasMemoryValue(MemoryModuleType.ATTACK_TARGET) ? SoundEvents.WOLF_GROWL : SoundEvents.WOLF_AMBIENT;

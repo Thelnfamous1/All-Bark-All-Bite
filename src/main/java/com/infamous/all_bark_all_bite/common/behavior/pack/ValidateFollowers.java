@@ -32,11 +32,11 @@ public class ValidateFollowers extends Behavior<LivingEntity> {
     private boolean isValidFollower(Entity entity, LivingEntity leader){
         if(entity instanceof LivingEntity follower){
             return !follower.isDeadOrDying()
-                    && follower.level == leader.level
+                    && follower.level() == leader.level()
                     && PackAi.isFollower(follower)
                     && AiUtil.isSameTypeAndFriendly(leader, follower)
                     && follower.closerThan(leader, AiUtil.getFollowRange(follower))
-                    && leader.level.getWorldBorder().isWithinBounds(follower.getBoundingBox());
+                    && leader.level().getWorldBorder().isWithinBounds(follower.getBoundingBox());
         }
         return false;
     }

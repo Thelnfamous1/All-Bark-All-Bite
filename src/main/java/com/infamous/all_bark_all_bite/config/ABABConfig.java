@@ -111,6 +111,7 @@ public class ABABConfig {
     }
 
     public static ForgeConfigSpec.DoubleValue wolfRenderSizeScale;
+    public static ForgeConfigSpec.BooleanValue wolfRenderingChanges;
 
     private static void setupClientConfig(ForgeConfigSpec.Builder builder) {
         createConfigCategory(builder, " This category holds configs that uses numbers.", "Numeric Config Options", b -> {
@@ -121,10 +122,20 @@ public class ABABConfig {
                             Note: This value will be multiplied by the server-side "wolf_hitbox_size_scale" setting for logical consistency.""")
                     .defineInRange("wolf_render_size_scale", 1.0D, 1.0D, 1024.0D);
         });
+        createConfigCategory(builder, " This category holds configs that uses booleans.", "Boolean Config Options", b -> {
+            wolfRenderingChanges = b
+                    .comment("""
+                            Toggles the rendering changes of the Wolf.
+                            If set to true, the Wolf's model and animations will be changed by this mod.
+                            If set to false, the Wolf's model and animations will not be changed by this mod.""")
+                    .define("wolf_rendering_changes", true);
+
+        });
     }
     public static ForgeConfigSpec.ConfigValue<List<? extends Integer>> houndmasterRaidWaveCounts;
     public static ForgeConfigSpec.ConfigValue<List<? extends String>> dogTemplatePoolTargets;
     public static ForgeConfigSpec.ConfigValue<List<? extends String>> kennelTemplatePoolTargets;
+    public static ForgeConfigSpec.BooleanValue wolfGameplayChanges;
 
     private static void setupServerConfig(ForgeConfigSpec.Builder builder) {
         createConfigCategory(builder, " This category holds configs that uses lists.", "List Config Options", b -> {
@@ -146,6 +157,15 @@ public class ABABConfig {
                             Making this empty prevents the kennel structure from being injected into any structure template pools.""")
                     .defineListAllowEmpty(List.of("kennel_template_pool_targets"), () ->
                             List.of(new ResourceLocation("minecraft:pillager_outpost/features").toString()), waveCount -> waveCount instanceof String);
+
+        });
+        createConfigCategory(builder, " This category holds configs that uses booleans.", "Boolean Config Options", b -> {
+            wolfGameplayChanges = b
+                    .comment("""
+                            Toggles the gameplay changes of the Wolf.
+                            If set to true, the Wolf's hitbox, AI and stats will be changed by this mod.
+                            If set to false, the Wolf's hitbox, AI and stats will not be changed by this mod.""")
+                    .define("wolf_gameplay_changes", true);
 
         });
     }

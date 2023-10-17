@@ -24,35 +24,35 @@ public abstract class MobMixin extends LivingEntity {
 
     @Inject(method = "wantsToPickUp", at = @At("HEAD"), cancellable = true)
     private void handleWantsToPickUp(ItemStack stack, CallbackInfoReturnable<Boolean> cir) {
-        if(this.getType() == EntityType.WOLF){
+        if(WolfHooks.canWolfChange(this.getType(), false, false)){
             cir.setReturnValue(WolfHooks.wolfWantsToPickUp(stack, (Mob) (Object) this));
         }
     }
 
     @Inject(method = "canPickUpLoot", at = @At("RETURN"), cancellable = true)
     private void handleCanPickUpLoot(CallbackInfoReturnable<Boolean> cir) {
-        if(this.getType() == EntityType.WOLF){
+        if(WolfHooks.canWolfChange(this.getType(), false, false)){
             cir.setReturnValue(!GenericAi.isOnPickupCooldown(this));
         }
     }
 
     @Inject(method = "canTakeItem", at = @At("RETURN"), cancellable = true)
     private void handleCanTakeItem(ItemStack stack, CallbackInfoReturnable<Boolean> cir) {
-        if(this.getType() == EntityType.WOLF){
+        if(WolfHooks.canWolfChange(this.getType(), false, false)){
             cir.setReturnValue(WolfHooks.canWolfTakeItem(stack, (Mob)(Object)this, cir.getReturnValue()));
         }
     }
 
     @Inject(method = "canHoldItem", at = @At("HEAD"), cancellable = true)
     private void handleCanHoldItem(ItemStack itemStack, CallbackInfoReturnable<Boolean> cir) {
-        if(this.getType() == EntityType.WOLF && ((Mob)(Object)this) instanceof Animal animal){
+        if(WolfHooks.canWolfChange(this.getType(), false, false) && ((Mob)(Object)this) instanceof Animal animal){
             cir.setReturnValue(WolfHooks.canWolfHoldItem(itemStack, animal));
         }
     }
 
     @Inject(method = "pickUpItem", at = @At("HEAD"), cancellable = true)
     private void handlePickUpItem(ItemEntity itemEntity, CallbackInfo ci) {
-        if(this.getType() == EntityType.WOLF){
+        if(WolfHooks.canWolfChange(this.getType(), false, false)){
             ci.cancel();
             WolfHooks.onWolfPickUpItem((Mob) (Object)this, itemEntity);
         }

@@ -5,6 +5,7 @@
   "compatibilityLevel": "JAVA_17",
   "refmap": "all_bark_all_bite.refmap.json",
   "mixins": [
+    "EntityRendererDispatcherMixin",
     "LivingEntityAccessor",
     "LivingEntityMixin",
     "MobAccessor",
@@ -12,7 +13,7 @@
     "PathfinderMobMixin",
     "StructureTemplatePoolAccessor",
     "SwimMixin",
-    "VibrationListenerAccessor",
+    "VibrationDataAccessor",
     "VillagerGoalPackagesMixin",
     "WolfAccessor",
     "WolfMixin"

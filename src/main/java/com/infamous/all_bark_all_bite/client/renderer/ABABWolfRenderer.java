@@ -63,7 +63,10 @@ public class ABABWolfRenderer extends MobRenderer<Wolf, ABABWolfModel<Wolf>> {
 
    @Override
    protected void scale(Wolf wolf, PoseStack poseStack, float partialTick) {
-      float scaleFactor = ABABConfig.wolfRenderSizeScale.get().floatValue() * ABABConfig.wolfHitboxSizeScale.get().floatValue();
+      float scaleFactor = ABABConfig.wolfRenderSizeScale.get().floatValue();
+      if(ABABConfig.wolfGameplayChanges.get()){
+         scaleFactor *= ABABConfig.wolfHitboxSizeScale.get().floatValue();
+      }
       if (wolf.isBaby()) {
          scaleFactor *= 0.5F;
          this.shadowRadius = DEFAULT_SHADOW_RADIUS * 0.5F;

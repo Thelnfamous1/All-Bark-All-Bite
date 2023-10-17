@@ -40,7 +40,7 @@ public class Eat extends Behavior<Animal> {
     private boolean canEat(Animal animal, ItemStack itemStack) {
         return animal.isFood(itemStack)
                 && !animal.getBrain().hasMemoryValue(MemoryModuleType.ATTACK_TARGET)
-                && animal.isOnGround()
+                && animal.onGround()
                 && !animal.isSleeping();
     }
 

@@ -96,7 +96,7 @@ public class LongJumpAi {
        for(int stepIndex = 0; stepIndex < numSteps; ++stepIndex) {
           step = stepIndex == numSteps - 1 ? to : step.add(normDiff.scale(d0 * (double)0.9F));
           AABB boundingBox = longJumpingDimensions.makeBoundingBox(step);
-          if (!mob.level.noCollision(mob, boundingBox)) {
+          if (!mob.level().noCollision(mob, boundingBox)) {
              return false;
           }
        }

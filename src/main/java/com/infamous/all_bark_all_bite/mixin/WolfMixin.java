@@ -39,44 +39,46 @@ public abstract class WolfMixin extends TamableAnimal implements AnimalAccess, A
     public void onSyncedDataUpdated(@NotNull EntityDataAccessor<?> entityDataAccessor) {
         super.onSyncedDataUpdated(entityDataAccessor);
         if(this.animationController != null){
-            this.animationController.onSyncedDataUpdatedAnimations(entityDataAccessor);
+            if(WolfHooks.canWolfChange(this.getType(), true, true)) this.animationController.onSyncedDataUpdatedAnimations(entityDataAccessor);
         }
     }
 
     @Inject(method = "tick", at = @At("RETURN"))
     private void handleTick(CallbackInfo ci){
-        this.animationController.tickAnimations();
+        if(WolfHooks.canWolfChange(this.getType(), true, true)) this.animationController.tickAnimations();
     }
 
     @Inject(method = "aiStep", at = @At("RETURN"))
     private void handleAiStep(CallbackInfo ci){
-        this.animationController.aiStepAnimations();
+        if(WolfHooks.canWolfChange(this.getType(), true, true)) this.animationController.aiStepAnimations();
     }
 
     @Inject(method = "doHurtTarget", at = @At("HEAD"))
     private void handleDoHurtTarget(Entity target, CallbackInfoReturnable<Boolean> cir){
-        this.level.broadcastEntityEvent(this, EntityAnimationController.ATTACKING_EVENT_ID);
+        if(WolfHooks.canWolfChange(this.getType(), false, true)) this.level().broadcastEntityEvent(this, EntityAnimationController.ATTACKING_EVENT_ID);
     }
 
     @Inject(method = "setTame", at = @At("HEAD"), cancellable = true)
     private void handleSetTame(boolean tame, CallbackInfo ci){
-        super.setTame(tame);
-        ci.cancel(); // don't allow vanilla's changes to the wolf's health and attack damage upon tame
+        if(WolfHooks.canWolfChange(this.getType(), false, true)){
+            super.setTame(tame);
+            ci.cancel(); // don't allow vanilla's changes to the wolf's health and attack damage upon tame
+        }
     }
 
     @Inject(method = "canMate", at = @At("HEAD"), cancellable = true)
     private void handleCanMate(Animal partner, CallbackInfoReturnable<Boolean> cir){
-        cir.setReturnValue(WolfHooks.canWolfMate((Wolf)(Object)this, partner));
+        if(WolfHooks.canWolfChange(this.getType(), false, true)) cir.setReturnValue(WolfHooks.canWolfMate((Wolf)(Object)this, partner));
     }
 
     @Inject(method = "getAmbientSound", at = @At("HEAD"), cancellable = true)
     private void handleGetAmbientSound(CallbackInfoReturnable<SoundEvent> cir){
-        cir.setReturnValue(WolfHooks.getWolfAmbientSound((Wolf) ((Object) this)));
+        if(WolfHooks.canWolfChange(this.getType(), false, true)) cir.setReturnValue(WolfHooks.getWolfAmbientSound((Wolf) ((Object) this)));
     }
 
     @Inject(method = "handleEntityEvent", at = @At("HEAD"))
     private void handleHandleEntityEvent(byte id, CallbackInfo ci){
-        this.animationController.handleEntityEventAnimation(id);
+        if(WolfHooks.canWolfChange(this.getType(), true, true)) this.animationController.handleEntityEventAnimation(id);
     }
 
     @Override

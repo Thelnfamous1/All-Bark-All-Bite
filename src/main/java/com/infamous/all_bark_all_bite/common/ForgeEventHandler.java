@@ -7,14 +7,12 @@ import com.infamous.all_bark_all_bite.common.compat.DICompat;
 import com.infamous.all_bark_all_bite.common.entity.DogSpawner;
 import com.infamous.all_bark_all_bite.common.entity.SharedWolfAi;
 import com.infamous.all_bark_all_bite.common.entity.dog.Dog;
-import com.infamous.all_bark_all_bite.common.entity.dog.DogHooks;
 import com.infamous.all_bark_all_bite.common.entity.wolf.WolfAi;
 import com.infamous.all_bark_all_bite.common.entity.wolf.WolfHooks;
 import com.infamous.all_bark_all_bite.common.goal.LookAtTargetSinkGoal;
 import com.infamous.all_bark_all_bite.common.goal.MoveToTargetSinkGoal;
 import com.infamous.all_bark_all_bite.common.item.PetWhistleItem;
 import com.infamous.all_bark_all_bite.common.logic.ABABRaiderTypes;
-import com.infamous.all_bark_all_bite.common.registry.ABABEntityTypes;
 import com.infamous.all_bark_all_bite.common.registry.ABABItems;
 import com.infamous.all_bark_all_bite.common.util.ReflectionUtil;
 import com.infamous.all_bark_all_bite.common.util.ai.AiUtil;
@@ -24,6 +22,7 @@ import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.*;
+import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.ai.goal.AvoidEntityGoal;
 import net.minecraft.world.entity.ai.goal.target.NearestAttackableTargetGoal;
 import net.minecraft.world.entity.ai.memory.MemoryModuleType;
@@ -83,12 +82,18 @@ public class ForgeEventHandler {
         if(event.getLevel().isClientSide) return;
         Entity entity = event.getEntity();
 
+        // modify attribute values
+        if (entity instanceof Wolf wolf && WolfHooks.canWolfChange(event.getEntity().getType(), false, false)) {
+            wolf.getAttribute(Attributes.MAX_HEALTH).setBaseValue(25.0D);
+            wolf.getAttribute(Attributes.ATTACK_DAMAGE).setBaseValue(5.0D);
+        }
+
         // add dog interaction behaviors to specific mobs
         addMobDogInteractionGoals(entity);
 
         // make the Wolf brain
-        if(entity.getType() == EntityType.WOLF){
-            WolfHooks.onWolfJoinLevel((Wolf)entity, event.loadedFromDisk());
+        if(entity instanceof Wolf wolf && WolfHooks.canWolfChange(entity.getType(), false, false)){
+            WolfHooks.onWolfJoinLevel(wolf, event.loadedFromDisk());
         }
 
         // add Brain-like pathfinding behaviors for non-Brain-using pets so the "Come" and "Go" whistle commands work for them
@@ -130,21 +135,18 @@ public class ForgeEventHandler {
     @SubscribeEvent
     static void onEntitySize(EntityEvent.Size event){
         Entity entity = event.getEntity();
-        if(entity.getType() == EntityType.WOLF){
+        if(WolfHooks.canWolfChange(entity.getType(), false, true)){
             EntityDimensions resize = WolfHooks.onWolfSize(entity, event.getNewSize());
             event.setNewSize(resize, true);
-        } else if(entity.getType() == ABABEntityTypes.DOG.get()){
-            EntityDimensions newSize = DogHooks.onDogSize(entity, event.getNewSize());
-            event.setNewSize(newSize, true);
         }
     }
 
     @SubscribeEvent
     static void onLivingUpdate(LivingEvent.LivingTickEvent event){
         LivingEntity entity = event.getEntity();
-        Level level = entity.level;
+        Level level = entity.level();
         if(!event.isCanceled()
-                && entity.getType() == EntityType.WOLF
+                && WolfHooks.canWolfChange(entity.getType(), false, false)
                 && !level.isClientSide){
             WolfHooks.onWolfUpdate((Wolf)entity, (ServerLevel) level);
         }
@@ -152,7 +154,7 @@ public class ForgeEventHandler {
 
     @SubscribeEvent
     static void onLivingFall(LivingFallEvent event){
-        if(event.getEntity().getType() == EntityType.WOLF){
+        if(WolfHooks.canWolfChange(event.getEntity().getType(), false, false)){
             event.setDistance(event.getDistance() - (SharedWolfAi.FALL_REDUCTION - AiUtil.DEFAULT_FALL_REDUCTION));
         }
     }
@@ -160,7 +162,7 @@ public class ForgeEventHandler {
     @SubscribeEvent
     static void onSleepPosCheck(SleepingLocationCheckEvent event){
         EntityType<?> type = event.getEntity().getType();
-        if(type == EntityType.WOLF || type == ABABEntityTypes.DOG.get()){
+        if(WolfHooks.canWolfChange(type, false, true)){
             event.setResult(Event.Result.ALLOW);
         }
     }
@@ -173,7 +175,7 @@ public class ForgeEventHandler {
 
         Player player = event.getEntity();
         if(!player.isSpectator() && CompatUtil.isDILoaded()){
-            Level level = player.getLevel();
+            Level level = player.level();
             BlockPos blockPos = event.getPos();
             boolean noSneakBypassUse = !player.isHolding(is -> is.doesSneakBypassUse(level, blockPos, player));
             boolean sneakBypass = player.isSecondaryUseActive() && noSneakBypassUse;
@@ -201,7 +203,7 @@ public class ForgeEventHandler {
         }
 
         if(!itemStack.is(ABABTags.HAS_WOLF_INTERACTION) && !player.isSecondaryUseActive()){
-            if(target.getType() == EntityType.WOLF){
+            if(WolfHooks.canWolfChange(target.getType(), false, false)){
                 event.setCanceled(true);
                 event.setCancellationResult(AiUtil.interactOn(player, (Wolf)target, event.getHand(), WolfAi::mobInteract));
             }
@@ -211,14 +213,14 @@ public class ForgeEventHandler {
     @SubscribeEvent
     static void onBabySpawn(BabyEntitySpawnEvent event){
         AgeableMob child = event.getChild();
-        if(child != null && child.getType() == EntityType.WOLF){
+        if(child != null && WolfHooks.canWolfChange(child.getType(), false, false)){
             WolfHooks.onWolfPupSpawn((Wolf)child, event.getCausedByPlayer());
         }
     }
 
     @SubscribeEvent
     static void onItemUseStart(LivingEntityUseItemEvent.Start event){
-        if(event.getEntity().getLevel() instanceof ServerLevel serverLevel && event.getItem().is(ABABItems.WHISTLE.get())){
+        if(event.getEntity().level() instanceof ServerLevel serverLevel && event.getItem().is(ABABItems.WHISTLE.get())){
             PetWhistleItem.onItemUseStart(event.getEntity(), event.getItem(), serverLevel);
         }
     }
@@ -226,7 +228,7 @@ public class ForgeEventHandler {
     @SubscribeEvent
     static void onLivingJump(LivingEvent.LivingJumpEvent event){
         LivingEntity entity = event.getEntity();
-        if(entity.getType() == EntityType.WOLF){
+        if(WolfHooks.canWolfChange(entity.getType(), false, false)){
             WolfHooks.onWolfJump(entity);
         }
     }

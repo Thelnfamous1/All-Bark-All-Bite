@@ -254,6 +254,6 @@ public class SharedWolfBrain {
 
     public static BehaviorControl<Wolf> babySometimesHuntBaby() {
         SetEntityLookTargetSometimes.Ticker ticker = new SetEntityLookTargetSometimes.Ticker(PLAY_START_INTERVAL);
-        return CopyMemoryNoExpiry.create((wolf) -> wolf.isBaby() && ticker.tickDownAndCheck(wolf.level.random), ABABMemoryModuleTypes.NEAREST_VISIBLE_BABY.get(), ABABMemoryModuleTypes.HUNT_TARGET.get());
+        return CopyMemoryNoExpiry.create((wolf) -> wolf.isBaby() && ticker.tickDownAndCheck(wolf.level().random), ABABMemoryModuleTypes.NEAREST_VISIBLE_BABY.get(), ABABMemoryModuleTypes.HUNT_TARGET.get());
     }
 }

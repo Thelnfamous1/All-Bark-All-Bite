@@ -57,7 +57,7 @@ public class DebugUtil {
 
     private static void writeBrain(LivingEntity livingEntity, FriendlyByteBuf byteBuf, MemoryModuleType<?>... memoriesToCheck) {
         Brain<?> brain = livingEntity.getBrain();
-        long gameTime = livingEntity.level.getGameTime();
+        long gameTime = livingEntity.level().getGameTime();
         writeBrainDumpArguments(livingEntity, byteBuf, brain, gameTime);
         writeBrainDumpAdditional(livingEntity, byteBuf, brain, gameTime, memoriesToCheck);
     }
@@ -239,9 +239,9 @@ public class DebugUtil {
                 long duration = gameTime - recordedTime;
                 memory = duration + " ticks ago";
             } else if (expirableValue.canExpire()) {
-                memory = getShortDescription((ServerLevel) livingEntity.level, value) + " (ttl: " + expirableValue.getTimeToLive() + ")";
+                memory = getShortDescription((ServerLevel) livingEntity.level(), value) + " (ttl: " + expirableValue.getTimeToLive() + ")";
             } else {
-                memory = getShortDescription((ServerLevel) livingEntity.level, value);
+                memory = getShortDescription((ServerLevel) livingEntity.level(), value);
             }
         } else {
             memory = "-";

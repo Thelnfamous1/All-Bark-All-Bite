@@ -37,7 +37,7 @@ public class MoveToTargetSinkGoal extends Goal {
         WalkTarget walkTarget = this.walkTargetAccess.getWalkTarget();
         if(this.mob.isPathFinding() || walkTarget == null){
             return false;
-        } else if (this.lastAttemptTimestamp > this.mob.level.getGameTime()) {
+        } else if (this.lastAttemptTimestamp > this.mob.level().getGameTime()) {
             return false;
         } else {
             boolean flag = this.reachedTarget(this.mob, walkTarget);
@@ -55,12 +55,12 @@ public class MoveToTargetSinkGoal extends Goal {
     public void start() {
         this.mob.getNavigation().moveTo(this.path, this.speedModifier);
         int duration = 150 + this.mob.getRandom().nextInt(250 + 1 - 150);
-        this.endTimestamp = this.mob.level.getGameTime() + (long)duration;
+        this.endTimestamp = this.mob.level().getGameTime() + (long)duration;
     }
 
     @Override
     public boolean canContinueToUse() {
-        if(this.mob.level.getGameTime() > this.endTimestamp){
+        if(this.mob.level().getGameTime() > this.endTimestamp){
             return false;
         } else if (this.path != null && this.lastTargetPos != null) {
             WalkTarget walkTarget = this.walkTargetAccess.getWalkTarget();
@@ -92,7 +92,7 @@ public class MoveToTargetSinkGoal extends Goal {
     public void stop() {
         WalkTarget walkTarget = this.walkTargetAccess.getWalkTarget();
         if (walkTarget != null && !this.reachedTarget(this.mob, walkTarget) && this.mob.getNavigation().isStuck()) {
-            this.lastAttemptTimestamp = this.mob.level.getGameTime() + this.mob.getRandom().nextInt(MAX_COOLDOWN_BEFORE_RETRYING);
+            this.lastAttemptTimestamp = this.mob.level().getGameTime() + this.mob.getRandom().nextInt(MAX_COOLDOWN_BEFORE_RETRYING);
         }
 
         this.mob.getNavigation().stop();

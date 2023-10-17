@@ -7,6 +7,10 @@ import net.minecraft.world.level.gameevent.GameEvent;
 
 public class DogVibrationListenerConfig extends SharedWolfVibrationListenerConfig<Dog> {
 
+    public DogVibrationListenerConfig(int listenerRadius) {
+        super(listenerRadius);
+    }
+
     @Override
     public TagKey<GameEvent> getListenableEvents() {
         return ABABTags.DOG_CAN_LISTEN;

@@ -115,7 +115,7 @@ public class StalkAndPounce<E extends PathfinderMob> extends Behavior<E> {
     private boolean isValidStalkTarget(E mob, @Nullable LivingEntity stalkTarget) {
         return stalkTarget != null
                 && stalkTarget.isAlive()
-                && mob.level == stalkTarget.level
+                && mob.level() == stalkTarget.level()
                 && !AiUtil.isTiredOfTryingToReachTarget(mob, TIMEOUT_TO_GET_WITHIN_POUNCE_RANGE)
                 && !AiUtil.isLookingAtMe(mob, stalkTarget, INITIAL_VISION_OFFSET)
                 && !this.stopStalkingWhen.test(mob, stalkTarget);
@@ -147,7 +147,7 @@ public class StalkAndPounce<E extends PathfinderMob> extends Behavior<E> {
 
     private boolean isMidPounce(E mob){
         double yD = mob.getDeltaMovement().y;
-        return (Mth.square(yD) >= MIN_Y_DELTA || !mob.isOnGround());
+        return (Mth.square(yD) >= MIN_Y_DELTA || !mob.onGround());
     }
 
     @Override

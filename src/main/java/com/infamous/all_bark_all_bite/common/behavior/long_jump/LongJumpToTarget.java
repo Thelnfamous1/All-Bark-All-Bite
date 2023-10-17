@@ -57,7 +57,7 @@ public class LongJumpToTarget<E extends Mob> extends Behavior<E> {
 
    @Override
    protected boolean checkExtraStartConditions(ServerLevel level, E mob) {
-      boolean canStart = mob.isOnGround()
+      boolean canStart = mob.onGround()
               && !mob.isInWater()
               && !mob.isInLava()
               && !level.getBlockState(mob.blockPosition()).is(Blocks.HONEY_BLOCK)
@@ -116,7 +116,7 @@ public class LongJumpToTarget<E extends Mob> extends Behavior<E> {
       } else if (!mob.getNavigation().isStableDestination(targetPosition) && !this.acceptableLandingSpot.test(level.getBlockState(targetPosition.below()))) {
          return false;
       } else {
-         return mob.getPathfindingMalus(WalkNodeEvaluator.getBlockPathTypeStatic(mob.level, targetPosition.mutable())) == 0.0F;
+         return mob.getPathfindingMalus(WalkNodeEvaluator.getBlockPathTypeStatic(mob.level(), targetPosition.mutable())) == 0.0F;
       }
    }
 

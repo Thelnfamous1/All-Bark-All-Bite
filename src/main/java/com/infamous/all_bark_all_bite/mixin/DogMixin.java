@@ -20,7 +20,7 @@ public abstract class DogMixin extends Wolf implements HasCustomInventoryScreen,
 
     @Override
     public void openCustomInventoryScreen(Player player) {
-        if (!this.level.isClientSide && player instanceof IOpenWolfContainer openWolfContainer) {
+        if (!this.level().isClientSide && player instanceof IOpenWolfContainer openWolfContainer) {
             openWolfContainer.openWolfInventory(this, this.getContainer());
         }
     }

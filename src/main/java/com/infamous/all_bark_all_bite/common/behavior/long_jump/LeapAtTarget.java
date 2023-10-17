@@ -45,7 +45,7 @@ public class LeapAtTarget extends Behavior<PathfinderMob> {
         } else {
             LivingEntity attackTarget = GenericAi.getAttackTarget(mob).get();
             if (!mob.closerThan(attackTarget, this.tooClose) && mob.distanceToSqr(attackTarget) <= Mth.square(this.tooFar)) {
-                return mob.isOnGround();
+                return mob.onGround();
             } else {
                 return false;
             }
@@ -70,7 +70,7 @@ public class LeapAtTarget extends Behavior<PathfinderMob> {
                 }
                 case MID_LEAP -> {
                     double yD = mob.getDeltaMovement().y;
-                    return (Mth.square(yD) >= MIN_Y_DELTA || !mob.isOnGround());
+                    return (Mth.square(yD) >= MIN_Y_DELTA || !mob.onGround());
                 }
                 default -> {
                     return false;

@@ -30,13 +30,13 @@ public class LookAtTargetSinkGoal extends Goal {
     @Override
     public void start() {
         int duration = 45 + this.mob.getRandom().nextInt(90 + 1 - 45);
-        this.endTimestamp = this.mob.level.getGameTime() + (long)duration;
+        this.endTimestamp = this.mob.level().getGameTime() + (long)duration;
     }
 
     @Override
     public boolean canContinueToUse() {
         PositionTracker lookTarget = this.lookTargetAccess.getLookTarget();
-        return lookTarget != null && this.isVisibleBy(lookTarget) && this.mob.level.getGameTime() <= this.endTimestamp;
+        return lookTarget != null && this.isVisibleBy(lookTarget) && this.mob.level().getGameTime() <= this.endTimestamp;
     }
 
     private boolean isVisibleBy(PositionTracker lookTarget) {

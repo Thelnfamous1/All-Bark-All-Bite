@@ -13,9 +13,11 @@ import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.PoseStack;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.renderer.GameRenderer;
+import net.minecraft.client.renderer.entity.ItemRenderer;
 import net.minecraft.client.resources.sounds.SimpleSoundInstance;
 import net.minecraft.core.Holder;
 import net.minecraft.network.chat.Component;
@@ -50,6 +52,7 @@ public class WhistleScreen extends Screen {
     private static final int UNBIND_BUTTON_HEIGHT = 20;
     private static final int UNBIND_BUTTON_X = 9;
     private static final int UNBIND_BUTTON_Y = 32;
+    private final ItemRenderer itemRenderer;
     protected int imageWidth = 176;
     protected int imageHeight = 84;
     private final Player owner;
@@ -118,31 +121,31 @@ public class WhistleScreen extends Screen {
     }
 
     @Override
-    public void render(PoseStack poseStack, int mouseX, int mouseY, float partialTick) {
-        this.renderBg(poseStack, mouseX, mouseY);
-        this.renderTooltip(poseStack, mouseX, mouseY);
-        super.render(poseStack, mouseX, mouseY, partialTick);
+    public void render(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick) {
+        this.renderBg(guiGraphics, guiGraphics.pose(), mouseX, mouseY);
+        this.renderTooltip(guiGraphics, guiGraphics.pose(), mouseX, mouseY);
+        super.render(guiGraphics, mouseX, mouseY, partialTick);
     }
 
-    protected void renderBg(PoseStack poseStack, int mouseX, int mouseY) {
-        this.renderBackground(poseStack);
+    protected void renderBg(GuiGraphics guiGraphics, PoseStack poseStack, int mouseX, int mouseY) {
+        this.renderBackground(guiGraphics);
         this.setFocused(null);
         RenderSystem.setShader(GameRenderer::getPositionTexShader);
         RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
         RenderSystem.setShaderTexture(0, BG_LOCATION);
         int i = this.leftPos;
         int j = this.topPos;
-        blit(poseStack, i, j, 0, 0, this.imageWidth, this.imageHeight);
+        guiGraphics.blit(BG_LOCATION, i, j, 0, 0, this.imageWidth, this.imageHeight);
         int k = (int)(41.0F * this.scrollOffs);
-        blit(poseStack, i + 119, j + SCROLLER_HEIGHT + k, this.imageWidth + (this.isScrollBarActive() ? 0 : SCROLLER_WIDTH), 0, SCROLLER_WIDTH, SCROLLER_HEIGHT);
+        guiGraphics.blit(BG_LOCATION, i + 119, j + SCROLLER_HEIGHT + k, this.imageWidth + (this.isScrollBarActive() ? 0 : SCROLLER_WIDTH), 0, SCROLLER_WIDTH, SCROLLER_HEIGHT);
         int instrumentsLeftPos = this.leftPos + INSTRUMENTS_X;
         int instrumentsTopPos = this.topPos + INSTRUMENTS_Y;
         int stopIndex = this.startIndex + this.getMaxDisplayButtons();
-        this.renderButtons(poseStack, mouseX, mouseY, instrumentsLeftPos, instrumentsTopPos, stopIndex);
-        this.renderInstruments(poseStack, instrumentsLeftPos, instrumentsTopPos, stopIndex);
+        this.renderButtons(guiGraphics, poseStack, mouseX, mouseY, instrumentsLeftPos, instrumentsTopPos, stopIndex);
+        this.renderInstruments(guiGraphics, poseStack, instrumentsLeftPos, instrumentsTopPos, stopIndex);
     }
 
-    protected void renderTooltip(PoseStack poseStack, int mouseX, int mouseY) {
+    protected void renderTooltip(GuiGraphics guiGraphics, PoseStack poseStack, int mouseX, int mouseY) {
         //super.renderTooltip(poseStack, mouseX, mouseY);
         int instrumentsLeftPos = this.leftPos + INSTRUMENTS_X;
         int instrumentsTopPos = this.topPos + INSTRUMENTS_Y;
@@ -153,7 +156,7 @@ public class WhistleScreen extends Screen {
             int x = instrumentsLeftPos + indexDiff % INSTRUMENTS_COLUMNS * INSTRUMENTS_IMAGE_SIZE_WIDTH;
             int y = instrumentsTopPos + indexDiff / INSTRUMENTS_COLUMNS * INSTRUMENTS_IMAGE_SIZE_HEIGHT + 2;
             if (mouseX >= x && mouseX < x + INSTRUMENTS_IMAGE_SIZE_WIDTH && mouseY >= y && mouseY < y + INSTRUMENTS_IMAGE_SIZE_HEIGHT) {
-                this.renderTooltip(poseStack, getInstrumentTooltipLines(this.instruments.get(index)), Optional.empty(), mouseX, mouseY);
+                guiGraphics.renderTooltip(this.font, getInstrumentTooltipLines(this.instruments.get(index)), Optional.empty(), mouseX, mouseY);
             }
         }
     }
@@ -167,7 +170,7 @@ public class WhistleScreen extends Screen {
         return tooltipLines;
     }
 
-    private void renderButtons(PoseStack poseStack, int mouseX, int mouseY, int instrumentsLeftPos, int instrumentsTopPos, int stopIndex) {
+    private void renderButtons(GuiGraphics guiGraphics, PoseStack poseStack, int mouseX, int mouseY, int instrumentsLeftPos, int instrumentsTopPos, int stopIndex) {
         for(int index = this.startIndex; index < stopIndex && index < this.instruments.size(); ++index) {
             int indexDiff = index - this.startIndex;
             int x = instrumentsLeftPos + indexDiff % INSTRUMENTS_COLUMNS * INSTRUMENTS_IMAGE_SIZE_WIDTH;
@@ -180,19 +183,19 @@ public class WhistleScreen extends Screen {
                 buttonY += INSTRUMENTS_IMAGE_SIZE_HEIGHT * 2;
             }
 
-            blit(poseStack, x, y - 1, 0, buttonY, INSTRUMENTS_IMAGE_SIZE_WIDTH, INSTRUMENTS_IMAGE_SIZE_HEIGHT);
+            guiGraphics.blit(BG_LOCATION, x, y - 1, 0, buttonY, INSTRUMENTS_IMAGE_SIZE_WIDTH, INSTRUMENTS_IMAGE_SIZE_HEIGHT);
         }
 
     }
 
-    private void renderInstruments(PoseStack poseStack, int instrumentsLeftPos, int instrumentsTopPos, int stopIndex) {
+    private void renderInstruments(GuiGraphics guiGraphics, PoseStack poseStack, int instrumentsLeftPos, int instrumentsTopPos, int stopIndex) {
         for(int index = this.startIndex; index < stopIndex && index < this.instruments.size(); ++index) {
             int indexDiff = index - this.startIndex;
             int x = instrumentsLeftPos + indexDiff % INSTRUMENTS_COLUMNS * INSTRUMENTS_IMAGE_SIZE_WIDTH + (INSTRUMENTS_IMAGE_SIZE_WIDTH / 4);
             int columns = indexDiff / INSTRUMENTS_COLUMNS;
             int y = instrumentsTopPos + columns * INSTRUMENTS_IMAGE_SIZE_HEIGHT + 2 + (INSTRUMENTS_IMAGE_SIZE_HEIGHT / 3);
 
-            this.font.draw(poseStack, InstrumentUtil.getInstrumentTooltip(this.instruments.get(index)), (float)x, (float)y, INSTRUMENT_NAME_COLOR);
+            guiGraphics.drawString(this.font, InstrumentUtil.getInstrumentTooltip(this.instruments.get(index)), x, y, INSTRUMENT_NAME_COLOR);
             //this.minecraft.getItemRenderer().renderAndDecorateItem(this.instruments.get(index).getResultItem(), x, y);
         }
     }

@@ -103,7 +103,7 @@ public class Dog extends Wolf implements VariantMob{
 
     @Override
     protected SoundEvent getAmbientSound() {
-        return this.level.isClientSide ? null : DogAi.getSoundForCurrentActivity(this).orElse(null);
+        return this.level().isClientSide ? null : DogAi.getSoundForCurrentActivity(this).orElse(null);
     }
 
     @Override
@@ -129,7 +129,7 @@ public class Dog extends Wolf implements VariantMob{
         }
 
         ItemStack stack = player.getItemInHand(hand);
-        if (this.level.isClientSide) {
+        if (this.level().isClientSide) {
             boolean canInteract = this.isOwnedBy(player)
                     || this.isTame()
                     || this.isFood(stack) && !this.isTame() && !this.isAggressive();
@@ -229,8 +229,8 @@ public class Dog extends Wolf implements VariantMob{
     @Override
     protected void jumpFromGround() {
         super.jumpFromGround();
-        if (!this.level.isClientSide) {
-            this.level.broadcastEntityEvent(this, EntityAnimationController.JUMPING_EVENT_ID);
+        if (!this.level().isClientSide) {
+            this.level().broadcastEntityEvent(this, EntityAnimationController.JUMPING_EVENT_ID);
         }
     }
 
@@ -252,15 +252,15 @@ public class Dog extends Wolf implements VariantMob{
 
     @Override
     protected void customServerAiStep() {
-        this.level.getProfiler().push("dogBrain");
-        this.getBrain().tick((ServerLevel)this.level, this);
-        this.level.getProfiler().pop();
+        this.level().getProfiler().push("dogBrain");
+        this.getBrain().tick((ServerLevel)this.level(), this);
+        this.level().getProfiler().pop();
         super.customServerAiStep();
     }
 
     @Override
     public boolean wantsToPickUp(ItemStack stack) {
-        return ForgeEventFactory.getMobGriefingEvent(this.level, this) && this.canPickUpLoot() && DogAi.wantsToPickup(this, stack);
+        return ForgeEventFactory.getMobGriefingEvent(this.level(), this) && this.canPickUpLoot() && DogAi.wantsToPickup(this, stack);
     }
 
     @Override
@@ -299,7 +299,7 @@ public class Dog extends Wolf implements VariantMob{
     protected void sendDebugPackets() {
         super.sendDebugPackets();
         DebugPackets.sendEntityBrain(this);
-        if(AllBarkAllBite.ENABLE_BRAIN_DEBUG && this.level instanceof ServerLevel serverLevel){
+        if(AllBarkAllBite.ENABLE_BRAIN_DEBUG && this.level() instanceof ServerLevel serverLevel){
             DebugUtil.sendEntityBrain(this, serverLevel,
                     ABABMemoryModuleTypes.FOLLOW_TRIGGER_DISTANCE.get(),
                     ABABMemoryModuleTypes.IS_ALERT.get(),

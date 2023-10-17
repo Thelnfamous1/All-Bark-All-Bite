@@ -2,8 +2,8 @@ package com.infamous.all_bark_all_bite.common.sensor.vibration;
 
 import com.google.common.collect.ImmutableSet;
 import com.infamous.all_bark_all_bite.AllBarkAllBite;
-import com.infamous.all_bark_all_bite.common.util.ai.BrainUtil;
 import com.infamous.all_bark_all_bite.common.util.MiscUtil;
+import com.infamous.all_bark_all_bite.common.util.ai.BrainUtil;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
@@ -11,9 +11,7 @@ import net.minecraft.world.entity.ai.Brain;
 import net.minecraft.world.entity.ai.memory.MemoryModuleType;
 import net.minecraft.world.entity.ai.sensing.Sensor;
 import net.minecraft.world.level.gameevent.DynamicGameEventListener;
-import net.minecraft.world.level.gameevent.EntityPositionSource;
-import net.minecraft.world.level.gameevent.PositionSource;
-import net.minecraft.world.level.gameevent.vibrations.VibrationSelector;
+import net.minecraft.world.level.gameevent.vibrations.VibrationSystem;
 import net.minecraftforge.event.entity.EntityEvent;
 import net.minecraftforge.event.entity.EntityJoinLevelEvent;
 import net.minecraftforge.event.entity.EntityLeaveLevelEvent;
@@ -24,13 +22,15 @@ import java.util.Set;
 import java.util.function.BiConsumer;
 
 public class VibrationSensor<E extends LivingEntity, VLC extends EntityVibrationListenerConfig<E>> extends Sensor<E> {
+    protected final EntityVibrationSystem.Constructor<E, VLC> systemFactory;
     protected final EntityVibrationListenerConfig.Constructor<E, VLC> listenerConfigFactory;
     protected final MemoryModuleType<EntityVibrationListener<E, VLC>> listenerMemory;
     private DynamicGameEventListener<EntityVibrationListener<E, VLC>> dynamicVibrationListener;
     private final int defaultListenerRange;
 
-    public VibrationSensor(EntityVibrationListenerConfig.Constructor<E, VLC> listenerConfigFactory, MemoryModuleType<EntityVibrationListener<E, VLC>> listenerMemory, int defaultListenerRange) {
+    public VibrationSensor(EntityVibrationSystem.Constructor<E, VLC> systemFactory, EntityVibrationListenerConfig.Constructor<E, VLC> listenerConfigFactory, MemoryModuleType<EntityVibrationListener<E, VLC>> listenerMemory, int defaultListenerRange) {
         super(1); // needs to tick every second like an entity, this is fine because we are not doing list searches every tick
+        this.systemFactory = systemFactory;
         this.listenerConfigFactory = listenerConfigFactory;
         this.listenerMemory = listenerMemory;
         this.defaultListenerRange = defaultListenerRange;
@@ -38,7 +38,8 @@ public class VibrationSensor<E extends LivingEntity, VLC extends EntityVibration
 
     @Override
     protected void doTick(ServerLevel level, E mob) {
-        this.getDynamicVibrationListener(mob).getListener().tick(level);
+        DynamicGameEventListener<EntityVibrationListener<E, VLC>> dynamicVibrationListener = this.getDynamicVibrationListener(mob);
+        VibrationSystem.Ticker.tick(level, dynamicVibrationListener.getListener().getSystem().getVibrationData(), dynamicVibrationListener.getListener().getSystem().getVibrationUser());
     }
 
     /**
@@ -47,6 +48,7 @@ public class VibrationSensor<E extends LivingEntity, VLC extends EntityVibration
     protected DynamicGameEventListener<EntityVibrationListener<E, VLC>> getDynamicVibrationListener(E mob) {
         if(this.dynamicVibrationListener == null){
             EntityVibrationListener<E, VLC> listener = this.getListener(mob);
+            listener.getSystem().getVibrationUser().setEntity(mob);
             this.dynamicVibrationListener = new DynamicGameEventListener<>(listener);
         }
         return this.dynamicVibrationListener;
@@ -63,7 +65,6 @@ public class VibrationSensor<E extends LivingEntity, VLC extends EntityVibration
     protected EntityVibrationListener<E, VLC> getListener(E mob) {
         Brain<?> brain = mob.getBrain();
         EntityVibrationListener<E, VLC> listener = brain.getMemory(this.listenerMemory).orElseGet(() -> this.createDefaultListener(mob));
-        listener.getConfig().setEntity(mob);
         brain.setMemory(this.listenerMemory, listener);
         return listener;
     }
@@ -72,9 +73,7 @@ public class VibrationSensor<E extends LivingEntity, VLC extends EntityVibration
      * This method is used to create an EntityVibrationListener instance with the entity as a part of its state
      */
     protected EntityVibrationListener<E, VLC> createDefaultListener(E mob) {
-        PositionSource positionSource = new EntityPositionSource(mob, mob.getEyeHeight());
-        VLC listenerConfig = this.listenerConfigFactory.create();
-        return new EntityVibrationListener<>(positionSource, this.getDefaultListenerRange(), listenerConfig, null, new VibrationSelector(), 0);
+        return new EntityVibrationListener<>(this.systemFactory.create(new VibrationSystem.Data(), this.listenerConfigFactory.create(this.getDefaultListenerRange())));
     }
 
     protected int getDefaultListenerRange() {
@@ -113,7 +112,7 @@ public class VibrationSensor<E extends LivingEntity, VLC extends EntityVibration
 
         @SubscribeEvent
         static void onEntitySectionChange(EntityEvent.EnteringSection event){
-            if(!(event.getEntity().getLevel() instanceof ServerLevel serverLevel)) return;
+            if(!(event.getEntity().level() instanceof ServerLevel serverLevel)) return;
             updateVibrationListener(event.getEntity(), serverLevel, DynamicGameEventListener::move);
         }
 

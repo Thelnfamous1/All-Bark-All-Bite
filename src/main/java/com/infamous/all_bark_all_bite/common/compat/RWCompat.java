@@ -18,7 +18,7 @@ public class RWCompat {
     public static Optional<InteractionResult> mobInteract(Dog dog, Player player, InteractionHand hand) {
         if (!WolfConfigs.COMMON.disableWolfArmor.get() && player.isSecondaryUseActive() && dog.isTame() && dog.isOwnedBy(player)) {
             screenCast(dog).openCustomInventoryScreen(player);
-            return Optional.of(InteractionResult.sidedSuccess(player.level.isClientSide));
+            return Optional.of(InteractionResult.sidedSuccess(player.level().isClientSide));
         }
         return Optional.empty();
     }

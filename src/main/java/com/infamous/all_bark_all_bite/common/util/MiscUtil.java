@@ -43,7 +43,7 @@ public class MiscUtil {
             double xSpeed = random.nextGaussian() * speedMultiplier;
             double ySpeed = random.nextGaussian() * speedMultiplier;
             double zSpeed = random.nextGaussian() * speedMultiplier;
-            livingEntity.level.addParticle(particleOptions,
+            livingEntity.level().addParticle(particleOptions,
                     livingEntity.getRandomX(widthScale),
                     livingEntity.getRandomY() + yOffset,
                     livingEntity.getRandomZ(widthScale),
@@ -55,7 +55,7 @@ public class MiscUtil {
 
     public static void addParticlesAroundSelf(LivingEntity livingEntity, ParticleOptions particleOptions, int numParticles, double xSpeed, double ySpeed, double zSpeed, double widthScale, double yOffset) {
         for(int i = 0; i < numParticles; ++i) {
-            livingEntity.level.addParticle(particleOptions,
+            livingEntity.level().addParticle(particleOptions,
                     livingEntity.getRandomX(widthScale),
                     livingEntity.getRandomY() + yOffset,
                     livingEntity.getRandomZ(widthScale),

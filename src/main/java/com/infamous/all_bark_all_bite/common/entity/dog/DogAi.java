@@ -118,7 +118,7 @@ public class DogAi {
     public static Optional<InteractionResult> mobInteract(Dog dog, Player player, InteractionHand hand) {
         ItemStack stack = player.getItemInHand(hand);
         Item item = stack.getItem();
-        Level level = dog.level;
+        Level level = dog.level();
 
         if(dog.isTame()){
             if (!(item instanceof DyeItem dyeItem)) {

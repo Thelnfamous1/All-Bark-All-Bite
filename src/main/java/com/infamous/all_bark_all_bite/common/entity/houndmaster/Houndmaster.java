@@ -49,6 +49,7 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.ServerLevelAccessor;
 import net.minecraft.world.phys.AABB;
 import net.minecraftforge.common.ForgeSpawnEggItem;
+import net.minecraftforge.event.ForgeEventFactory;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.EnumSet;
@@ -119,7 +120,7 @@ public class Houndmaster extends AbstractIllager implements RangedAttackMob {
 
     @Override
     public void tick() {
-        if (this.level.isClientSide()) {
+        if (this.level().isClientSide()) {
             this.animationController.tickAnimations();
         }
         super.tick();
@@ -131,8 +132,8 @@ public class Houndmaster extends AbstractIllager implements RangedAttackMob {
         if(this.summonCooldown > 0){
             this.summonCooldown--;
         }
-        if(!this.level.isClientSide && this.summonCooldown == 0){
-            this.knownPetHounds = PetManagement.getPetManager(this.level.dimension(), this.getUUID())
+        if(!this.level().isClientSide && this.summonCooldown == 0){
+            this.knownPetHounds = PetManagement.getPetManager(this.level().dimension(), this.getUUID())
                     .stream()
                     .filter(entity -> entity instanceof IllagerHound)
                     .collect(Collectors.toList());
@@ -246,9 +247,9 @@ public class Houndmaster extends AbstractIllager implements RangedAttackMob {
         double yDist = target.getY(1.0D / 3) - arrow.getY();
         double zDist = target.getZ() - this.getZ();
         double horizontalDist = Math.sqrt(xDist * xDist + zDist * zDist);
-        arrow.shoot(xDist, yDist + horizontalDist * 0.2D, zDist, 1.6F, (float)(14 - this.level.getDifficulty().getId() * 4));
+        arrow.shoot(xDist, yDist + horizontalDist * 0.2D, zDist, 1.6F, (float)(14 - this.level().getDifficulty().getId() * 4));
         this.playSound(SoundEvents.SKELETON_SHOOT, 1.0F, 1.0F / (this.getRandom().nextFloat() * 0.4F + 0.8F));
-        this.level.addFreshEntity(arrow);
+        this.level().addFreshEntity(arrow);
     }
 
     public void setWhistling(boolean whistling){
@@ -286,7 +287,7 @@ public class Houndmaster extends AbstractIllager implements RangedAttackMob {
         }
 
         private List<IllagerHound> findNearbyWildHounds() {
-            return Houndmaster.this.level.getEntitiesOfClass(
+            return Houndmaster.this.level().getEntitiesOfClass(
                     IllagerHound.class,
                     this.getTargetSearchArea(AiUtil.getFollowRange(Houndmaster.this)),
                     hound -> hound.isAlive() && hound.getOwnerUUID() == null);
@@ -312,7 +313,7 @@ public class Houndmaster extends AbstractIllager implements RangedAttackMob {
         }
 
         private void summonRemainingHounds() {
-            ServerLevel serverlevel = (ServerLevel) Houndmaster.this.level;
+            ServerLevel serverlevel = (ServerLevel) Houndmaster.this.level();
             for(int i = 0; i < this.houndsToSummon; ++i) {
                 BlockPos blockPos = Houndmaster.this.blockPosition().offset(
                         -2 + Houndmaster.this.random.nextInt(5),
@@ -320,7 +321,7 @@ public class Houndmaster extends AbstractIllager implements RangedAttackMob {
                         -2 + Houndmaster.this.random.nextInt(5));
                 MiscUtil.createEntity(ABABEntityTypes.ILLAGER_HOUND.get(), serverlevel).ifPresent(hound -> {
                     hound.moveTo(blockPos, Houndmaster.this.getYRot(), 0.0F);
-                    hound.finalizeSpawn(serverlevel, Houndmaster.this.level.getCurrentDifficultyAt(blockPos), MobSpawnType.MOB_SUMMONED, null, null);
+                    ForgeEventFactory.onFinalizeSpawn(hound, serverlevel, Houndmaster.this.level().getCurrentDifficultyAt(blockPos), MobSpawnType.MOB_SUMMONED, null, null);
                     hound.setOwner(Houndmaster.this);
                     //hound.setLeashedTo(Houndmaster.this, true);
                     serverlevel.addFreshEntityWithPassengers(hound);

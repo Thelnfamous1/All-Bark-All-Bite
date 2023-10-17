@@ -77,7 +77,7 @@ public class SharedWolfAnimationController extends EntityAnimationController<Tam
                     double x = this.entity.getX() + (double) Mth.randomBetween(random, -0.7F, 0.7F);
                     double y = this.entity.getY();
                     double z = this.entity.getZ() + (double)Mth.randomBetween(random, -0.7F, 0.7F);
-                    this.entity.level.addParticle(new BlockParticleOption(ParticleTypes.BLOCK, blockStateOn), x, y, z, 0.0D, 0.0D, 0.0D);
+                    this.entity.level().addParticle(new BlockParticleOption(ParticleTypes.BLOCK, blockStateOn), x, y, z, 0.0D, 0.0D, 0.0D);
                 }
             }
         }

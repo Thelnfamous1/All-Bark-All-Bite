@@ -144,7 +144,7 @@ public class AiUtil {
             return InteractionResult.PASS;
         } else if (mob.getLeashHolder() == player) {
             mob.dropLeash(true, !player.getAbilities().instabuild);
-            return InteractionResult.sidedSuccess(mob.level.isClientSide);
+            return InteractionResult.sidedSuccess(mob.level().isClientSide);
         } else {
             InteractionResult interactionResult = ((MobAccessor)mob).callCheckAndHandleImportantInteractions(player, hand);
             if (interactionResult != null && interactionResult.consumesAction()) {
@@ -166,14 +166,14 @@ public class AiUtil {
     }
 
     public static void animalEat(Animal animal, ItemStack stack) {
-        if (animal.isFood(stack) && !animal.level.isClientSide) {
+        if (animal.isFood(stack) && !animal.level().isClientSide) {
             playSoundEvent(animal, animal.getEatingSound(stack));
 
             float healAmount = 1.0F;
             FoodProperties foodProperties = stack.getFoodProperties(animal);
             if(foodProperties != null){
                 healAmount = foodProperties.getNutrition();
-                addEatEffect(animal, animal.level, foodProperties);
+                addEatEffect(animal, animal.level(), foodProperties);
             }
             if(isInjured(animal)) animal.heal(healAmount);
 
@@ -245,7 +245,7 @@ public class AiUtil {
         Vec3 viewVector = looker.getViewVector(1.0F).scale(distance);
         Vec3 targetPosition = eyePosition.add(viewVector);
 
-        HitResult hitResult = looker.level.clip(new ClipContext(eyePosition, targetPosition, ClipContext.Block.COLLIDER, ClipContext.Fluid.NONE, looker));
+        HitResult hitResult = looker.level().clip(new ClipContext(eyePosition, targetPosition, ClipContext.Block.COLLIDER, ClipContext.Fluid.NONE, looker));
         if (hitResult.getType() != HitResult.Type.MISS) {
             targetPosition = hitResult.getLocation();
         }
@@ -286,7 +286,7 @@ public class AiUtil {
     }
 
     private static boolean isMovingOnLand(LivingEntity entity) {
-        return entity.isOnGround() && isMoving(entity) && !entity.isInWaterOrBubble();
+        return entity.onGround() && isMoving(entity) && !entity.isInWaterOrBubble();
     }
 
     private static boolean isMoving(LivingEntity entity) {
@@ -298,7 +298,7 @@ public class AiUtil {
     }
 
     public static boolean isMovingOnLandOrInWater(LivingEntity entity) {
-        return (entity.isOnGround() || entity.isInWaterOrBubble()) && isMoving(entity);
+        return (entity.onGround() || entity.isInWaterOrBubble()) && isMoving(entity);
     }
 
     public static boolean isEntityTargetableIgnoringLineOfSight(LivingEntity entity, LivingEntity target) {
@@ -315,7 +315,7 @@ public class AiUtil {
             double xStep = ratio == 0.0D ? xDiff * (double)((float)horizontalStep / horizontalDistance) : zStep / ratio;
 
             for(int verticalStep = 1; verticalStep < verticalDistance + 1; ++verticalStep) {
-                if (!entity.level.getBlockState(BlockPos.containing(entity.getX() + xStep, entity.getY() + (double)verticalStep, entity.getZ() + zStep)).getMaterial().isReplaceable()) {
+                if (!entity.level().getBlockState(BlockPos.containing(entity.getX() + xStep, entity.getY() + (double)verticalStep, entity.getZ() + zStep)).canBeReplaced()) {
                     return false;
                 }
             }
@@ -325,8 +325,8 @@ public class AiUtil {
     }
 
     public static void dropItemAtPos(LivingEntity entity, BlockPos blockPos, ItemStack itemStack) {
-        ItemEntity drop = new ItemEntity(entity.level, blockPos.getX(), blockPos.getY(), blockPos.getY(), itemStack);
-        entity.level.addFreshEntity(drop);
+        ItemEntity drop = new ItemEntity(entity.level(), blockPos.getX(), blockPos.getY(), blockPos.getY(), itemStack);
+        entity.level().addFreshEntity(drop);
     }
 
     public static double getFollowRange(LivingEntity mob) {
@@ -343,6 +343,6 @@ public class AiUtil {
 
     public static boolean isTiredOfTryingToReachTarget(LivingEntity mob, long timeout) {
         Optional<Long> cantReachWalkTargetSince = mob.getBrain().getMemory(MemoryModuleType.CANT_REACH_WALK_TARGET_SINCE);
-        return cantReachWalkTargetSince.isPresent() && mob.level.getGameTime() - cantReachWalkTargetSince.get() > timeout;
+        return cantReachWalkTargetSince.isPresent() && mob.level().getGameTime() - cantReachWalkTargetSince.get() > timeout;
     }
 }

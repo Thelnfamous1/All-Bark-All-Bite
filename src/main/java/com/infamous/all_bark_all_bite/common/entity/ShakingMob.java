@@ -22,10 +22,10 @@ public interface ShakingMob {
 
     default void tickShaking(){
         PathfinderMob self = this.cast();
-        if (self.isInWaterRainOrBubble() && !self.level.isClientSide) {
+        if (self.isInWaterRainOrBubble() && !self.level().isClientSide) {
             this.setIsWet(true);
-            if (this.isShaking() && !self.level.isClientSide) {
-                self.level.broadcastEntityEvent(self, STOP_SHAKING_ID);
+            if (this.isShaking() && !self.level().isClientSide) {
+                self.level().broadcastEntityEvent(self, STOP_SHAKING_ID);
                 this.setIsShaking(false);
                 this.setShakeAnims(0.0F, 0.0F);
             }
@@ -37,8 +37,8 @@ public interface ShakingMob {
 
             this.setShakeAnims(this.getShakeAnims().right, this.getShakeAnims().right + SECONDS_PER_TICK);
             if (this.getShakeAnims().left >= MAX_SHAKE_TIME_IN_SECONDS) {
-                if(!self.level.isClientSide){
-                    self.level.broadcastEntityEvent(self, STOP_SHAKING_ID);
+                if(!self.level().isClientSide){
+                    self.level().broadcastEntityEvent(self, STOP_SHAKING_ID);
                     this.setIsWet(false);
                     this.setIsShaking(false);
                     this.setShakeAnims(0.0F, 0.0F);
@@ -54,10 +54,10 @@ public interface ShakingMob {
 
     default void aiStepShaking(){
         PathfinderMob self = this.cast();
-        if (!self.level.isClientSide && this.isWet() && !this.isShaking() && !self.isPathFinding() && self.isOnGround()) {
+        if (!self.level().isClientSide && this.isWet() && !this.isShaking() && !self.isPathFinding() && self.onGround()) {
             this.setIsShaking(true);
             this.setShakeAnims(0.0F, 0.0F);
-            self.level.broadcastEntityEvent(self, START_SHAKING_ID);
+            self.level().broadcastEntityEvent(self, START_SHAKING_ID);
         }
     }
 

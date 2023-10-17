@@ -36,7 +36,7 @@ import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.entity.schedule.Activity;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
-import net.minecraft.world.level.storage.loot.LootContext;
+import net.minecraft.world.level.storage.loot.LootParams;
 import net.minecraft.world.level.storage.loot.LootTable;
 import net.minecraft.world.level.storage.loot.parameters.LootContextParamSets;
 import net.minecraft.world.level.storage.loot.parameters.LootContextParams;
@@ -155,7 +155,7 @@ public class DogBrain {
         Optional<GlobalPos> digLocation = DigAi.getDigLocation(dog);
         if (digLocation.isPresent()) {
             GlobalPos digPos = digLocation.get();
-            Level level = dog.getLevel();
+            Level level = dog.level();
             if (level.dimension() == digPos.dimension() && level.getBlockState(digPos.pos().below()).is(ABABTags.DOG_CAN_DIG)) {
                 return Optional.of(new BlockPosTracker(digPos.pos()));
             }
@@ -168,11 +168,10 @@ public class DogBrain {
 
     @SuppressWarnings({"ConstantConditions", "OptionalGetWithoutIsPresent"})
     private static void onDigCompleted(Dog dog){
-        LootTable lootTable = dog.level.getServer().getLootTables().get(ABABBuiltInLootTables.DOG_DIGGING);
-        LootContext.Builder lcb = (new LootContext.Builder((ServerLevel)dog.level))
+        LootTable lootTable = dog.level().getServer().getLootData().getLootTable(ABABBuiltInLootTables.DOG_DIGGING);
+        LootParams.Builder lcb = (new LootParams.Builder((ServerLevel)dog.level()))
                 .withParameter(LootContextParams.ORIGIN, dog.position())
-                .withParameter(LootContextParams.THIS_ENTITY, dog)
-                .withRandom(dog.getRandom());
+                .withParameter(LootContextParams.THIS_ENTITY, dog);
 
         if(DogAi.canBury(dog.getMainHandItem())){
             dog.setItemSlot(EquipmentSlot.MAINHAND, ItemStack.EMPTY);

@@ -23,7 +23,7 @@ public class SitWhenOrderedTo extends Behavior<TamableAnimal> {
             return false;
         } else if (tamable.isInWaterOrBubble()) {
             return false;
-        } else if (!tamable.isOnGround()) {
+        } else if (!tamable.onGround()) {
             return false;
         } else {
             LivingEntity owner = tamable.getOwner();

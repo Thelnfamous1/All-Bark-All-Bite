@@ -1,13 +1,9 @@
 package com.infamous.all_bark_all_bite.common.entity.dog;
 
 import com.google.common.collect.ImmutableList;
-import com.infamous.all_bark_all_bite.common.entity.SharedWolfAi;
 import com.infamous.all_bark_all_bite.common.registry.ABABEntityTypes;
 import com.infamous.all_bark_all_bite.common.util.ai.BrainUtil;
-import com.infamous.all_bark_all_bite.common.util.EntityDimensionsUtil;
 import com.mojang.datafixers.util.Pair;
-import net.minecraft.world.entity.Entity;
-import net.minecraft.world.entity.EntityDimensions;
 import net.minecraft.world.entity.ai.behavior.Behavior;
 import net.minecraft.world.entity.ai.behavior.BehaviorControl;
 import net.minecraft.world.entity.ai.behavior.InteractWith;
@@ -16,12 +12,6 @@ import net.minecraft.world.entity.ai.memory.MemoryModuleType;
 import net.minecraft.world.entity.npc.Villager;
 
 public class DogHooks {
-    public static EntityDimensions onDogSize(Entity entity, EntityDimensions originalSize) {
-        originalSize = EntityDimensionsUtil.resetIfSleeping(entity, originalSize);
-        originalSize = EntityDimensionsUtil.unfixIfNeeded(originalSize);
-        originalSize = EntityDimensionsUtil.resizeForLongJumpIfNeeded(entity, originalSize, SharedWolfAi.LONG_JUMPING_SCALE);
-        return originalSize;
-    }
 
     public static void addVillagerDogPlayBehaviors(ImmutableList<Pair<Integer, ? extends Behavior<? super Villager>>> behaviors) {
         // Look behavior is added before interact behavior for PLAY

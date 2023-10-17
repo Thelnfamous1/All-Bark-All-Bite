@@ -92,7 +92,7 @@ public class PetWhistleItem extends AdjustableInstrumentItem{
         Optional<? extends Holder<Instrument>> instrumentHolder = ABABItems.WHISTLE.get().getInstrument(useItem);
         if(instrumentHolder.isPresent()){
             Instrument instrument = instrumentHolder.get().value();
-            MultiEntityManager petManager = PetManagement.getPetManager(user.getLevel().dimension(), user.getUUID());
+            MultiEntityManager petManager = PetManagement.getPetManager(user.level().dimension(), user.getUUID());
             UUID petUUID = getPetUUID(useItem);
 
             if(instrument == ABABInstruments.ATTACK_WHISTLE.get()){

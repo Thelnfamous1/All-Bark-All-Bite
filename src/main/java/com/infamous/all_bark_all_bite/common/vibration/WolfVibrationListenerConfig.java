@@ -7,6 +7,10 @@ import net.minecraft.world.level.gameevent.GameEvent;
 
 public class WolfVibrationListenerConfig extends SharedWolfVibrationListenerConfig<Wolf> {
 
+    public WolfVibrationListenerConfig(int listenerRadius) {
+        super(listenerRadius);
+    }
+
     @Override
     public TagKey<GameEvent> getListenableEvents() {
         return ABABTags.WOLF_CAN_LISTEN;

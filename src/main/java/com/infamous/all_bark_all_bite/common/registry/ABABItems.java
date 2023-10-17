@@ -7,7 +7,7 @@ import com.infamous.all_bark_all_bite.common.item.PetWhistleItem;
 import net.minecraft.world.item.CreativeModeTabs;
 import net.minecraft.world.item.Item;
 import net.minecraftforge.common.ForgeSpawnEggItem;
-import net.minecraftforge.event.CreativeModeTabEvent;
+import net.minecraftforge.event.BuildCreativeModeTabContentsEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.registries.DeferredRegister;
@@ -34,13 +34,13 @@ public class ABABItems {
             () -> new PetWhistleItem(new Item.Properties().stacksTo(1), ABABTags.WHISTLES));
 
     @SubscribeEvent
-    static void onCreativeModeTab(CreativeModeTabEvent.BuildContents event){
-        if(event.getTab() == CreativeModeTabs.SPAWN_EGGS){
+    static void onCreativeModeTab(BuildCreativeModeTabContentsEvent event){
+        if(event.getTabKey() == CreativeModeTabs.SPAWN_EGGS){
             event.accept(DOG_SPAWN_EGG);
             event.accept(HOUNDMASTER_SPAWN_EGG);
             event.accept(ILLAGER_HOUND_SPAWN_EGG);
         }
-        if(event.getTab() == CreativeModeTabs.TOOLS_AND_UTILITIES){
+        if(event.getTabKey() == CreativeModeTabs.TOOLS_AND_UTILITIES){
             event.accept(WHISTLE);
         }
     }

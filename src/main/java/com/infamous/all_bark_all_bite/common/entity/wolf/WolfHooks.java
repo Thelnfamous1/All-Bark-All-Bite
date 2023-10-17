@@ -1,14 +1,15 @@
 package com.infamous.all_bark_all_bite.common.entity.wolf;
 
 import com.infamous.all_bark_all_bite.AllBarkAllBite;
-import com.infamous.all_bark_all_bite.common.util.ai.TrustAi;
-import com.infamous.all_bark_all_bite.common.util.ai.BrainUtil;
-import com.infamous.all_bark_all_bite.config.ABABConfig;
 import com.infamous.all_bark_all_bite.common.entity.EntityAnimationController;
 import com.infamous.all_bark_all_bite.common.entity.SharedWolfAi;
+import com.infamous.all_bark_all_bite.common.registry.ABABEntityTypes;
 import com.infamous.all_bark_all_bite.common.registry.ABABMemoryModuleTypes;
 import com.infamous.all_bark_all_bite.common.util.DebugUtil;
 import com.infamous.all_bark_all_bite.common.util.EntityDimensionsUtil;
+import com.infamous.all_bark_all_bite.common.util.ai.BrainUtil;
+import com.infamous.all_bark_all_bite.common.util.ai.TrustAi;
+import com.infamous.all_bark_all_bite.config.ABABConfig;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.sounds.SoundEvents;
@@ -61,7 +62,7 @@ public class WolfHooks {
     }
 
     public static void onWolfJump(LivingEntity entity) {
-        entity.level.broadcastEntityEvent(entity, EntityAnimationController.JUMPING_EVENT_ID);
+        entity.level().broadcastEntityEvent(entity, EntityAnimationController.JUMPING_EVENT_ID);
     }
 
     public static Brain.Provider<Wolf> getWolfBrainProvider() {
@@ -69,15 +70,16 @@ public class WolfHooks {
     }
 
     public static EntityDimensions onWolfSize(Entity entity, EntityDimensions originalSize) {
-        originalSize = EntityDimensionsUtil.resetIfSleeping(entity, originalSize);
-        originalSize = EntityDimensionsUtil.unfixIfNeeded(originalSize);
-        EntityDimensions resize = originalSize.scale(ABABConfig.wolfHitboxSizeScale.get().floatValue());
+        EntityDimensions resize = originalSize;
+        resize = EntityDimensionsUtil.resetIfSleeping(entity, resize);
+        resize = EntityDimensionsUtil.unfixIfNeeded(resize);
+        if(canWolfChange(entity.getType(), false, false)) resize = resize.scale(ABABConfig.wolfHitboxSizeScale.get().floatValue());
         resize = EntityDimensionsUtil.resizeForLongJumpIfNeeded(entity, resize, SharedWolfAi.LONG_JUMPING_SCALE);
         return resize;
     }
 
     public static boolean wolfWantsToPickUp(ItemStack stack, Mob wolf) {
-        return ForgeEventFactory.getMobGriefingEvent(wolf.level, wolf) && wolf.canPickUpLoot() && SharedWolfAi.isAbleToPickUp(wolf, stack);
+        return ForgeEventFactory.getMobGriefingEvent(wolf.level(), wolf) && wolf.canPickUpLoot() && SharedWolfAi.isAbleToPickUp(wolf, stack);
     }
 
     public static boolean canWolfTakeItem(ItemStack stack, Mob wolf, boolean canMobTakeItem) {
@@ -112,6 +114,11 @@ public class WolfHooks {
 
     @Nullable
     public static SoundEvent getWolfAmbientSound(Wolf wolf) {
-        return wolf.level.isClientSide ? null : WolfAi.getSoundForCurrentActivity(wolf).orElse(null);
+        return wolf.level().isClientSide ? null : WolfAi.getSoundForCurrentActivity(wolf).orElse(null);
+    }
+
+    public static boolean canWolfChange(EntityType<?> type, boolean rendering, boolean allowDog) {
+        return allowDog && type == ABABEntityTypes.DOG.get()
+                || type == EntityType.WOLF && (rendering ? ABABConfig.wolfRenderingChanges.get() : ABABConfig.wolfGameplayChanges.get());
     }
 }

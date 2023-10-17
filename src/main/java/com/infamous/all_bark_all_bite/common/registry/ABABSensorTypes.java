@@ -4,6 +4,7 @@ import com.infamous.all_bark_all_bite.AllBarkAllBite;
 import com.infamous.all_bark_all_bite.common.entity.SharedWolfAi;
 import com.infamous.all_bark_all_bite.common.entity.dog.Dog;
 import com.infamous.all_bark_all_bite.common.sensor.*;
+import com.infamous.all_bark_all_bite.common.sensor.vibration.EntityVibrationSystem;
 import com.infamous.all_bark_all_bite.common.vibration.DogVibrationListenerConfig;
 import com.infamous.all_bark_all_bite.common.vibration.WolfVibrationListenerConfig;
 import com.infamous.all_bark_all_bite.common.sensor.vibration.VibrationSensor;
@@ -30,10 +31,10 @@ public class ABABSensorTypes {
             () -> new SensorType<>(WolfSpecificSensor::new));
 
     public static final RegistryObject<SensorType<VibrationSensor<Wolf, WolfVibrationListenerConfig>>> WOLF_VIBRATION_SENSOR = SENSOR_TYPES.register("wolf_vibration_sensor",
-            () -> new SensorType<>(() -> new VibrationSensor<>(WolfVibrationListenerConfig::new, ABABMemoryModuleTypes.WOLF_VIBRATION_LISTENER.get(), SharedWolfAi.DEFAULT_LISTENER_RANGE)));
+            () -> new SensorType<>(() -> new VibrationSensor<>(EntityVibrationSystem::new, WolfVibrationListenerConfig::new, ABABMemoryModuleTypes.WOLF_VIBRATION_LISTENER.get(), SharedWolfAi.DEFAULT_LISTENER_RANGE)));
 
     @SuppressWarnings("unused")
     public static final RegistryObject<SensorType<VibrationSensor<Dog, DogVibrationListenerConfig>>> DOG_VIBRATION_SENSOR = SENSOR_TYPES.register("dog_vibration_sensor",
-            () -> new SensorType<>(() -> new VibrationSensor<>(DogVibrationListenerConfig::new, ABABMemoryModuleTypes.DOG_VIBRATION_LISTENER.get(), SharedWolfAi.DEFAULT_LISTENER_RANGE)));
+            () -> new SensorType<>(() -> new VibrationSensor<>(EntityVibrationSystem::new, DogVibrationListenerConfig::new, ABABMemoryModuleTypes.DOG_VIBRATION_LISTENER.get(), SharedWolfAi.DEFAULT_LISTENER_RANGE)));
 
 }

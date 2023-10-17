@@ -13,7 +13,7 @@ import java.util.function.Predicate;
 public class DigAi {
 
     public static void setDigLocation(LivingEntity livingEntity, BlockPos blockPos){
-        livingEntity.getBrain().setMemory(ABABMemoryModuleTypes.DIG_LOCATION.get(), GlobalPos.of(livingEntity.level.dimension(), blockPos));
+        livingEntity.getBrain().setMemory(ABABMemoryModuleTypes.DIG_LOCATION.get(), GlobalPos.of(livingEntity.level().dimension(), blockPos));
     }
 
     public static boolean hasDigLocation(LivingEntity livingEntity) {

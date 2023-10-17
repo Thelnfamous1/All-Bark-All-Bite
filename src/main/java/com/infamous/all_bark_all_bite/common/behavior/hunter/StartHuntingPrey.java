@@ -41,7 +41,7 @@ public class StartHuntingPrey<E extends Mob> extends Behavior<E> {
    @Override
    protected void start(ServerLevel level, E mob, long gameTime) {
       LivingEntity target = this.getHuntable(mob).get();
-      int huntCooldownInTicks = this.huntCooldown.sample(mob.level.random);
+      int huntCooldownInTicks = this.huntCooldown.sample(mob.level().random);
       HunterAi.setHuntedRecently(mob, huntCooldownInTicks);
       HunterAi.setHuntTarget(mob, target);
       HunterAi.broadcastHuntTarget(GenericAi.getNearbyAdults(mob), target);

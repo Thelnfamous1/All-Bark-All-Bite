@@ -21,14 +21,14 @@ public abstract class LivingEntityMixin extends Entity {
 
     @Inject(method = "brainProvider", at = @At("RETURN"), cancellable = true)
     private void handleBrainProvider(CallbackInfoReturnable<Brain.Provider<?>> cir){
-        if(this.getType() == EntityType.WOLF){
+        if(WolfHooks.canWolfChange(this.getType(), false, false)){
             cir.setReturnValue(WolfHooks.getWolfBrainProvider());
         }
     }
 
     @Inject(method = "getEatingSound", at = @At("HEAD"), cancellable = true)
     private void handleGetEatingSound(ItemStack stack, CallbackInfoReturnable<SoundEvent> cir) {
-        if(this.getType() == EntityType.WOLF){
+        if(WolfHooks.canWolfChange(this.getType(), false, false)){
             cir.setReturnValue(WolfHooks.getWolfEatingSound());
         }
     }

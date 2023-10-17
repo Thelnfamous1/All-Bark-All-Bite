@@ -93,7 +93,7 @@ public class GenericAi {
             ReflectionUtil.callMethod(FOX_SET_SLEEPING, fox, false);
         }
         mob.stopSleeping();
-        mob.getBrain().setMemory(MemoryModuleType.LAST_WOKEN, mob.level.getGameTime());
+        mob.getBrain().setMemory(MemoryModuleType.LAST_WOKEN, mob.level().getGameTime());
     }
 
     public static void goToSleep(LivingEntity mob) {
@@ -101,7 +101,7 @@ public class GenericAi {
             ReflectionUtil.callMethod(FOX_SET_SLEEPING, fox, true);
         }
         mob.startSleeping(mob.blockPosition());
-        mob.getBrain().setMemory(MemoryModuleType.LAST_SLEPT, mob.level.getGameTime());
+        mob.getBrain().setMemory(MemoryModuleType.LAST_SLEPT, mob.level().getGameTime());
         mob.getBrain().eraseMemory(MemoryModuleType.WALK_TARGET);
         mob.getBrain().eraseMemory(MemoryModuleType.CANT_REACH_WALK_TARGET_SINCE);
     }
@@ -143,7 +143,6 @@ public class GenericAi {
         if (!changeTargetEvent.isCanceled()){
             mob.getBrain().setMemory(MemoryModuleType.ATTACK_TARGET, target);
             mob.getBrain().eraseMemory(MemoryModuleType.CANT_REACH_WALK_TARGET_SINCE);
-            ForgeHooks.onLivingSetAttackTarget(mob, changeTargetEvent.getNewTarget(), LivingChangeTargetEvent.LivingTargetType.BEHAVIOR_TARGET); // TODO: Remove in 1.20
         }
     }
 

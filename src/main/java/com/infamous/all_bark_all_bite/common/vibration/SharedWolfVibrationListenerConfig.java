@@ -11,20 +11,23 @@ import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.animal.Wolf;
 import net.minecraft.world.level.gameevent.GameEvent;
-import net.minecraft.world.level.gameevent.GameEventListener;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Optional;
 
 public abstract class SharedWolfVibrationListenerConfig<T extends Wolf> extends EntityVibrationListenerConfig<T> {
 
+    protected SharedWolfVibrationListenerConfig(int listenerRadius) {
+        super(listenerRadius);
+    }
+
     @Override
-    protected boolean shouldEntityListen(ServerLevel level, GameEventListener gameEventListener, BlockPos blockPos, GameEvent gameEvent, GameEvent.Context context) {
+    protected boolean shouldEntityListen(ServerLevel level, BlockPos blockPos, GameEvent gameEvent, GameEvent.Context context) {
         if(!this.entity.isNoAi()
                 && !this.entity.isDeadOrDying()
                 && level.getWorldBorder().isWithinBounds(blockPos)
                 && !this.entity.isRemoved()
-                && this.entity.getLevel() == level){
+                && this.entity.level() == level){
             Optional<GlobalPos> howlLocation = SharedWolfAi.getHowlLocation(this.entity);
             if (howlLocation.isEmpty()) {
                 return true;
@@ -37,7 +40,7 @@ public abstract class SharedWolfVibrationListenerConfig<T extends Wolf> extends 
     }
 
     @Override
-    protected void onEntityReceiveSignal(ServerLevel level, GameEventListener gameEventListener, BlockPos signalPos, GameEvent signalEvent, @Nullable Entity signalSender, @Nullable Entity signalSenderOwner, float signalDistance) {
+    protected void onEntityReceiveSignal(ServerLevel level, BlockPos signalPos, GameEvent signalEvent, @Nullable Entity signalSender, @Nullable Entity signalSenderOwner, float signalDistance) {
         if (signalEvent == ABABGameEvents.ENTITY_HOWL.get()
                 && signalSender != this.entity
                 && signalSender instanceof LivingEntity howler) {

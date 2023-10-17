@@ -150,7 +150,7 @@ public class WolfAi {
     public static InteractionResult mobInteract(Wolf wolf, Player player, InteractionHand hand) {
         ItemStack itemInHand = player.getItemInHand(hand);
         Item item = itemInHand.getItem();
-        if (wolf.level.isClientSide) {
+        if (wolf.level().isClientSide) {
             boolean interact = wolf.isOwnedBy(player) && wolf.isTame() || itemInHand.is(ABABTags.WOLF_LOVED) && !wolf.isTame() && !wolf.isAngry();
             return interact ? InteractionResult.SUCCESS : InteractionResult.PASS;
         } else {
@@ -204,10 +204,10 @@ public class WolfAi {
         int trust = TrustAi.getTrust(wolf);
         int maxTrust = ABABConfig.wolfMaxTrust.get();
         if(maxTrust > 0 && maxTrust <= trust && !ForgeEventFactory.onAnimalTame(wolf, player)){
-            wolf.level.broadcastEntityEvent(wolf, SharedWolfAi.SUCCESSFUL_TAME_ID);
+            wolf.level().broadcastEntityEvent(wolf, SharedWolfAi.SUCCESSFUL_TAME_ID);
             SharedWolfAi.tame(wolf, player);
         } else{
-            wolf.level.broadcastEntityEvent(wolf, SharedWolfAi.FAILED_TAME_ID);
+            wolf.level().broadcastEntityEvent(wolf, SharedWolfAi.FAILED_TAME_ID);
         }
     }
 

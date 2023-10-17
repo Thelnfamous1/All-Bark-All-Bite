@@ -82,7 +82,7 @@ public interface OwnableMob extends OwnableEntity {
             return cachedOwner;
         }
         // if on server, find and cache owner from owner UUID, and sync its network id to the client
-        else if (this.cast().level instanceof ServerLevel serverLevel) {
+        else if (this.cast().level() instanceof ServerLevel serverLevel) {
             LivingEntity owner = AiUtil.getLivingEntityFromUUID(serverLevel, ownerUUID).orElse(null);
             this.setCachedOwner(owner);
             this.setOwnerId(owner != null ? owner.getId() : 0);
@@ -90,7 +90,7 @@ public interface OwnableMob extends OwnableEntity {
         }
         // if on client, find and cache owner from synced owner id
         else if(ownerId != 0) {
-            LivingEntity owner = AiUtil.getLivingEntityFromId(this.cast().level, ownerId).orElse(null);
+            LivingEntity owner = AiUtil.getLivingEntityFromId(this.cast().level(), ownerId).orElse(null);
             this.setCachedOwner(owner);
             return owner;
         } else {

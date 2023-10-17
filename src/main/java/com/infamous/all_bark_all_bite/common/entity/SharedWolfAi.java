@@ -152,7 +152,7 @@ public class SharedWolfAi {
 
     public static void reactToAttack(Wolf wolf, LivingEntity attacker) {
         if (wolf.isBaby()) {
-            GenericAi.setAvoidTarget(wolf, attacker, RETREAT_DURATION.sample(wolf.level.random));
+            GenericAi.setAvoidTarget(wolf, attacker, RETREAT_DURATION.sample(wolf.level().random));
             if (Sensor.isEntityAttackableIgnoringLineOfSight(wolf, attacker)) {
                 AngerAi.broadcastAngerTarget(GenericAi.getNearbyAdults(wolf).stream()
                         .filter(w -> wantsToRetaliate(w, attacker))
@@ -171,7 +171,7 @@ public class SharedWolfAi {
     }
 
     public static boolean canSleep(Wolf wolf, boolean nocturnal) {
-        return nocturnal ? wolf.level.isDay() : wolf.level.isNight()
+        return nocturnal ? wolf.level().isDay() : wolf.level().isNight()
                 && hasShelter(wolf)
                 && !isAlert(wolf)
                 && !wolf.isInPowderSnow;
@@ -182,7 +182,7 @@ public class SharedWolfAi {
     }
 
     public static void followHowl(Wolf wolf, BlockPos blockPos) {
-        GlobalPos howlPos = GlobalPos.of(wolf.getLevel().dimension(), blockPos);
+        GlobalPos howlPos = GlobalPos.of(wolf.level().dimension(), blockPos);
         wolf.getBrain().setMemory(MemoryModuleType.LOOK_TARGET, new BlockPosTracker(blockPos));
         wolf.getBrain().setMemoryWithExpiry(ABABMemoryModuleTypes.HOWL_LOCATION.get(), howlPos, HOWL_EXPIRE_TIME);
         wolf.getBrain().eraseMemory(MemoryModuleType.WALK_TARGET);
@@ -193,7 +193,7 @@ public class SharedWolfAi {
         Optional<GlobalPos> howlLocation = getHowlLocation(wolf);
         if (howlLocation.isPresent()) {
             GlobalPos globalPos = howlLocation.get();
-            if (wolf.getLevel().dimension() == globalPos.dimension()) {
+            if (wolf.level().dimension() == globalPos.dimension()) {
                 return Optional.of(new BlockPosTracker(globalPos.pos()));
             }
             brain.eraseMemory(ABABMemoryModuleTypes.HOWL_LOCATION.get());
@@ -251,7 +251,7 @@ public class SharedWolfAi {
 
     public static boolean hasShelter(Wolf wolf) {
         BlockPos topOfBodyPos = BlockPos.containing(wolf.getX(), wolf.getBoundingBox().maxY, wolf.getZ());
-        return MoveToNonSkySeeingSpot.hasBlocksAbove(wolf.level, wolf, topOfBodyPos);
+        return MoveToNonSkySeeingSpot.hasBlocksAbove(wolf.level(), wolf, topOfBodyPos);
     }
 
     public static boolean canDefendOwner(Wolf tamableAnimal){
@@ -275,12 +275,12 @@ public class SharedWolfAi {
     }
 
     private static void spitOutItem(LivingEntity livingEntity, ItemStack itemStack) {
-        if (!itemStack.isEmpty() && !livingEntity.level.isClientSide) {
-            ItemEntity itemEntity = new ItemEntity(livingEntity.level, livingEntity.getX() + livingEntity.getLookAngle().x, livingEntity.getY() + 1.0D, livingEntity.getZ() + livingEntity.getLookAngle().z, itemStack);
+        if (!itemStack.isEmpty() && !livingEntity.level().isClientSide) {
+            ItemEntity itemEntity = new ItemEntity(livingEntity.level(), livingEntity.getX() + livingEntity.getLookAngle().x, livingEntity.getY() + 1.0D, livingEntity.getZ() + livingEntity.getLookAngle().z, itemStack);
             itemEntity.setDefaultPickUpDelay();
             itemEntity.setThrower(livingEntity.getUUID());
             AiUtil.playSoundEvent(livingEntity, SoundEvents.FOX_SPIT);
-            livingEntity.level.addFreshEntity(itemEntity);
+            livingEntity.level().addFreshEntity(itemEntity);
         }
     }
 
@@ -319,21 +319,21 @@ public class SharedWolfAi {
     }
 
     public static boolean wantsToFindShelter(LivingEntity livingEntity, boolean nocturnal){
-        return livingEntity.level.isThundering() || nocturnal ? livingEntity.level.isDay() : livingEntity.level.isNight();
+        return livingEntity.level().isThundering() || nocturnal ? livingEntity.level().isDay() : livingEntity.level().isNight();
     }
 
     public static boolean isInDayTime(LivingEntity livingEntity){
-        return livingEntity.level.isDay();
+        return livingEntity.level().isDay();
     }
 
     public static boolean isInNightTime(LivingEntity livingEntity){
-        return livingEntity.level.isNight();
+        return livingEntity.level().isNight();
     }
 
     public static boolean wantsToWakeUp(Wolf wolf){
         return !wolf.getBrain().isActive(Activity.REST)
                 || GenericAi.getAttackTarget(wolf).isPresent()
-                || wolf.level.isThundering()
+                || wolf.level().isThundering()
                 || wolf.isInWater();
     }
 

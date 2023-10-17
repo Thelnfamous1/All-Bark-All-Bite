@@ -28,7 +28,7 @@ public class AngerAi {
         if (Sensor.isEntityAttackableIgnoringLineOfSight(victim, attacker)) {
             if (!BehaviorUtils.isOtherTargetMuchFurtherAwayThanCurrentAttackTarget(victim, attacker, tooFar)) {
                 int angerTimeInTicks = angerTime.sample(victim.getRandom());
-                if (attacker.getType() == EntityType.PLAYER && victim.level.getGameRules().getBoolean(GameRules.RULE_UNIVERSAL_ANGER)) {
+                if (attacker.getType() == EntityType.PLAYER && victim.level().getGameRules().getBoolean(GameRules.RULE_UNIVERSAL_ANGER)) {
                     setAngerTargetToNearestTargetablePlayerIfFound(victim, attacker, angerTimeInTicks);
                     broadcastUniversalAnger(toAlert, angerTime);
                 } else {
@@ -59,7 +59,7 @@ public class AngerAi {
                 neutralMob.setRemainingPersistentAngerTime(angerTimeInTicks);
             }
 
-            if (target.getType() == EntityType.PLAYER && livingEntity.level.getGameRules().getBoolean(GameRules.RULE_UNIVERSAL_ANGER)) {
+            if (target.getType() == EntityType.PLAYER && livingEntity.level().getGameRules().getBoolean(GameRules.RULE_UNIVERSAL_ANGER)) {
                 brain.setMemoryWithExpiry(MemoryModuleType.UNIVERSAL_ANGER, true, angerTimeInTicks);
             }
         }
