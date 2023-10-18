@@ -21,7 +21,8 @@
   "client": [
     "DebugRendererMixin",
     "IllagerModelAccessor",
-    "LivingEntityRendererMixin"
+    "LivingEntityRendererMixin",
+    "EntityModelSetAccessor"
   ],
   "injectors": {
     "defaultRequire": 1
