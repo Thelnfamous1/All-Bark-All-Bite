@@ -8,11 +8,13 @@ import net.minecraftforge.fml.event.lifecycle.FMLLoadCompleteEvent;
 
 @Mod.EventBusSubscriber(bus = Mod.EventBusSubscriber.Bus.MOD, modid = AllBarkAllBite.MODID)
 public class CompatUtil {
+
     private static boolean RW_LOADED = false;
     private static boolean DI_LOADED = false;
     private static boolean IWA_LOADED = false;
     private static boolean MM_LOADED = false;
     private static boolean SM_LOADED = false;
+    private static boolean WAYVF_LOADED = false;
     public static final String REVAMPED_WOLF_MODID = "revampedwolf";
     public static final String DOMESTICATION_INNOVATION_MODID = "domesticationinnovation";
     public static final String ILLAGERS_WEAR_ARMOR_MODID = "illagersweararmor";
@@ -21,6 +23,7 @@ public class CompatUtil {
     public static final String FARMERS_DELIGHT_MODID = "farmersdelight";
 
     public static final String STORY_MOD_MODID = "storymod";
+    public static final String WAYVF_MODID = "whatareyouvotingfor";
 
     public static boolean isRWLoaded() {
        return RW_LOADED;
@@ -49,6 +52,10 @@ public class CompatUtil {
         IWA_LOADED = ModList.get().isLoaded(ILLAGERS_WEAR_ARMOR_MODID);
         MM_LOADED = ModList.get().isLoaded(MUTANT_MORE_MODID);
         SM_LOADED = ModList.get().isLoaded(STORY_MOD_MODID);
+        WAYVF_LOADED = ModList.get().isLoaded(WAYVF_MODID);
     }
 
+    public static boolean isWAYVFLoaded() {
+        return WAYVF_LOADED;
+    }
 }

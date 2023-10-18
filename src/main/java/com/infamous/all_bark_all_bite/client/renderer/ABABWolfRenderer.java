@@ -2,6 +2,7 @@ package com.infamous.all_bark_all_bite.client.renderer;
 
 import com.infamous.all_bark_all_bite.client.ABABModelLayers;
 import com.infamous.all_bark_all_bite.client.compat.SMCompatClient;
+import com.infamous.all_bark_all_bite.client.compat.WAYVFCompatClient;
 import com.infamous.all_bark_all_bite.client.renderer.model.ABABWolfModel;
 import com.infamous.all_bark_all_bite.client.renderer.model.layer.ABABWolfCollarLayer;
 import com.infamous.all_bark_all_bite.client.renderer.model.layer.ItemInMouthLayer;
@@ -29,6 +30,9 @@ public class ABABWolfRenderer extends MobRenderer<Wolf, ABABWolfModel<Wolf>> {
       this.addLayer(new ItemInMouthLayer<>(this, context.getItemInHandRenderer()));
       if(CompatUtil.isRWLoaded()){
          this.addLayer(RWCompatClient.getRWArmorLayer(this, context));
+      }
+      if(CompatUtil.isWAYVFLoaded()){
+         this.addLayer(WAYVFCompatClient.getWAYVFArmorLayer(this, context));
       }
    }
 

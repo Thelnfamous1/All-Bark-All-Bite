@@ -25,6 +25,7 @@ public class ModClientEventHandler {
         event.registerLayerDefinition(ABABModelLayers.HOUNDMASTER, HoundmasterModel::createBodyLayer);
         event.registerLayerDefinition(ABABModelLayers.ILLAGER_HOUND, IllagerHoundModel::createBodyLayer);
         event.registerLayerDefinition(ABABModelLayers.RW_WOLF_ARMOR, ABABWolfModel::createBodyLayer);
+        event.registerLayerDefinition(ABABModelLayers.WAYVF_WOLF_ARMOR, ABABWolfModel::createBodyLayer);
     }
 
     @SubscribeEvent(priority = EventPriority.HIGHEST)

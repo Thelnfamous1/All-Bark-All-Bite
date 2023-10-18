@@ -2,6 +2,7 @@ package com.infamous.all_bark_all_bite.client;
 
 import com.google.common.collect.Sets;
 import com.infamous.all_bark_all_bite.AllBarkAllBite;
+import com.infamous.all_bark_all_bite.common.compat.CompatUtil;
 import com.infamous.all_bark_all_bite.common.registry.ABABEntityTypes;
 import net.minecraft.client.model.geom.ModelLayerLocation;
 import net.minecraft.resources.ResourceLocation;
@@ -15,7 +16,8 @@ public class ABABModelLayers {
     public static final ModelLayerLocation HOUNDMASTER = register(ABABEntityTypes.HOUNDMASTER_NAME);
     public static final ModelLayerLocation ILLAGER_HOUND = register(ABABEntityTypes.ILLAGER_HOUND_NAME);
     public static final ModelLayerLocation WOLF = register("wolf");
-    public static final ModelLayerLocation RW_WOLF_ARMOR = register("wolf_armor");
+    public static final ModelLayerLocation RW_WOLF_ARMOR = register(String.format("%s_wolf_armor", CompatUtil.REVAMPED_WOLF_MODID));
+    public static final ModelLayerLocation WAYVF_WOLF_ARMOR = register(String.format("%s_wolf_armor", CompatUtil.WAYVF_MODID));
 
     private static ModelLayerLocation register(String path) {
         return register("main", new ResourceLocation(AllBarkAllBite.MODID, path));
