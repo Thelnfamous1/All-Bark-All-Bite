@@ -58,8 +58,9 @@ public class SingleEntityManager implements TickableEntityManager {
                 if(!valid) onInvalid.accept(this.entity);
                 if (isRemoved) {
                     switch (removalReason) {
-                        case CHANGED_DIMENSION, UNLOADED_TO_CHUNK, UNLOADED_WITH_PLAYER ->
-                                this.entityUuid = this.entity.getUUID();
+                        case CHANGED_DIMENSION, UNLOADED_TO_CHUNK, UNLOADED_WITH_PLAYER -> {
+                            if(this.entity != null) this.entityUuid = this.entity.getUUID();
+                        }
                     }
                 }
                 this.entity = null;
