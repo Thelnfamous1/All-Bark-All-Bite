@@ -38,7 +38,6 @@ import net.minecraft.world.level.CustomSpawner;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraftforge.event.TickEvent;
-import net.minecraftforge.event.entity.EntityEvent;
 import net.minecraftforge.event.entity.EntityJoinLevelEvent;
 import net.minecraftforge.event.entity.living.BabyEntitySpawnEvent;
 import net.minecraftforge.event.entity.living.LivingEntityUseItemEvent;
@@ -132,6 +131,7 @@ public class ForgeEventHandler {
         }
     }
 
+    /*
     @SubscribeEvent
     static void onEntitySize(EntityEvent.Size event){
         Entity entity = event.getEntity();
@@ -140,6 +140,7 @@ public class ForgeEventHandler {
             event.setNewSize(resize, true);
         }
     }
+     */
 
     @SubscribeEvent
     static void onLivingUpdate(LivingEvent.LivingTickEvent event){

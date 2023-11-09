@@ -6,6 +6,7 @@
   "refmap": "all_bark_all_bite.refmap.json",
   "mixins": [
     "EntityRendererDispatcherMixin",
+    "EntityMixin",
     "LivingEntityAccessor",
     "LivingEntityMixin",
     "MobAccessor",
